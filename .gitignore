@@ -1,0 +1,11 @@
+#node modules
+node_modules
+
+#editor settings file
+.vscode
+
+#output folders
+out
+dist
+build
+.cache
