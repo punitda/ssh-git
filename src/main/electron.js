@@ -4,7 +4,7 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 
 const path = require('path');
-const isDev = require('electron-is-dev');
+const isDev = require('./electron-is-dev');
 
 let mainWindow;
 
