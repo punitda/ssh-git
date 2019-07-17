@@ -1,7 +1,8 @@
 {
-  "name": "electron-parcel-react",
-  "version": "1.0.0",
-  "description": "",
+  "name": "ssh-git",
+  "productName": "ssh-git",
+  "version": "0.0.1",
+  "description": "Electron app used to generate, add and manage ssh keys for using git with dev platforms like Github/Bitbucket/Gitlab, etc.",
   "main": "src/main/electron.js",
   "scripts": {
     "react-start": "parcel -p 3000 public/index.html",
