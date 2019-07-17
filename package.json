@@ -6,12 +6,12 @@
   "scripts": {
     "react-start": "parcel -p 3000 ./src/index.html",
     "react-build": "parcel build ./src/index.html --out-dir build --public-url ./",
-    "start" : "concurrently \"cross-env BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
-    "electron-build" : "electron-builder -mwl",
-    "electron-build-mac" : "electron-builder",
-    "clean-build" : "rm -rf build/ .cache dist/",
-    "build" : "yarn clean-build && yarn react-build && yarn electron-build",
-    "build:mac" : "yarn clean-build && yarn react-build && yarn electron-build-mac"
+    "start": "concurrently \"cross-env BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
+    "electron-build": "electron-builder -mwl",
+    "electron-build-mac": "electron-builder",
+    "clean-build": "rm -rf build/ .cache dist/",
+    "build": "yarn clean-build && yarn react-build && yarn electron-build",
+    "build:mac": "yarn clean-build && yarn react-build && yarn electron-build-mac"
   },
   "keywords": [],
   "author": "",
@@ -32,21 +32,21 @@
     "parcel-bundler": "^1.12.3",
     "wait-on": "^3.3.0"
   },
-  "build" : {
-    "appId" : "dev.punitd.ssh-git",
-    "files" : [
+  "build": {
+    "appId": "dev.punitd.ssh-git",
+    "files": [
       "src/main/electron.js",
       "src/assets/*",
       "build/**/*"
     ],
-    "mac" : {
-      "target" : "dmg"
+    "mac": {
+      "target": "dmg"
     },
-    "win" : {
-      "target" : "nsis"
+    "win": {
+      "target": "nsis"
     },
-    "linux" : {
-      "target" : "deb"
+    "linux": {
+      "target": "deb"
     }
   },
   "homepage": "./"
