@@ -7551,6 +7551,26 @@ video {
   z-index: auto;
 }
 
+.rotate-1\/8 {
+  transform: rotate(45deg);
+}
+
+.rotate-1\/4 {
+  transform: rotate(90deg);
+}
+
+.rotate-1\/2 {
+  transform: rotate(180deg);
+}
+
+.rotate-3\/8 {
+  transform: rotate(135deg);
+}
+
+.rotate-3\/4 {
+  transform: rotate(270deg);
+}
+
 @media (min-width: 640px) {
   .sm\:appearance-none {
     -webkit-appearance: none;
