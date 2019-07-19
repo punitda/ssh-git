@@ -1,17 +1,19 @@
-const electron = require('electron');
-const app = electron.app;
-
-const BrowserWindow = electron.BrowserWindow;
-
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const isDev = require('./electron-is-dev');
 
 let mainWindow;
 
+const preloadScriptPath = path.join(__dirname, 'preload.js');
+
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 680,
+    width: 1200,
+    height: 800,
+    webPreferences : {
+      nodeIntegration : false,
+      preload: preloadScriptPath
+    }
   });
 
   mainWindow.loadURL(
@@ -23,7 +25,16 @@ function createWindow() {
   mainWindow.on('closed', () => (mainWindow = null));
 }
 
-app.on('ready', createWindow);
+function setUpListeners() {
+  ipcMain.on('open-external', (_event, { path }) => {
+    shell.openExternal(path);
+  });
+}
+
+app.on('ready', () => {
+  createWindow();
+  setUpListeners();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
