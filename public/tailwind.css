@@ -7551,24 +7551,8 @@ video {
   z-index: auto;
 }
 
-.rotate-1\/8 {
-  transform: rotate(45deg);
-}
-
-.rotate-1\/4 {
-  transform: rotate(90deg);
-}
-
-.rotate-1\/2 {
-  transform: rotate(180deg);
-}
-
-.rotate-3\/8 {
-  transform: rotate(135deg);
-}
-
-.rotate-3\/4 {
-  transform: rotate(270deg);
+.bg-gradient-purple-black {
+  background-image: linear-gradient(#553c9a, #1a202c);
 }
 
 @media (min-width: 640px) {

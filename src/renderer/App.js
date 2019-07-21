@@ -4,6 +4,8 @@ import uuid from 'uuid/v4';
 import { openExternal } from '../lib/app-shell';
 import { oauth } from '../lib/config';
 
+import Wave from './components/Wave';
+
 const REDIRECT_URI = 'ssh-git://oauth';
 const { github, bitbucket, gitlab } = oauth;
 
@@ -35,19 +37,22 @@ class App extends React.Component {
   render() {
     return (
       <div>
-        <div className="pb-12">
-          <AlphaBadge />
-          <h1 className="text-center font-bold text-4xl text-purple-600 uppercase underline">
+        <div className="flex flex-col items-center pb-8 bg-gradient-purple-black">
+          <h1 className="mt-16 text-center font-bold text-4xl text-white uppercase underline">
             ssh-git
           </h1>
-          <p className="text-left px-16 pt-4 text-xl text-gray-800">
+          <AlphaBadge className="fixed z-10 left-0 top-0" />
+          <p className="text-left px-16 pt-4 text-xl  text-white">
             ssh-git is a tool to help you generate, add and manage ssh keys for
             using git with dev platforms like Github, Bitbucket and Gitlab, etc.
             without you having to touch commandline for it.
           </p>
+          <button className="rounded-lg shadow-lg font-bold bg-teal-400 text-white active:bg-teal-600 py-2 mt-16 w-48 text-xl">
+            Generate Keys
+          </button>
         </div>
-        <hr className="border border-dashed" />
-        <div className="flex flex-col items-center">
+        <Wave />
+        <div className="pt-16 flex flex-col items-center">
           <h2 className="text-xl py-8 font-semibold text-gray-700">
             Generate keys for
           </h2>
