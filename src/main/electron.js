@@ -10,10 +10,10 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    webPreferences : {
-      nodeIntegration : false,
-      preload: preloadScriptPath
-    }
+    webPreferences: {
+      nodeIntegration: false,
+      preload: preloadScriptPath,
+    },
   });
 
   mainWindow.loadURL(
@@ -31,7 +31,13 @@ function setUpListeners() {
   });
 }
 
+function setAsDefaultProtocolClient(protocol) {
+  // TODO: we need to add windows specific logic over here to set up default protocol
+  app.setAsDefaultProtocolClient(protocol);
+}
+
 app.on('ready', () => {
+  setAsDefaultProtocolClient('ssh-git');
   createWindow();
   setUpListeners();
 });
@@ -46,4 +52,12 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
   }
+});
+
+app.on('will-finish-launching', () => {
+  // MacOS only
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+    console.log(url);
+  });
 });

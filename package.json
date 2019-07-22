@@ -56,6 +56,12 @@
     },
     "linux": {
       "target": "deb"
+    },
+    "protocols": {
+      "name": "app-protocol",
+      "schemes": [
+        "ssh-git"
+      ]
     }
   },
   "homepage": "./"
