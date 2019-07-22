@@ -1,17 +1,25 @@
 import React from 'react';
-import { Router } from '@reach/router';
+import {
+  Router,
+  createMemorySource,
+  createHistory,
+  LocationProvider,
+} from '@reach/router';
 
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 
-const App = () => {
+let source = createMemorySource('/');
+let history = createHistory(source);
+
+function App() {
   return (
-    <div>
+    <LocationProvider history={history}>
       <Router>
         <Home path="/" />
         <Auth path="/oauth" />
       </Router>
-    </div>
+    </LocationProvider>
   );
-};
+}
 export default App;
