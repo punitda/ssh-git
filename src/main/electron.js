@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const isDev = require('./electron-is-dev');
+const parseAppURL = require('../lib/parse-app-url');
 
 let mainWindow;
 
@@ -58,6 +59,12 @@ app.on('will-finish-launching', () => {
   // MacOS only
   app.on('open-url', (event, url) => {
     event.preventDefault();
-    console.log(url);
+    handleAppURL(url);
   });
 });
+
+function handleAppURL(url) {
+  const { code, state } = parseAppURL(url);
+  mainWindow.focus();
+  mainWindow.webContents.send('auth-code', { code, state });
+}

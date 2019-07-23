@@ -9,8 +9,8 @@ import {
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 
-let source = createMemorySource('/');
-let history = createHistory(source);
+export const source = createMemorySource('/');
+const history = createHistory(source);
 
 function App() {
   return (
@@ -23,3 +23,7 @@ function App() {
   );
 }
 export default App;
+
+window.ipcRenderer.on('auth-code', (_event, state) => {
+  history.navigate('/oauth', { state, replace: true });
+});

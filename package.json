@@ -47,6 +47,7 @@
     "files": [
       "src/main/**/*",
       "src/assets/*",
+      "src/lib/**/*",
       "build/**/*"
     ],
     "mac": {
