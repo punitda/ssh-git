@@ -64,7 +64,20 @@ app.on('will-finish-launching', () => {
 });
 
 function handleAppURL(url) {
-  const { code, state } = parseAppURL(url);
-  mainWindow.focus();
-  mainWindow.webContents.send('auth-code', { code, state });
+  const authState = parseAppURL(url);
+  if (authState) {
+    const { code = null, state = null, token = null } = authState;
+    mainWindow.focus();
+    mainWindow.webContents.send('start-auth', {
+      code,
+      state,
+      token,
+    });
+  } else {
+    mainWindow.focus();
+    mainWindow.webContents.send(
+      'auth-error',
+      `Sorry, we couldn't fetch details. Please try again`
+    );
+  }
 }
