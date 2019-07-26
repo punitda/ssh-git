@@ -1,5 +1,7 @@
 const ipcRenderer = window.ipcRenderer;
 
-export const openExternal = path => {
+const openExternal = path => {
   ipcRenderer.send('open-external', { path });
 };
+
+module.exports = { openExternal };

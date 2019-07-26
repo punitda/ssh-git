@@ -1,16 +1,20 @@
 import React, { useContext, useEffect } from 'react';
-import uuid from 'uuid/v4';
 
 import Wave from '../components/Wave';
 import AlphaBadge from '../../assets/img/alpha_badge.svg';
 
 import { ClientStateContext } from '../Context';
-import { openExternal } from '../../lib/app-shell';
-import { oauth } from '../../lib/config';
-import { PROVIDERS } from '../utils/constants';
 
-const REDIRECT_URI = 'ssh-git://oauth';
-const { github, bitbucket, gitlab } = oauth;
+import { openExternal } from '../../lib/app-shell';
+import { providers } from '../../lib/config';
+
+import {
+  getGithubOAuthUrlAndState,
+  getBitbucketOAuthUrlAndState,
+  getGitlabOAuthUrlAndState,
+} from '../service/api';
+
+import { history } from '../App';
 
 function Home() {
   const clientStateContext = useContext(ClientStateContext);
@@ -19,46 +23,50 @@ function Home() {
     alert(error_msg);
   }
 
+  function authEventListener(_event, authState) {
+    if (clientStateContext.authState.state === authState.state) {
+      clientStateContext.setAuthState({
+        ...authState,
+      });
+      history.navigate('/oauth');
+    } else {
+      console.error("state value received from callback url don't match");
+    }
+  }
+
   useEffect(() => {
+    window.ipcRenderer.on('start-auth', authEventListener);
     window.ipcRenderer.on('auth-error', authErrorListener);
     return () => {
+      window.ipcRenderer.removeListener('start-auth', authEventListener);
       window.ipcRenderer.removeListener('auth-error', authErrorListener);
     };
   }, [clientStateContext]);
 
   function signInWithGithub() {
-    const CLIENT_ID = github.client_id;
-    const SCOPES = github.scopes;
-    const STATE = uuid();
+    const { url, state } = getGithubOAuthUrlAndState();
     clientStateContext.setAuthState({
-      state: STATE,
-      selectedProvider: `${PROVIDERS.GITHUB}`,
+      state,
+      selectedProvider: `${providers.GITHUB}`,
     });
-    const url = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=${SCOPES}&state=${STATE}`;
     openExternal(url);
   }
 
   function signInWithBitbucket() {
-    const CLIENT_ID = bitbucket.client_id;
-    const SCOPES = bitbucket.scopes;
-    const STATE = uuid();
+    const { url, state } = getBitbucketOAuthUrlAndState();
     clientStateContext.setAuthState({
-      state: STATE,
-      selectedProvider: `${PROVIDERS.BITBUCKET}`,
+      state,
+      selectedProvider: `${providers.BITBUCKET}`,
     });
-    const url = `https://bitbucket.org/site/oauth2/authorize?client_id=${CLIENT_ID}&scope=${SCOPES}&response_type=token&state=${STATE}`;
     openExternal(url);
   }
 
   function signInWithGitlab() {
-    const CLIENT_ID = gitlab.client_id;
-    const SCOPES = gitlab.scopes;
-    const STATE = uuid();
+    const { url, state } = getGitlabOAuthUrlAndState();
     clientStateContext.setAuthState({
-      state: STATE,
-      selectedProvider: `${PROVIDERS.GITLAB}`,
+      state,
+      selectedProvider: `${providers.GITLAB}`,
     });
-    const url = `https://gitlab.com/oauth/authorize?client_id=${CLIENT_ID}&scope=${SCOPES}&redirect_uri=${REDIRECT_URI}&response_type=token&state=${STATE}`;
     openExternal(url);
   }
 

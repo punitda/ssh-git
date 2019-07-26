@@ -10,30 +10,20 @@ import Home from './pages/Home';
 import Auth from './pages/Auth';
 import { ClientStateContext } from './Context';
 
-export const source = createMemorySource('/');
-const history = createHistory(source);
+const source = createMemorySource('/');
+export const history = createHistory(source);
 
 class App extends React.Component {
   setAuthState = authState => {
-    this.setState(prevState => ({ ...prevState, authState }));
+    this.setState(prevState => ({
+      authState: { ...prevState.authState, ...authState },
+    }));
   };
 
   state = {
     authState: { state: '', token: '', selectedProvider: '' },
     setAuthState: this.setAuthState,
   };
-
-  authEventListener = (_event, state) => {
-    history.navigate('/oauth', { state, replace: true });
-  };
-
-  componentDidMount() {
-    window.ipcRenderer.on('start-auth', this.authEventListener);
-  }
-
-  componentWillUnmount() {
-    window.ipcRenderer.removeListener('start-auth', this.authEventListener);
-  }
 
   render() {
     return (

@@ -1,8 +1,9 @@
+require('dotenv').config();
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const isDev = require('./electron-is-dev');
 const parseAppURL = require('../lib/parse-app-url');
-
+const requestGithubAccessToken = require('./api');
 let mainWindow;
 
 const preloadScriptPath = path.join(__dirname, 'preload.js');
@@ -63,13 +64,16 @@ app.on('will-finish-launching', () => {
   });
 });
 
-function handleAppURL(url) {
-  const authState = parseAppURL(url);
+async function handleAppURL(callbackurl) {
+  const authState = parseAppURL(callbackurl);
   if (authState) {
-    const { code = null, state = null, token = null } = authState;
+    let { code = null, state = null, token = null } = authState;
     mainWindow.focus();
+    if (code) {
+      // This means it is github callbackurl and we need to first obtain "access_token" value.
+      token = await requestGithubAccessToken(code);
+    }
     mainWindow.webContents.send('start-auth', {
-      code,
       state,
       token,
     });
