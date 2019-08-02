@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 
 import Wave from '../components/Wave';
-import AlphaBadge from '../../assets/img/alpha_badge.svg';
+import AlphaBadge from '../../../public/assets/img/alpha_badge.svg';
 
 import { ClientStateContext } from '../Context';
 

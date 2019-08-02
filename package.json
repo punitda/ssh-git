@@ -6,13 +6,13 @@
   "main": "src/main/electron.js",
   "scripts": {
     "react-start": "parcel -p 3000 public/index.html",
-    "watch-css": "postcss src/assets/css/tailwind.css -o public/tailwind.css --watch",
-    "start": "concurrently \"yarn watch-css\" \"cross-env BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
+    "watch-css": "postcss public/tailwind.css -o public/build/tailwind.css --watch",
+    "start": "concurrently \"yarn watch-css\" \"yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
     "react-build": "parcel build public/index.html --out-dir build --public-url ./",
-    "build-css": "postcss src/assets/css/tailwind.css -o public/tailwind.css ",
+    "build-css": "postcss public/tailwind.css -o public/build/tailwind.css ",
     "electron-build": "electron-builder -mwl",
     "electron-build-mac": "electron-builder",
-    "clean-build": "rm -rf build/ .cache dist/",
+    "clean-build": "rm -rf build/ .cache dist/ public/build && yarn build-css",
     "build": "yarn clean-build && yarn build-css && yarn react-build && yarn electron-build",
     "build:mac": "yarn clean-build && yarn build-css && yarn react-build && yarn electron-build-mac"
   },
@@ -49,7 +49,6 @@
     "appId": "dev.punitd.ssh-git",
     "files": [
       "src/main/**/*",
-      "src/assets/*",
       "src/lib/**/*",
       "build/**/*"
     ],

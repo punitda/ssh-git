@@ -12,3 +12,6 @@ build
 
 #config files
 .env
+
+#generated-css
+public/build
