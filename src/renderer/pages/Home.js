@@ -80,10 +80,12 @@ function Home() {
         <p className="text-left px-16 pt-4 text-xl  text-white">
           ssh-git is a tool to help you generate, add and manage ssh keys for
           using git with dev platforms like Github, Bitbucket and Gitlab, etc.
-          without you having to touch commandline for it.
+          with few clicks. No fuss!
         </p>
-        <button className="rounded-lg shadow-lg font-bold bg-teal-400 text-white active:bg-teal-600 py-2 mt-16 w-48 text-xl">
-          Generate Keys
+        <button
+          className="rounded-lg shadow-lg font-bold bg-white text-gray-800 active:bg-gray-300 uppercase py-2 mt-16 w-40 text-lg
+        ">
+          Get Started
         </button>
       </div>
       <Wave />
