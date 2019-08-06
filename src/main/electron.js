@@ -8,6 +8,8 @@ let mainWindow;
 
 const preloadScriptPath = path.join(__dirname, 'preload.js');
 
+let githubConfig = {};
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -30,6 +32,10 @@ function createWindow() {
 function setUpListeners() {
   ipcMain.on('open-external', (_event, { path }) => {
     shell.openExternal(path);
+  });
+
+  ipcMain.on('github-config', (_event, config) => {
+    githubConfig = config;
   });
 }
 
@@ -66,22 +72,35 @@ app.on('will-finish-launching', () => {
 
 async function handleAppURL(callbackurl) {
   const authState = parseAppURL(callbackurl);
+  let { code = null, state = null, token = null } = authState;
+
   if (authState) {
-    let { code = null, state = null, token = null } = authState;
-    mainWindow.focus();
-    if (code) {
-      // This means it is github callbackurl and we need to first obtain "access_token" value.
-      token = await requestGithubAccessToken(code);
+    try {
+      if (code) {
+        // This means it is github callbackurl and we need to first obtain "access_token" value.
+        token = await requestGithubAccessToken(code, githubConfig);
+
+        if (!token) {
+          showError(`Something went wrong. Please try again`);
+          return;
+        }
+      }
+      mainWindow.focus();
+      mainWindow.webContents.send('start-auth', {
+        state,
+        token,
+      });
+    } catch (error) {
+      showError(`Something went wrong. Please try again. ${error}`);
     }
-    mainWindow.webContents.send('start-auth', {
-      state,
-      token,
-    });
   } else {
-    mainWindow.focus();
-    mainWindow.webContents.send(
-      'auth-error',
-      `Sorry, we couldn't fetch details. Please try again`
+    showError(
+      `Something went wrong. We couldn't verify the validity of the request. Please try again.`
     );
   }
+}
+
+function showError(message) {
+  mainWindow.focus();
+  mainWindow.webContents.send('auth-error', message);
 }

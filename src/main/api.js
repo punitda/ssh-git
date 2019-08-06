@@ -1,8 +1,7 @@
-const { oauth_base_urls, oauth, providers } = require('../lib/config');
+const { oauth_base_urls, providers } = require('../lib/config');
 const request = require('../lib/http');
-const { github } = oauth;
 
-async function requestGithubAccessToken(code) {
+async function requestGithubAccessToken(code, githubConfig) {
   try {
     const baseUrl = oauth_base_urls.GITHUB;
     const response = await request(
@@ -12,8 +11,8 @@ async function requestGithubAccessToken(code) {
       providers.GITHUB,
       null,
       {
-        client_id: github.client_id,
-        client_secret: github.client_secret,
+        client_id: githubConfig.client_id,
+        client_secret: githubConfig.client_secret,
         code,
       }
     );

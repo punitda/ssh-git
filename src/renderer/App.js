@@ -13,6 +13,8 @@ import { ClientStateContext } from './Context';
 const source = createMemorySource('/');
 export const history = createHistory(source);
 
+import { oauth } from '../lib/config';
+
 class App extends React.Component {
   setAuthState = authState => {
     this.setState(prevState => ({
@@ -24,6 +26,10 @@ class App extends React.Component {
     authState: { state: '', token: '', selectedProvider: '' },
     setAuthState: this.setAuthState,
   };
+
+  componentDidMount() {
+    window.ipcRenderer.send('github-config', oauth.github);
+  }
 
   render() {
     return (
