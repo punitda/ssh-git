@@ -7,7 +7,9 @@ import {
 } from '@reach/router';
 
 import Home from './pages/Home';
-import Auth from './pages/Auth';
+import SSHSetup from './pages/SSHSetup';
+import UpdateRemote from './pages/UpdateRemote';
+
 import { ClientStateContext } from './Context';
 
 const source = createMemorySource('/');
@@ -37,7 +39,8 @@ class App extends React.Component {
         <LocationProvider history={history}>
           <Router>
             <Home path="/" />
-            <Auth path="/oauth" />
+            <SSHSetup path="/oauth" />
+            <UpdateRemote path="/updateRemote" />
           </Router>
         </LocationProvider>
       </ClientStateContext.Provider>

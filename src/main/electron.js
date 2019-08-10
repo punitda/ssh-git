@@ -11,12 +11,13 @@ let githubConfig = {};
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 960,
+    height: 540,
     webPreferences: {
       nodeIntegration: false,
       preload: preloadScriptPath,
     },
+    maximizable: false,
   });
 
   mainWindow.loadURL(
