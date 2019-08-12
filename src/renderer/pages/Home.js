@@ -1,17 +1,8 @@
 import React from 'react';
 
 import AlphaBadge from '../../../public/assets/img/alpha_badge.svg';
-import { history } from '../App';
 
-export default function Home() {
-  function navigationToSetupSSHFlow() {
-    history.navigate('oauth');
-  }
-
-  function navigateToUpdateRemoteFlow() {
-    history.navigate('updateRemote');
-  }
-
+export default function Home({ navigateTo }) {
   return (
     <div className="bg-gray-800 h-screen">
       <div className="flex justify-between">
@@ -28,12 +19,12 @@ export default function Home() {
         </h1>
         <button
           className="w-56 px-4 py-2 mt-20 text-white text-xl font-semibold bg-purple-700 hover:bg-purple-500 rounded focus:outline-none"
-          onClick={navigationToSetupSSHFlow}>
+          onClick={_e => navigateTo('/oauth')}>
           Setup SSH
         </button>
         <button
           className="w-56 px-4 py-2 mt-8 text-gray-800 text-xl font-semibold bg-teal-300 hover:bg-teal-100 rounded focus:outline-none"
-          onClick={navigateToUpdateRemoteFlow}>
+          onClick={_e => navigateTo('/updateRemote')}>
           Update Remote
         </button>
       </div>

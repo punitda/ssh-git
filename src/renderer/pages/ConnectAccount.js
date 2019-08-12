@@ -1,12 +1,13 @@
 import React, { useContext, useEffect } from 'react';
 
-import Wave from '../components/Wave';
-import AlphaBadge from '../../../public/assets/img/alpha_badge.svg';
-
 import { ClientStateContext } from '../Context';
 
 import { openExternal } from '../../lib/app-shell';
 import { providers } from '../../lib/config';
+
+import githublogo from '../../../public/assets/img/github_logo.png';
+import bitbucketlogo from '../../../public/assets/img/bitbucket_logo.png';
+import gitlablogo from '../../../public/assets/img/gitlab_logo.png';
 
 import {
   getGithubOAuthUrlAndState,
@@ -71,51 +72,30 @@ function ConnectAccount() {
   }
 
   return (
-    <div>
-      <div className="flex flex-col items-center pb-8 bg-gradient-purple-black">
-        <h1 className="mt-16 text-center font-bold text-4xl text-white uppercase underline">
-          ssh-git
-        </h1>
-        <AlphaBadge className="fixed z-10 left-0 top-0" />
-        <p className="text-left px-16 pt-4 text-xl  text-white">
-          ssh-git is a tool to help you generate, add and manage ssh keys for
-          using git with dev platforms like Github, Bitbucket and Gitlab, etc.
-          with few clicks. No fuss!
-        </p>
-        <button
-          className="rounded-lg shadow-lg font-bold bg-white text-gray-800 active:bg-gray-300 uppercase py-2 mt-16 w-40 text-lg
-        ">
-          Get Started
+    <>
+      <h1 className="text-2xl text-gray-900 font-semibold text-center mt-8">
+        Please select platform to connect?
+      </h1>
+      <div className="flex justify-center mt-12">
+        <button className="flex flex-col items-center justify-center w-40 h-40 m-4 p-2 text-center bg-gray-200 rounded-lg shadow-lg font-semibold text-gray-900 text-xl focus:outline-none focus:bg-blue-200 focus:border-2 focus:border-blue-500">
+          <img src={githublogo} width="48" height="48" alt="github logo" />
+          <h2 className="pt-4">Github</h2>
+        </button>
+        <button className="flex flex-col items-center justify-center w-40 h-40 m-4 p-2 text-center bg-gray-200 rounded-lg shadow-lg font-semibold text-gray-900 text-xl focus:outline-none focus:bg-blue-200 focus:border-2 focus:border-blue-500">
+          <img src={bitbucketlogo} width="56" height="56" alt="github logo" />
+          <h2 className="pt-4">Bitbucket</h2>
+        </button>
+        <button className="flex flex-col items-center justify-center w-40 h-40 m-4 p-2 text-center bg-gray-200 rounded-lg shadow-lg font-semibold text-gray-900 text-xl focus:outline-none focus:bg-blue-200 focus:border-2 focus:border-blue-500">
+          <img src={gitlablogo} width="64" height="64" alt="github logo" />
+          <h2 className="pt-4">GitLab</h2>
         </button>
       </div>
-      <Wave />
-      <div className="pt-16 flex flex-col items-center">
-        <h2 className="text-xl py-8 font-semibold text-gray-700">
-          Generate keys for
-        </h2>
-        <button
-          onClick={signInWithGithub}
-          className="rounded-lg shadow-lg font-semibold bg-gray-900 text-white py-2 m-2 w-40 text-xl">
-          Github
-        </button>
-        <span className="text-gray-700 py-2">
-          ----------------OR----------------
-        </span>
-        <button
-          onClick={signInWithBitbucket}
-          className="rounded-lg shadow-lg font-semibold bg-blue-500 text-white py-2 m-2 w-40 text-xl">
-          Bitbucket
-        </button>
-        <span className="text-gray-700 py-2">
-          ----------------OR----------------
-        </span>
-        <button
-          onClick={signInWithGitlab}
-          className="rounded-lg shadow-lg font-semibold bg-orange-500 text-white p-2 m-2 w-40 text-xl">
-          Gitlab
+      <div className="text-right mr-16 mt-8">
+        <button className="px-6 py-2 text-gray-100 text-xl font-bold rounded bg-blue-500 hover:bg-blue-400 focus:bg-blue-600">
+          Next
         </button>
       </div>
-    </div>
+    </>
   );
 }
 export default ConnectAccount;
