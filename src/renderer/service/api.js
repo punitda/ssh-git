@@ -23,8 +23,8 @@ export async function requestGithubUserProfile(token) {
       null
     );
 
-    const { login, email } = response.data;
-    return { login, email };
+    const { login, email, avatar_url } = response.data;
+    return { login, email, avatar_url };
   } catch (error) {
     console.error(
       `Error fetching Github user profile using token:  ${token} \n ${error}`
@@ -61,11 +61,15 @@ export async function requestBitbucketUserProfile(token) {
       emailRequest,
     ]);
     const result = {};
+
     result.username = accountResponse.data.username;
-    const { email } = emailResponse.data.values.filter(
+    result.avatar_url = accountResponse.data.links.avatar.href;
+
+    const [email] = emailResponse.data.values.filter(
       email => email.is_primary === true
-    )[0];
+    );
     result.email = email;
+
     return result;
   } catch (error) {
     console.error(
@@ -86,8 +90,9 @@ export async function requestGitlabUserProfile(token) {
       token,
       null
     );
-    const { username, email } = response.data;
-    return { username, email };
+
+    const { username, email, avatar_url } = response.data;
+    return { username, email, avatar_url };
   } catch (error) {
     console.error(
       `Error fetching Gitlab user profile using token:  ${token} \n ${error}`
@@ -96,29 +101,30 @@ export async function requestGitlabUserProfile(token) {
   }
 }
 
-export function getGithubOAuthUrlAndState() {
+export function getOauthUrlsAndState(provider) {
   const state = uuid();
-  const url = `${oauth_base_urls.GITHUB}/authorize?client_id=${
-    github.client_id
-  }&scope=${github.scopes}&state=${state}`;
+  let url;
+  switch (provider) {
+    case providers.GITHUB:
+      url = `${oauth_base_urls.GITHUB}/authorize?client_id=${
+        github.client_id
+      }&scope=${github.scopes}&state=${state}`;
+      break;
+    case providers.BITBUCKET:
+      url = `${oauth_base_urls.BITBUCKET}/authorize?client_id=${
+        bitbucket.client_id
+      }&scope=${bitbucket.scopes}&response_type=token&state=${state}`;
+      break;
+    case providers.GITLAB:
+      url = `${oauth_base_urls.GITLAB}/authorize?client_id=${
+        gitlab.client_id
+      }&scope=${
+        gitlab.scopes
+      }&redirect_uri=${REDIRECT_URI}&response_type=token&state=${state}`;
+      break;
 
-  return { url, state };
-}
-
-export function getBitbucketOAuthUrlAndState() {
-  const state = uuid();
-  const url = `${oauth_base_urls.BITBUCKET}/authorize?client_id=${
-    bitbucket.client_id
-  }&scope=${bitbucket.scopes}&response_type=token&state=${state}`;
-  return { url, state };
-}
-
-export function getGitlabOAuthUrlAndState() {
-  const state = uuid();
-  const url = `${oauth_base_urls.GITLAB}/authorize?client_id=${
-    gitlab.client_id
-  }&scope=${
-    gitlab.scopes
-  }&redirect_uri=${REDIRECT_URI}&response_type=token&state=${state}`;
+    default:
+      throw new Error('Invalid provider provided for generating oauth url');
+  }
   return { url, state };
 }

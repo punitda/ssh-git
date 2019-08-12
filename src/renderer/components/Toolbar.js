@@ -1,5 +1,5 @@
 import React from 'react';
-import LeftArrowSvg from '../../../public/assets/img/left_arrow.svg';
+import LeftArrowSvg from '../../assets/img/left_arrow.svg';
 
 export default function Toolbar({ onBackPressed, title }) {
   return (

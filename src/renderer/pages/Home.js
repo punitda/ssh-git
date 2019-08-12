@@ -1,6 +1,6 @@
 import React from 'react';
 
-import AlphaBadge from '../../../public/assets/img/alpha_badge.svg';
+import AlphaBadge from '../../assets/img/alpha_badge.svg';
 
 export default function Home({ navigateTo }) {
   return (

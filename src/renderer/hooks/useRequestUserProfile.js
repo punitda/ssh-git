@@ -48,6 +48,7 @@ export function useRequestUserProfile(selectedProvider, token) {
                 payload: {
                   email: profile.email,
                   username: profile.login,
+                  avatar_url: profile.avatar_url,
                 },
               });
             }
@@ -60,6 +61,7 @@ export function useRequestUserProfile(selectedProvider, token) {
                 payload: {
                   email: profile.email,
                   username: profile.username,
+                  avatar_url: profile.avatar_url,
                 },
               });
             }
@@ -72,6 +74,7 @@ export function useRequestUserProfile(selectedProvider, token) {
                 payload: {
                   email: profile.email,
                   username: profile.username,
+                  avatar_url: profile.avatar_url,
                 },
               });
             }

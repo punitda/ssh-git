@@ -8,8 +8,8 @@ import {
 
 //Pages
 import Home from './pages/Home';
-import SSHSetup from './pages/SSHSetup';
-import UpdateRemote from './pages/UpdateRemote';
+import SSHSetup from './pages/sshsetup/SSHSetup';
+import UpdateRemote from './pages/updateremote/UpdateRemote';
 
 //Global app wide context to store user state.
 import { ClientStateContext } from './Context';

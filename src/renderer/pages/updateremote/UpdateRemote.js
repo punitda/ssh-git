@@ -1,7 +1,7 @@
 import React from 'react';
 
-import Toolbar from '../components/Toolbar';
-import { history } from '../App';
+import Toolbar from '../../components/Toolbar';
+import { history } from '../../App';
 
 export default function UpdateRemote() {
   function goBackToHomeScreen() {
