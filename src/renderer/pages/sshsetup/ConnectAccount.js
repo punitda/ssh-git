@@ -24,7 +24,7 @@ function ConnectAccount({ onNext }) {
       clientStateContext.setAuthState({
         ...authState,
       });
-      onNext('oauth/success');
+      onNext('oauth/generate');
     } else {
       console.error("state value received from callback url don't match");
     }

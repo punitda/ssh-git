@@ -9,7 +9,6 @@ import StepsNavBar from '../../components/StepsNavBar';
 //Pages
 import ConnectAccount from './ConnectAccount';
 import GenerateKeys from './GenerateKeys';
-import UserProfile from './UserProfile';
 
 //Internal
 import { history } from '../../App';
@@ -41,8 +40,7 @@ export default function SSHSetup() {
       <StepsNavBar steps={steps} activeIndex={activeStepIndex} />
       <Router>
         <ConnectAccount path="/" onNext={onNext} />
-        <UserProfile path="/success" onNext={onNext} />
-        <GenerateKeys path="/generate" />
+        <GenerateKeys path="/generate" onNext={onNext} />
       </Router>
     </div>
   );
