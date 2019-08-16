@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
+
+.primary-btn {
+  @apply px-6 py-2 text-gray-100 text-xl font-bold rounded;
+}
+
+.primary-btn:enabled {
+  @apply bg-blue-600;
+}
+
+.primary-btn:hover:enabled {
+  @apply bg-blue-500;
+}
+
+.primary-btn:focus:enabled {
+  @apply outline-none shadow-outline;
+}
+
+.primary-btn:active:enabled {
+  @apply bg-blue-700;
+}
+
+.primary-btn:disabled {
+  @apply bg-blue-400;
+}
+
 @tailwind utilities;

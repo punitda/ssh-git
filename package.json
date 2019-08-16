@@ -11,6 +11,7 @@
     "build-mac": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-mac",
     "react-start": "parcel -p 3000 public/index.html",
     "build-css": "postcss public/tailwind.css -o public/build/tailwind.css",
+    "watch-css": "postcss public/tailwind.css -o public/build/tailwind.css --watch",
     "react-build": "parcel build public/index.html --out-dir build --public-url ./",
     "electron-build-all": "electron-builder -mwl",
     "electron-build-mac": "electron-builder",

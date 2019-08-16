@@ -48,11 +48,8 @@ const GenerateKeys = ({ onNext }) => {
       <div className="text-right mr-16 mt-8">
         <button
           onClick={_e => onNext('oauth/generate')}
-          className={
-            isLoading
-              ? styles.disabledNextStepButton
-              : styles.enabledNextStepButton
-          }>
+          className="primary-btn"
+          disabled={isLoading}>
           Next
         </button>
       </div>
@@ -61,8 +58,3 @@ const GenerateKeys = ({ onNext }) => {
 };
 
 export default GenerateKeys;
-
-const styles = {
-  disabledNextStepButton: `px-6 py-2 text-gray-100 text-xl font-bold rounded bg-blue-400`,
-  enabledNextStepButton: `px-6 py-2 text-gray-100 text-xl font-bold rounded bg-blue-600 hover:bg-blue-500 focus:bg-blue-500`,
-};
