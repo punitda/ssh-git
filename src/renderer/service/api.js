@@ -65,10 +65,10 @@ export async function requestBitbucketUserProfile(token) {
     result.username = accountResponse.data.username;
     result.avatar_url = accountResponse.data.links.avatar.href;
 
-    const [email] = emailResponse.data.values.filter(
+    const [primaryAccount] = emailResponse.data.values.filter(
       email => email.is_primary === true
     );
-    result.email = email;
+    result.email = primaryAccount.email;
 
     return result;
   } catch (error) {
