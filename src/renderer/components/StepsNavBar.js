@@ -19,6 +19,6 @@ export default function StepsNavBar({ steps, activeIndex }) {
 }
 
 const styles = {
-  activeLink: `mr-12 text-xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2`,
+  activeLink: `mr-12 text-xl font-bold text-gray-800 border-b-2 border-blue-600 px-4 pb-2`,
   inActiveLink: `mr-12 text-xl text-gray-700 border-b-2 border-transparent pb-2`,
 };

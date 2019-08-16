@@ -63,6 +63,6 @@ const GenerateKeys = ({ onNext }) => {
 export default GenerateKeys;
 
 const styles = {
-  disabledNextStepButton: `px-6 py-2 text-gray-100 text-xl font-bold rounded bg-blue-300`,
-  enabledNextStepButton: `px-6 py-2 text-gray-100 text-xl font-bold rounded bg-blue-500 hover:bg-blue-400 focus:bg-blue-600`,
+  disabledNextStepButton: `px-6 py-2 text-gray-100 text-xl font-bold rounded bg-blue-400`,
+  enabledNextStepButton: `px-6 py-2 text-gray-100 text-xl font-bold rounded bg-blue-600 hover:bg-blue-500 focus:bg-blue-500`,
 };
