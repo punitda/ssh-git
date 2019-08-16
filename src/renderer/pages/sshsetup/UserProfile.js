@@ -27,14 +27,18 @@ const UserProfile = ({ onNext }) => {
           sizeUnit={'px'}
           color={'#4299e1'}
         />
-        {isError && <p className="text-center text-red-600 ">{error}</p>}
+        {isError && (
+          <p className="text-center text-red-600 ">
+            Something went wrong. Please try again.
+          </p>
+        )}
         {data ? (
           <>
             <img
-              class="h-24 w-24 rounded-full border-2 border-blue-500 shadow-lg mx-auto mb-4"
+              className="h-24 w-24 rounded-full border-2 border-blue-500 shadow-lg mx-auto mb-4"
               src={data.avatar_url ? data.avatar_url : githublogo}
             />
-            <div class="text-center">
+            <div className="text-center">
               <h2 className="text-2xl text-gray-600">{data.username}</h2>
               <div className="text-blue-500 text-xl ">{data.email}</div>
             </div>
