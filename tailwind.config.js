@@ -7,10 +7,18 @@ module.exports = {
       colors: {
         'steel-gray': '#758CAC',
       },
+      height: {
+        96: '24rem',
+        128: '32rem',
+      },
+      width: {
+        96: '24rem',
+        128: '32rem',
+      },
     },
   },
   variants: {
-    borderWidth: ['responsive', 'hover', 'focus']
+    borderWidth: ['responsive', 'hover', 'focus'],
   },
   plugins: [require('./plugins/gradients')],
 };
