@@ -12,7 +12,7 @@ let githubConfig = {};
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 960,
-    height: 540,
+    height: 720,
     webPreferences: {
       nodeIntegration: false,
       preload: preloadScriptPath,
