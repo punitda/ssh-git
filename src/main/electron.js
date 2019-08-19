@@ -3,11 +3,11 @@ const path = require('path');
 const isDev = require('./electron-is-dev');
 const parseAppURL = require('../lib/parse-app-url');
 const requestGithubAccessToken = require('./api');
-let mainWindow;
+const { generateKey } = require('../lib/core');
 
+let mainWindow; //reference to our mainWindow.
+let githubConfig = {}; //workaround to store github config because electron-builder doesn't works with .env files.
 const preloadScriptPath = path.join(__dirname, 'preload.js');
-
-let githubConfig = {};
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -36,6 +36,17 @@ function setUpListeners() {
 
   ipcMain.on('github-config', (_event, config) => {
     githubConfig = config;
+  });
+
+  ipcMain.on('start-generating-keys', async (event, config) => {
+    try {
+      const result = await generateKey(config, event);
+      if (result === 0) {
+        event.reply('generated-keys-result', { success: true, error: null });
+      }
+    } catch (error) {
+      event.reply('generated-keys-result', { success: false, error });
+    }
   });
 }
 

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 
 import { ClientStateContext } from '../../Context';
 import { useRequestUserProfile } from '../../hooks/useRequestUserProfile';
@@ -13,15 +13,63 @@ const GenerateKeys = ({ onNext }) => {
     selectedProvider = null,
   } = clientStateContext.authState;
 
+  useEffect(() => {
+    window.ipcRenderer.on('generated-keys-result', generatedKeysResultListener);
+    window.ipcRenderer.on('generate-keys-step-result', stepResultsListener);
+    return () => {
+      window.ipcRenderer.removeListener(
+        'generated-keys-result',
+        generatedKeysResultListener
+      );
+
+      window.ipcRenderer.removeListener(
+        'generate-keys-step-result',
+        stepResultsListener
+      );
+    };
+  }, [clientStateContext]);
+
   const [{ data, isLoading, isError }] = useRequestUserProfile(
     selectedProvider,
     token
   );
 
-  const [passPhrase, setPassPhrase] = useState('');
+  const [passphrase, setPassPhrase] = useState('');
+
+  //Listen to ssh generate final result
+  function generatedKeysResultListener(_event, result) {
+    const { error, success } = result;
+    if (success) {
+      console.log('on to next screen');
+    } else {
+      console.log('something went wrong when generating keys: ', error);
+    }
+  }
+
+  //Listen to individual ssh steps
+  function stepResultsListener(_event, result) {
+    const { error, success, index } = result;
+    if (success) {
+      console.log(`${index + 1} step done`);
+    } else {
+      console.log(`Something went wrong in ${index} step: `, error.message);
+    }
+  }
+
+  //Generate Key clickListener
+  function generateKeys(_event) {
+    const { username, email } = data;
+    const config = {
+      selectedProvider,
+      username,
+      email,
+      passphrase,
+    };
+    window.ipcRenderer.send('start-generating-keys', config);
+  }
 
   return (
-    <div className="h-128 w-96 mt-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg mx-auto ">
+    <div className="h-128 w-96 my-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto">
       <PropagateLoader
         loading={isLoading}
         size={16}
@@ -59,7 +107,7 @@ const GenerateKeys = ({ onNext }) => {
               type="password"
               className="text-gray-600 text-lg bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
               placeholder="Enter passphrase..."
-              value={passPhrase}
+              value={passphrase}
               onChange={e => setPassPhrase(e.target.value)}
             />
             <p className="mt-6 text-sm text-gray-600">
@@ -74,9 +122,9 @@ const GenerateKeys = ({ onNext }) => {
         </>
       ) : null}
       <button
-        onClick={_e => onNext('oauth/generate')}
+        onClick={generateKeys}
         className={isLoading ? `hidden` : `primary-btn`}
-        disabled={isLoading || passPhrase === ''}>
+        disabled={isLoading || passphrase === ''}>
         Generate Keys
       </button>
     </div>

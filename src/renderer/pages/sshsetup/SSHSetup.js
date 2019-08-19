@@ -35,7 +35,7 @@ export default function SSHSetup() {
   }
 
   return (
-    <div className="bg-gray-300 h-screen">
+    <div className="bg-gray-300 h-full">
       <Toolbar onBackPressed={goBackToHomeScreen} title="Setup SSH" />
       <StepsNavBar steps={steps} activeIndex={activeStepIndex} />
       <Router>
