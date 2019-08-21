@@ -7,7 +7,7 @@ const { getCommands, createSshConfig } = require('./util');
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 
 //Core method
-async function generateKey(config, event) {
+async function generateKey(config) {
   const sshConfig = createSshConfig(config);
   const commands = getCommands(sshConfig);
 
@@ -23,25 +23,8 @@ async function generateKey(config, event) {
       }
       if (code) {
         throw new Error(`${command} failed with code : ${code}`);
-      } else {
-        // Using this to communicate with renderer process
-        // Current step done in ssh generationg process to be used
-        // in UI to notify user about current state.
-        // Looks like a workaround, because we're passing the event object
-        // in from the electron process. Not sure if this is the correct way.
-        event.reply('generate-keys-step-result', {
-          index,
-          success: true,
-          error: null,
-        });
       }
     } catch (error) {
-      // Communicate error to our renderer process in case something goes wrong.
-      event.reply('generate-keys-step-result', {
-        index,
-        success: false,
-        error,
-      });
       return Promise.reject(error);
     }
   }

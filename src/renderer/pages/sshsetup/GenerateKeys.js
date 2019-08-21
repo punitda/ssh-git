@@ -6,35 +6,28 @@ import { useRequestUserProfile } from '../../hooks/useRequestUserProfile';
 import PropagateLoader from 'react-spinners/PropagateLoader';
 import githublogo from '../../../assets/img/github_logo.png';
 
-const GenerateKeys = ({ onNext }) => {
+const GenerateKeys = () => {
   const clientStateContext = useContext(ClientStateContext);
   const {
     token = null,
     selectedProvider = null,
   } = clientStateContext.authState;
 
+  const [{ data, isLoading, isError }] = useRequestUserProfile(
+    selectedProvider,
+    token
+  );
+  const [passphrase, setPassPhrase] = useState('');
+
   useEffect(() => {
     window.ipcRenderer.on('generated-keys-result', generatedKeysResultListener);
-    window.ipcRenderer.on('generate-keys-step-result', stepResultsListener);
     return () => {
       window.ipcRenderer.removeListener(
         'generated-keys-result',
         generatedKeysResultListener
       );
-
-      window.ipcRenderer.removeListener(
-        'generate-keys-step-result',
-        stepResultsListener
-      );
     };
   }, [clientStateContext]);
-
-  const [{ data, isLoading, isError }] = useRequestUserProfile(
-    selectedProvider,
-    token
-  );
-
-  const [passphrase, setPassPhrase] = useState('');
 
   //Listen to ssh generate final result
   function generatedKeysResultListener(_event, result) {
@@ -43,16 +36,6 @@ const GenerateKeys = ({ onNext }) => {
       console.log('on to next screen');
     } else {
       console.log('something went wrong when generating keys: ', error);
-    }
-  }
-
-  //Listen to individual ssh steps
-  function stepResultsListener(_event, result) {
-    const { error, success, index } = result;
-    if (success) {
-      console.log(`${index + 1} step done`);
-    } else {
-      console.log(`Something went wrong in ${index} step: `, error.message);
     }
   }
 
