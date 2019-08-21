@@ -73,7 +73,7 @@ function ConnectAccount({ onNext }) {
           </button>
         ))}
       </div>
-      <div className="text-right mr-16 mt-8">
+      <div className="text-right mr-16 mt-16">
         <button
           onClick={connectToProvider}
           className="primary-btn"

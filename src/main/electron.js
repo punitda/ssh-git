@@ -18,6 +18,7 @@ function createWindow() {
       preload: preloadScriptPath,
     },
     maximizable: false,
+    backgroundColor: '#e2e8f0',
   });
 
   mainWindow.loadURL(
