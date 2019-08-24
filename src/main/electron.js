@@ -13,6 +13,9 @@ let mainWindow; //reference to our mainWindow.
 let githubConfig = {}; //workaround to store github config because electron-builder doesn't works with .env files.
 const preloadScriptPath = path.join(__dirname, 'preload.js');
 
+/**
+ * Creating main window and loading the contents in it.
+ */
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 960,
@@ -34,16 +37,21 @@ function createWindow() {
   mainWindow.on('closed', () => (mainWindow = null));
 }
 
+/**
+ * Set up listeners for specific actions from renderer processes.
+ */
 function setUpListeners() {
+  // Listen to request from renderer process to open external links
   ipcMain.on('open-external', (_event, { path }) => {
     shell.openExternal(path);
   });
 
-  //Workaround to store github config. :(
+  // Workaround to store github config coming in from our renderer process:(
   ipcMain.on('github-config', (_event, config) => {
     githubConfig = config;
   });
 
+  // Listen to renderer process and start generating keys based on currently passed `config`.
   ipcMain.on('start-generating-keys', async (event, config) => {
     try {
       const result = await generateKey(config);
@@ -62,23 +70,58 @@ function setUpListeners() {
   // Generic channel to listen to error messages sent in from renderer process
   // and show Native Error dialog to user.
   ipcMain.on('show-error-dialog', (_event, errorMessage) => {
-    dialog.showErrorBox(
-      'Oops!',
-      errorMessage
-        ? errorMessage
-        : `Something went wrong there. Looks like we messed up somewhere when generating SSH key for you. :(`
-    );
+    showError(errorMessage);
   });
+}
+
+/**
+ * Electron Application lifecycle listeners.
+ */
+app.on('ready', () => {
+  setAsDefaultProtocolClient('ssh-git');
+  createWindow();
+  setUpListeners();
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', () => {
+  if (mainWindow === null) {
+    createWindow();
+  }
+});
+
+app.on('will-finish-launching', () => {
+  // MacOS only
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+    handleAppURL(url);
+  });
+});
+
+/**
+ * Need to set default protocol to which app could listen to.
+ * It is set to `ssh-git` so that app can handle all deeplinks of type
+ * `ssh-git://` clicked/redirected from our browser
+ * @param {*} protocol - default protocol to handle `ssh-git://` links
+ */
+function setAsDefaultProtocolClient(protocol) {
+  // TODO: we need to add windows specific logic over here to set up default protocol
+  app.setAsDefaultProtocolClient(protocol);
 }
 
 /**
  * Called when key with same name already exists.
  *  Show dialog asking user whether they wish to override keys or not.
  *  Depending on user's response we either
- *  - Start with generateKey process again telling it  to override keys
+ *  - Start with generate key process again this time telling it to override keys
  *  OR
- *  -  Send error back to our renderer process telling it that user doesn't
- *  wishes to override keys using build it in error `DoNotOverrideKeysError`.
+ *  - Send error back to our renderer process telling it that user doesn't
+ *  wishes to override keys using custom error `DoNotOverrideKeysError`.
  * @param {*} config - intialConfig passed from our renderer process for which we're generating key.
  * @param {*} rsaFileName - used to show specific filename in dialog where we ask user to override key.
  * @param {*} event - event object used to reply/send events to renderer process listening under `start-generating-key` channel.
@@ -109,37 +152,11 @@ async function retryGeneratingKey(config, rsaFileName, event) {
   }
 }
 
-function setAsDefaultProtocolClient(protocol) {
-  // TODO: we need to add windows specific logic over here to set up default protocol
-  app.setAsDefaultProtocolClient(protocol);
-}
-
-app.on('ready', () => {
-  setAsDefaultProtocolClient('ssh-git');
-  createWindow();
-  setUpListeners();
-});
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-app.on('activate', () => {
-  if (mainWindow === null) {
-    createWindow();
-  }
-});
-
-app.on('will-finish-launching', () => {
-  // MacOS only
-  app.on('open-url', (event, url) => {
-    event.preventDefault();
-    handleAppURL(url);
-  });
-});
-
+/**
+ * Used for handle Auth redirect urls coming back from auth providers
+ * like Github, Bitbucket and Gitlab with auth details like `code or access_token and state`
+ * @param {*} callbackurl - url which is received when `ssh-git://` deeplinks are opened
+ */
 async function handleAppURL(callbackurl) {
   const authState = parseAppURL(callbackurl);
   let { code = null, state = null, token = null } = authState;
@@ -170,9 +187,16 @@ async function handleAppURL(callbackurl) {
   }
 }
 
-function showError(message) {
-  mainWindow.focus();
-  mainWindow.webContents.send('auth-error', message);
+/**
+ * Showing User facing dialogs
+ */
+function showError(errorMessage) {
+  dialog.showErrorBox(
+    'Oops!',
+    errorMessage
+      ? errorMessage
+      : `Something went wrong there. Looks like we messed up somewhere when generating SSH key for you. :(`
+  );
 }
 
 function showDialogAskingToOverrideKeys(rsaFileName) {
