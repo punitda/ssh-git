@@ -9,6 +9,7 @@ import StepsNavBar from '../../components/StepsNavBar';
 //Pages
 import ConnectAccount from './ConnectAccount';
 import GenerateKeys from './GenerateKeys';
+import AddKeys from './AddKeys';
 
 //Internal
 import { history } from '../../App';
@@ -23,11 +24,15 @@ export default function SSHSetup() {
 
   function onNext(path) {
     switch (path) {
+      case 'oauth/success':
+        setActiveStepIndex(0);
+        break;
       case 'oauth/generate':
         setActiveStepIndex(1);
         break;
-      case 'oauth/success':
-        setActiveStepIndex(0);
+      case 'oauth/addKeys':
+        setActiveStepIndex(2);
+        break;
       default:
         break;
     }
@@ -41,6 +46,7 @@ export default function SSHSetup() {
       <Router>
         <ConnectAccount path="/" onNext={onNext} />
         <GenerateKeys path="/generate" onNext={onNext} />
+        <AddKeys path="/addKeys" onNext={onNext} />
       </Router>
     </div>
   );

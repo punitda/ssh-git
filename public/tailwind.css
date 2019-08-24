@@ -2,7 +2,8 @@
 @tailwind components;
 
 .primary-btn {
-  @apply px-6 py-2 text-gray-100 text-xl font-bold rounded;
+  @apply px-6 py-2 text-gray-100 text-xl font-bold rounded inline-block;
+  transition: all 0.3s;
 }
 
 .primary-btn:enabled {

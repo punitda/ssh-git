@@ -1,15 +1,37 @@
+//built-in
 const os = require('os');
 const path = require('path');
+const fs = require('fs');
 const { spawn } = require('child_process');
+
+// libs
 const { onExit, streamWrite, streamEnd } = require('@rauschma/stringio');
+
+// internal
 const { getCommands, createSshConfig } = require('./util');
+const { SSHKeyExistsError } = require('./error');
 
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 
-//Core method
+//Core method(Meat of the App)
 async function generateKey(config) {
   const sshConfig = createSshConfig(config);
-  const commands = getCommands(sshConfig);
+  const privateKeyFilePath = path.join(sshDir, sshConfig.rsaFileName);
+  const publicKeyFilePath = path.join(sshDir, `${sshConfig.rsaFileName}.pub`);
+
+  // Check if SSH key with same name exists and user hasn't instructed to override keys yet?
+  // In that case, throw error instructing calling process to show user dialog asking whether they
+  // wish to override keys or not.
+  if (!sshConfig.overrideKeys && fs.existsSync(privateKeyFilePath)) {
+    return Promise.reject(new SSHKeyExistsError(sshConfig.rsaFileName));
+  }
+  if (sshConfig.overrideKeys) {
+    //Removing ssh key pair in case of overriding keys.
+    fs.unlinkSync(privateKeyFilePath);
+    fs.unlinkSync(publicKeyFilePath);
+  }
+
+  const commands = getCommands(sshConfig); //Get list of commands based on `config` object passed.
 
   //Traditional for-loop #FTW.
   for (let index = 0; index < commands.length; index++) {
@@ -17,6 +39,7 @@ async function generateKey(config) {
     try {
       let code;
       if (index === 2) {
+        //Pass passphrase stored in config for our 3rd command(ssh-add) so user don't have to type and remember the password again.
         code = await runCommand(command, sshConfig.passphrase);
       } else {
         code = await runCommand(command);
@@ -28,7 +51,7 @@ async function generateKey(config) {
       return Promise.reject(error);
     }
   }
-  return Promise.resolve(0);
+  return Promise.resolve(0); //If everything goes well send status code of '0' indicating success.
 }
 
 async function runCommand() {
@@ -56,7 +79,7 @@ async function runCommand() {
      * have to worry and enter the same passphrase again.
      */
     if (passphrase) {
-      writeToWritable(childProcess.stdin, passphrase);
+      writePassPhraseToStdIn(childProcess.stdin, passphrase);
     }
 
     await onExit(childProcess);
@@ -65,7 +88,7 @@ async function runCommand() {
   }
 }
 
-async function writeToWritable(writable, passphrase) {
+async function writePassPhraseToStdIn(writable, passphrase) {
   await streamWrite(writable, `${passphrase}\n`);
   await streamEnd(writable);
 }

@@ -6,7 +6,7 @@ import { useRequestUserProfile } from '../../hooks/useRequestUserProfile';
 import PropagateLoader from 'react-spinners/PropagateLoader';
 import githublogo from '../../../assets/img/github_logo.png';
 
-const GenerateKeys = () => {
+const GenerateKeys = ({ onNext }) => {
   const clientStateContext = useContext(ClientStateContext);
   const {
     token = null,
@@ -18,6 +18,7 @@ const GenerateKeys = () => {
     token
   );
   const [passphrase, setPassPhrase] = useState('');
+  const [isGeneratingKey, setGenerateKeyLoader] = useState(false);
 
   useEffect(() => {
     window.ipcRenderer.on('generated-keys-result', generatedKeysResultListener);
@@ -32,10 +33,15 @@ const GenerateKeys = () => {
   //Listen to ssh generate final result
   function generatedKeysResultListener(_event, result) {
     const { error, success } = result;
+    setGenerateKeyLoader(false);
     if (success) {
-      console.log('on to next screen');
-    } else {
-      console.log('something went wrong when generating keys: ', error);
+      onNext('/oauth/addKeys');
+    }
+
+    if (error && error.name === 'DoNotOverrideKeysError') {
+      onNext('/'); //Take user back to home screen because they said no to override keys.
+    } else if (error) {
+      showErrorDialog(error.message);
     }
   }
 
@@ -48,7 +54,15 @@ const GenerateKeys = () => {
       email,
       passphrase,
     };
+
+    setGenerateKeyLoader(true);
+
+    clientStateContext.setAuthState({ username, email });
     window.ipcRenderer.send('start-generating-keys', config);
+  }
+
+  function showErrorDialog(errorMessage) {
+    window.ipcRenderer.send('show-error-dialog', errorMessage);
   }
 
   return (
@@ -106,9 +120,15 @@ const GenerateKeys = () => {
       ) : null}
       <button
         onClick={generateKeys}
-        className={isLoading ? `hidden` : `primary-btn`}
-        disabled={isLoading || passphrase === ''}>
-        Generate Keys
+        className={
+          isLoading
+            ? `hidden`
+            : isGeneratingKey
+            ? `primary-btn px-16 text-2xl generateKey`
+            : `primary-btn`
+        }
+        disabled={isLoading || isGeneratingKey || passphrase === ''}>
+        {isGeneratingKey ? 'Generating Keys...' : 'Generate Keys'}
       </button>
     </div>
   );

@@ -12,3 +12,33 @@
   width: 100%;
   height: 5.5rem;
 }
+
+.generateKey {
+  position: relative;
+  pointer-events: none;
+  color: #63b3ed;
+}
+
+.generateKey::after {
+  content: '';
+  position: absolute;
+  right: 1rem;
+  top: 20%;
+  width: 2rem;
+  height: 2rem;
+  box-shadow: 0px 0px 0 1px #63b3ed;
+  border: 2px solid white;
+  border-radius: 9999px;
+  border-right-color: transparent;
+  border-top-color: transparent;
+  animation: spinAround 500ms infinite linear;
+}
+
+@keyframes spinAround {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
