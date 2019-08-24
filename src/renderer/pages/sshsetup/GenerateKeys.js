@@ -3,7 +3,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { ClientStateContext } from '../../Context';
 import { useRequestUserProfile } from '../../hooks/useRequestUserProfile';
 
-import PropagateLoader from 'react-spinners/PropagateLoader';
+import SquareLoader from 'react-spinners/SquareLoader';
 import githublogo from '../../../assets/img/github_logo.png';
 
 const GenerateKeys = ({ onNext }) => {
@@ -67,11 +67,11 @@ const GenerateKeys = ({ onNext }) => {
 
   return (
     <div className="h-128 w-96 my-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto">
-      <PropagateLoader
+      <SquareLoader
         loading={isLoading}
-        size={16}
+        size={48}
         sizeUnit={'px'}
-        color={'#4299e1'}
+        color={'#63b3ed'}
       />
       {isError && (
         <p className="text-center text-red-600 ">
