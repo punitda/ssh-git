@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 
 import { ClientStateContext } from '../../Context';
 import { useRequestUserProfile } from '../../hooks/useRequestUserProfile';
@@ -17,11 +17,56 @@ const GenerateKeys = ({ onNext }) => {
     selectedProvider,
     token
   );
+  const [passphrase, setPassPhrase] = useState('');
+  const [isGeneratingKey, setGenerateKeyLoader] = useState(false);
 
-  const [passPhrase, setPassPhrase] = useState('');
+  useEffect(() => {
+    window.ipcRenderer.on('generated-keys-result', generatedKeysResultListener);
+    return () => {
+      window.ipcRenderer.removeListener(
+        'generated-keys-result',
+        generatedKeysResultListener
+      );
+    };
+  }, [clientStateContext]);
+
+  //Listen to ssh generate final result
+  function generatedKeysResultListener(_event, result) {
+    const { error, success } = result;
+    setGenerateKeyLoader(false);
+    if (success) {
+      onNext('/oauth/addKeys');
+    }
+
+    if (error && error.name === 'DoNotOverrideKeysError') {
+      onNext('/'); //Take user back to home screen because they said no to override keys.
+    } else if (error) {
+      showErrorDialog(error.message);
+    }
+  }
+
+  //Generate Key clickListener
+  function generateKeys(_event) {
+    const { username, email } = data;
+    const config = {
+      selectedProvider,
+      username,
+      email,
+      passphrase,
+    };
+
+    setGenerateKeyLoader(true);
+
+    clientStateContext.setAuthState({ username, email });
+    window.ipcRenderer.send('start-generating-keys', config);
+  }
+
+  function showErrorDialog(errorMessage) {
+    window.ipcRenderer.send('show-error-dialog', errorMessage);
+  }
 
   return (
-    <div className="h-128 w-96 mt-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg mx-auto ">
+    <div className="h-128 w-96 my-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto">
       <PropagateLoader
         loading={isLoading}
         size={16}
@@ -59,7 +104,7 @@ const GenerateKeys = ({ onNext }) => {
               type="password"
               className="text-gray-600 text-lg bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
               placeholder="Enter passphrase..."
-              value={passPhrase}
+              value={passphrase}
               onChange={e => setPassPhrase(e.target.value)}
             />
             <p className="mt-6 text-sm text-gray-600">
@@ -74,10 +119,16 @@ const GenerateKeys = ({ onNext }) => {
         </>
       ) : null}
       <button
-        onClick={_e => onNext('oauth/generate')}
-        className={isLoading ? `hidden` : `primary-btn`}
-        disabled={isLoading || passPhrase === ''}>
-        Generate Keys
+        onClick={generateKeys}
+        className={
+          isLoading
+            ? `hidden`
+            : isGeneratingKey
+            ? `primary-btn px-16 text-2xl generateKey`
+            : `primary-btn`
+        }
+        disabled={isLoading || isGeneratingKey || passphrase === ''}>
+        {isGeneratingKey ? 'Generating Keys...' : 'Generate Keys'}
       </button>
     </div>
   );

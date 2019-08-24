@@ -15,10 +15,6 @@ function ConnectAccount({ onNext }) {
   const clientStateContext = useContext(ClientStateContext);
   const [selectedProvider, setSelectedProvider] = useState('');
 
-  function authErrorListener(_event, error_msg) {
-    alert(error_msg);
-  }
-
   function authEventListener(_event, authState) {
     if (clientStateContext.authState.state === authState.state) {
       clientStateContext.setAuthState({
@@ -32,10 +28,8 @@ function ConnectAccount({ onNext }) {
 
   useEffect(() => {
     window.ipcRenderer.on('start-auth', authEventListener);
-    window.ipcRenderer.on('auth-error', authErrorListener);
     return () => {
       window.ipcRenderer.removeListener('start-auth', authEventListener);
-      window.ipcRenderer.removeListener('auth-error', authErrorListener);
     };
   }, [clientStateContext]);
 
@@ -73,7 +67,7 @@ function ConnectAccount({ onNext }) {
           </button>
         ))}
       </div>
-      <div className="text-right mr-16 mt-8">
+      <div className="text-right mr-16 mt-16">
         <button
           onClick={connectToProvider}
           className="primary-btn"
