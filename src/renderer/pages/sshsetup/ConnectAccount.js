@@ -1,30 +1,31 @@
-import React, { useContext, useEffect, useState } from 'react';
+// external libs
+import React, { useContext, useEffect, useState, useReducer } from 'react';
 
+// internal React
 import { ClientStateContext } from '../../Context';
+import { getOauthUrlsAndState } from '../../service/api';
+import fetchReducer from '../../fetchReducer';
 
+// internal libs
 import { openExternal } from '../../../lib/app-shell';
 import { providers } from '../../../lib/config';
 
+// images
 import githublogo from '../../../assets/img/github_logo.png';
 import bitbucketlogo from '../../../assets/img/bitbucket_logo.png';
 import gitlablogo from '../../../assets/img/gitlab_logo.png';
 
-import { getOauthUrlsAndState } from '../../service/api';
-
 function ConnectAccount({ onNext }) {
   const clientStateContext = useContext(ClientStateContext);
   const [selectedProvider, setSelectedProvider] = useState('');
-
-  function authEventListener(_event, authState) {
-    if (clientStateContext.authState.state === authState.state) {
-      clientStateContext.setAuthState({
-        ...authState,
-      });
-      onNext('oauth/generate');
-    } else {
-      console.error("state value received from callback url don't match");
+  const [{ isLoading: isConnecting, isError, data }, dispatch] = useReducer(
+    fetchReducer,
+    {
+      isConnecting: false,
+      isError: false,
+      data: null,
     }
-  }
+  );
 
   useEffect(() => {
     window.ipcRenderer.on('start-auth', authEventListener);
@@ -33,7 +34,25 @@ function ConnectAccount({ onNext }) {
     };
   }, [clientStateContext]);
 
+  // Listen to redirect uris coming in from auth providers after successful authentication
+  function authEventListener(_event, authState) {
+    if (clientStateContext.authState.state === authState.state) {
+      dispatch({ type: 'FETCH_SUCCESS', payload: { accountConnected: true } });
+
+      setTimeout(() => {
+        clientStateContext.setAuthState({
+          ...authState,
+        });
+        onNext('oauth/generate');
+      }, 1500);
+    } else {
+      dispatch({ type: 'FETCH_ERROR' });
+    }
+  }
+
+  // Click listener for button `Connect`.
   function connectToProvider() {
+    dispatch({ type: 'FETCH_INIT' });
     const { url, state } = getOauthUrlsAndState(selectedProvider);
     clientStateContext.setAuthState({
       state,
@@ -70,9 +89,23 @@ function ConnectAccount({ onNext }) {
       <div className="text-right mr-16 mt-16">
         <button
           onClick={connectToProvider}
-          className="primary-btn"
-          disabled={selectedProvider === ''}>
-          Connect
+          className={
+            isConnecting
+              ? `primary-btn px-16 text-2xl generateKey`
+              : isError
+              ? `primary-btn-error`
+              : data
+              ? `primary-btn-success`
+              : `primary-btn`
+          }
+          disabled={selectedProvider === '' || isConnecting}>
+          {isConnecting
+            ? 'Connecting...'
+            : isError
+            ? 'Retry'
+            : data
+            ? 'Success!'
+            : 'Connect'}
         </button>
       </div>
     </>
