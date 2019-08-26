@@ -21,7 +21,7 @@ function ConnectAccount({ onNext }) {
   const [{ isLoading: isConnecting, isError, data }, dispatch] = useReducer(
     fetchReducer,
     {
-      isConnecting: false,
+      isLoading: false,
       isError: false,
       data: null,
     }

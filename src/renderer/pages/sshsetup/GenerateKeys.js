@@ -32,7 +32,7 @@ const GenerateKeys = ({ onNext }) => {
     },
     dispatch,
   ] = useReducer(fetchReducer, {
-    isConnecting: false,
+    isLoading: false,
     isError: false,
     data: null,
   });
