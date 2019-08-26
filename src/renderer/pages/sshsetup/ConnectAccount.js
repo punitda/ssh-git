@@ -37,12 +37,11 @@ function ConnectAccount({ onNext }) {
   // Listen to redirect uris coming in from auth providers after successful authentication
   function authEventListener(_event, authState) {
     if (clientStateContext.authState.state === authState.state) {
+      clientStateContext.setAuthState({ ...authState });
+
       dispatch({ type: 'FETCH_SUCCESS', payload: { accountConnected: true } });
 
       setTimeout(() => {
-        clientStateContext.setAuthState({
-          ...authState,
-        });
         onNext('oauth/generate');
       }, 1500);
     } else {
