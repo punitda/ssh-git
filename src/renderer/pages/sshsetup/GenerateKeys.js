@@ -1,9 +1,13 @@
-import React, { useContext, useState, useEffect } from 'react';
+// External libs
+import React, { useContext, useState, useEffect, useReducer } from 'react';
 
+// Internal React
 import { ClientStateContext } from '../../Context';
 import { useRequestUserProfile } from '../../hooks/useRequestUserProfile';
+import fetchReducer from '../../fetchReducer';
 
-import PropagateLoader from 'react-spinners/PropagateLoader';
+// Images and Loaders
+import SquareLoader from 'react-spinners/SquareLoader';
 import githublogo from '../../../assets/img/github_logo.png';
 
 const GenerateKeys = ({ onNext }) => {
@@ -17,8 +21,21 @@ const GenerateKeys = ({ onNext }) => {
     selectedProvider,
     token
   );
+
   const [passphrase, setPassPhrase] = useState('');
-  const [isGeneratingKey, setGenerateKeyLoader] = useState(false);
+
+  const [
+    {
+      isLoading: isGeneratingKey,
+      isError: isGenerateKeyError,
+      data: generateKeySuccess,
+    },
+    dispatch,
+  ] = useReducer(fetchReducer, {
+    isLoading: false,
+    isError: false,
+    data: null,
+  });
 
   useEffect(() => {
     window.ipcRenderer.on('generated-keys-result', generatedKeysResultListener);
@@ -33,14 +50,17 @@ const GenerateKeys = ({ onNext }) => {
   //Listen to ssh generate final result
   function generatedKeysResultListener(_event, result) {
     const { error, success } = result;
-    setGenerateKeyLoader(false);
     if (success) {
-      onNext('/oauth/addKeys');
+      dispatch({ type: 'FETCH_SUCCESS', payload: { keyGenerated: true } });
+      setTimeout(() => {
+        onNext('/oauth/addKeys');
+      }, 1500);
     }
 
     if (error && error.name === 'DoNotOverrideKeysError') {
       onNext('/'); //Take user back to home screen because they said no to override keys.
     } else if (error) {
+      dispatch({ type: 'FETCH_ERROR' });
       showErrorDialog(error.message);
     }
   }
@@ -55,7 +75,7 @@ const GenerateKeys = ({ onNext }) => {
       passphrase,
     };
 
-    setGenerateKeyLoader(true);
+    dispatch({ type: 'FETCH_INIT' });
 
     clientStateContext.setAuthState({ username, email });
     window.ipcRenderer.send('start-generating-keys', config);
@@ -67,11 +87,11 @@ const GenerateKeys = ({ onNext }) => {
 
   return (
     <div className="h-128 w-96 my-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto">
-      <PropagateLoader
+      <SquareLoader
         loading={isLoading}
-        size={16}
+        size={48}
         sizeUnit={'px'}
-        color={'#4299e1'}
+        color={'#63b3ed'}
       />
       {isError && (
         <p className="text-center text-red-600 ">
@@ -125,10 +145,20 @@ const GenerateKeys = ({ onNext }) => {
             ? `hidden`
             : isGeneratingKey
             ? `primary-btn px-16 text-2xl generateKey`
+            : isGenerateKeyError
+            ? `primary-btn-error`
+            : generateKeySuccess
+            ? `primary-btn-success`
             : `primary-btn`
         }
         disabled={isLoading || isGeneratingKey || passphrase === ''}>
-        {isGeneratingKey ? 'Generating Keys...' : 'Generate Keys'}
+        {isGeneratingKey
+          ? 'Generating Keys...'
+          : isGenerateKeyError
+          ? 'Retry'
+          : generateKeySuccess
+          ? 'Success!'
+          : 'Generate Key'}
       </button>
     </div>
   );
