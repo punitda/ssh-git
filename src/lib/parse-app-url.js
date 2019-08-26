@@ -7,7 +7,7 @@ module.exports = function parseAppURL(callbackUrl) {
   const url = parsedUrl.url;
 
   //Making sure callback url is our app's allowed protocol
-  if (url !== 'ssh-git://oauth') {
+  if (url !== 'ssh-git://oauth/basic') {
     return null;
   }
 

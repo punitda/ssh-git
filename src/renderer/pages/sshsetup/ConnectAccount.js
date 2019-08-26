@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState, useReducer } from 'react';
 
 // internal React
 import { ClientStateContext } from '../../Context';
-import { getOauthUrlsAndState } from '../../service/api';
+import { getOauthUrlsForBasicInfo } from '../../service/api';
 import fetchReducer from '../../fetchReducer';
 
 // internal libs
@@ -52,7 +52,7 @@ function ConnectAccount({ onNext }) {
   // Click listener for button `Connect`.
   function connectToProvider() {
     dispatch({ type: 'FETCH_INIT' });
-    const { url, state } = getOauthUrlsAndState(selectedProvider);
+    const { url, state } = getOauthUrlsForBasicInfo(selectedProvider);
     clientStateContext.setAuthState({
       state,
       selectedProvider,

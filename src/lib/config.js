@@ -2,15 +2,25 @@ const oauth = {
   github: {
     client_id: process.env.GITHUB_CLIENT_ID,
     client_secret: process.env.GITHUB_CLIENT_SECRET,
-    scopes: 'user admin:public_key',
+    scopes: {
+      basic: 'user',
+      admin: 'admin:public_key',
+    },
   },
   bitbucket: {
-    client_id: process.env.BITBUCKET_CLIENT_ID,
-    scopes: 'account repository:admin',
+    basic_client_id: process.env.BITBUCKET_BASIC_CLIENT_ID,
+    admin_client_id: process.env.BITBUCKET_ADMIN_CLIENT_ID,
+    scopes: {
+      basic: 'account',
+      admin: 'repository:admin',
+    },
   },
   gitlab: {
     client_id: process.env.GITLAB_CLIENT_ID,
-    scopes: 'api read_user',
+    scopes: {
+      basic: 'read_user',
+      admin: 'api',
+    },
   },
 };
 
