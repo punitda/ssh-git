@@ -62,7 +62,7 @@ function ConnectAccount({ onNext }) {
 
   return (
     <>
-      <h1 className="text-2xl text-gray-900 font-semibold text-center mt-8">
+      <h1 className="text-2xl text-gray-900 text-center mt-8">
         Please select platform for which you are generating the SSH key
       </h1>
       <div className="flex justify-center mt-12">
