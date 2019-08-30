@@ -62,6 +62,7 @@ export async function requestBitbucketUserProfile(token) {
     const result = {};
 
     result.username = accountResponse.data.username;
+    result.uuid = accountResponse.data.uuid;
     result.avatar_url = accountResponse.data.links.avatar.href;
 
     const [primaryAccount] = emailResponse.data.values.filter(

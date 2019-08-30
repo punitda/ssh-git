@@ -67,7 +67,7 @@ const GenerateKeys = ({ onNext }) => {
 
   //Generate Key clickListener
   function generateKeys(_event) {
-    const { username, email } = data;
+    const { username, email, bitbucket_uuid = null } = data;
     const config = {
       selectedProvider,
       username,
@@ -77,7 +77,7 @@ const GenerateKeys = ({ onNext }) => {
 
     dispatch({ type: 'FETCH_INIT' });
 
-    clientStateContext.setAuthState({ username, email });
+    clientStateContext.setAuthState({ username, email, bitbucket_uuid });
     window.ipcRenderer.send('start-generating-keys', config);
   }
 

@@ -46,6 +46,7 @@ export function useRequestUserProfile(selectedProvider, token) {
                   email: profile.email,
                   username: profile.username,
                   avatar_url: profile.avatar_url,
+                  bitbucket_uuid: profile.uuid,
                 },
               });
             }
