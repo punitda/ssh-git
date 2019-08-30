@@ -4,14 +4,24 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 
+// Using promisify utility from node to convert readFile function to return Promise.
+const { promisify } = require('util');
+const readFileAsync = promisify(fs.readFile);
+
 // libs
 const { onExit, streamWrite, streamEnd } = require('@rauschma/stringio');
 
 // internal
-const { getCommands, createSshConfig } = require('./util');
+const {
+  getCommands,
+  createSshConfig,
+  getConfigFileContents,
+  getPublicKeyFileName,
+} = require('./util');
 const { SSHKeyExistsError } = require('./error');
 
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
+const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
 
 //Core method(Meat of the App)
 async function generateKey(config) {
@@ -50,6 +60,16 @@ async function generateKey(config) {
     } catch (error) {
       return Promise.reject(error);
     }
+  }
+
+  /**
+   * In case we aren't overriding ssh keys, we need to add our ssh config info
+   * into `config` file so that when using SSH this file can be used as lookup
+   * to use correct keys based on **host** value.
+   */
+  if (!sshConfig.overrideKeys) {
+    const configFileContents = getConfigFileContents(sshConfig);
+    fs.appendFileSync(sshConfigFileLocation, configFileContents);
   }
   return Promise.resolve(0); //If everything goes well send status code of '0' indicating success.
 }
@@ -93,6 +113,20 @@ async function writePassPhraseToStdIn(writable, passphrase) {
   await streamEnd(writable);
 }
 
+// get contents of public key based on current config values like username and selectedProvider.
+async function getPublicKeyContent(config) {
+  const publicKeyFileName = getPublicKeyFileName(config);
+  const publicKeyFilePath = path.join(os.homedir(), '.ssh', publicKeyFileName);
+
+  try {
+    const publicKeyContent = await readFileAsync(publicKeyFilePath);
+    return publicKeyContent;
+  } catch (error) {
+    return null;
+  }
+}
+
 module.exports = {
   generateKey,
+  getPublicKeyContent,
 };

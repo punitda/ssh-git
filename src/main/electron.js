@@ -6,8 +6,13 @@ const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const isDev = require('./electron-is-dev');
 const requestGithubAccessToken = require('./api');
 const parseAppURL = require('../lib/parse-app-url');
-const { generateKey } = require('../lib/core');
+const { generateKey, getPublicKeyContent } = require('../lib/core');
 const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
+
+const {
+  PUBLIC_KEY_COPY_REQUEST_CHANNEL,
+  PUBLIC_KEY_COPY_RESPONSE_CHANNEL,
+} = require('../lib/constants');
 
 let mainWindow; //reference to our mainWindow.
 let githubConfig = {}; //workaround to store github config because electron-builder doesn't works with .env files.
@@ -64,6 +69,18 @@ function setUpListeners() {
         return;
       }
       event.reply('generated-keys-result', { success: false, error });
+    }
+  });
+
+  // Listen to renderer process and send content of public key file based on config passed
+  ipcMain.on(PUBLIC_KEY_COPY_REQUEST_CHANNEL, async (event, config) => {
+    try {
+      const publicKeyContent = await getPublicKeyContent(config);
+      if (publicKeyContent) {
+        event.reply(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, publicKeyContent);
+      }
+    } catch (error) {
+      event.reply(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, null);
     }
   });
 
