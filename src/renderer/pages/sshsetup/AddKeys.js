@@ -79,7 +79,7 @@ function AddKeys({ onNext }) {
 
   function onPublicKeyChange(event) {
     event.preventDefault();
-    //Don't allow changing it
+    //Don't allow changing public key content
   }
 
   return (
@@ -88,31 +88,10 @@ function AddKeys({ onNext }) {
         To start using the generated ssh key, you need to add it to your
         account.
       </h2>
-      <p className="text-gray-600 text-sm text-center mx-8">
-        [Note : You can add keys either automatically(requires permissions){' '}
-        <span className="underline italic text-gray-700">OR</span> manually by
-        following the steps listed on right side]
-      </p>
-      <div className="flex flex-row mt-8 items-center justify-around ">
-        <h2 className="underline italic text-xl text-gray-700">
-          Automatic Process
-        </h2>
-        <h2 className="underline italic text-xl text-gray-700">
-          Manual Process
-        </h2>
-      </div>
-      <div className="flex flex-row mt-4 items-center justify-center">
+      <div className="flex flex-row mt-8 items-center justify-start mx-16">
         <div className="flex flex-col flex-1">
-          <button className="primary-btn mx-auto">Add Keys</button>
-        </div>
-        <div className="flex flex-col flex-none h-56">
-          <span className="h-24 border-r-2 border-dashed border-gray-500 w-1"></span>
-          <span className="text-gray-700 py-2 -mx-3 text-xl">OR</span>
-          <span className="h-24 border-r-2 border-dashed border-gray-500 w-1"></span>
-        </div>
-        <div className="flex flex-col flex-1">
-          <h3 className="text-lg mt-2 ml-32">Steps:</h3>
-          <ul className="text-gray-700 pr-12 text-left ml-32 mt-2">
+          <h3 className="text-lg">Follow below steps(Manual):</h3>
+          <ul className="text-gray-800 pr-12 text-left mt-2 leading-relaxed">
             {getManualSteps(selectedProvider).map((step, index) => {
               if (index === 2) {
                 return (
@@ -142,24 +121,35 @@ function AddKeys({ onNext }) {
             })}
           </ul>
         </div>
-      </div>
-      <div className="mx-auto my-4 w-1/2">
-        <h3 className="text-xl">Public Key</h3>
-        <div className="relative">
-          <button
-            className={keyCopied ? styles.keyCopied : styles.normal}
-            onClick={copyToClipboard}>
-            {keyCopied ? 'Key copied!' : 'Copy to clipboard!'}
-          </button>
-          <textarea
-            ref={textareaRef}
-            rows="8"
-            cols="5"
-            value={publicKeyContent}
-            onChange={onPublicKeyChange}
-            className="text-gray-600 text-base bg-gray-200 p-4 rounded border-2 mt-2 w-full resize-none "
-          />
+        <div className="w-1/2">
+          <h3 className="text-lg">Public Key</h3>
+          <div className="relative">
+            <button
+              className={keyCopied ? styles.keyCopied : styles.normal}
+              onClick={copyToClipboard}>
+              {keyCopied ? 'Key copied!' : 'Copy to clipboard!'}
+            </button>
+            <textarea
+              ref={textareaRef}
+              rows="8"
+              cols="5"
+              value={publicKeyContent}
+              onChange={onPublicKeyChange}
+              className="text-gray-600 text-base bg-gray-200 p-4 rounded-lg border-2 mt-2 w-full resize-none"
+            />
+          </div>
         </div>
+      </div>
+      <div className="flex flex-col items-center justify-center mx-16">
+        <h2 className="text-center text-gray-600 text-xl mt-12">
+          Do you think the above manual process is boring 😒 and want to add
+          keys directly? Yes, you can!
+        </h2>
+        <p className="text-gray-600">
+          (We can add keys on your behalf but you need to grant us some
+          permissions for it)
+        </p>
+        <button className="primary-btn my-4">Add Keys</button>
       </div>
     </div>
   );
@@ -179,7 +169,7 @@ function getManualSteps(selectedProvider) {
 }
 
 const github_steps = [
-  `Copy the Public Key you see below to your clipboard`,
+  `Copy the Public Key you see on the right side to the clipboard`,
   `Login in to your Github account`,
   `Open this `,
   `Once you're on that page, paste the key you just copied in 1st step under "Key" input and
@@ -188,7 +178,7 @@ const github_steps = [
 ];
 
 const bitbucket_steps = [
-  `Copy the Public Key you see below to your clipboard`,
+  `Copy the Public Key you see on the right side to the clipboard`,
   `Login in to your Bitbucket account`,
   `Open this `,
   `Once you're on that page, click on "Add key" button and paste the key you just copied in 1st step under "Key" input
@@ -197,7 +187,7 @@ const bitbucket_steps = [
 ];
 
 const gitlab_steps = [
-  `Copy the Public Key you see below to your clipboard`,
+  `Copy the Public Key you see on the right side to the clipboard`,
   `Login in to your Gitlab account`,
   `Open this `,
   `Once you're on that page, paste the key you just copied in 1st step under "Key" input 
