@@ -32,6 +32,20 @@ export async function requestGithubUserProfile(token) {
   }
 }
 
+export async function addKeysToGithubAccount(title, key, token) {
+  const baseUrl = api_base_urls.GITHUB;
+  const response = await request(
+    baseUrl,
+    '/user/keys',
+    'POST',
+    providers.GITHUB,
+    token,
+    { title, key }
+  );
+
+  return response;
+}
+
 export async function requestBitbucketUserProfile(token) {
   try {
     const baseUrl = api_base_urls.BITBUCKET;
@@ -99,6 +113,20 @@ export async function requestGitlabUserProfile(token) {
     );
     return null;
   }
+}
+
+export async function addKeysToGitlabAccount(title, key, token) {
+  const baseUrl = api_base_urls.GITLAB;
+  const response = await request(
+    baseUrl,
+    '/user/keys',
+    'POST',
+    providers.GITLAB,
+    token,
+    { title, key }
+  );
+
+  return response;
 }
 
 export function getOauthUrlsForBasicInfo(provider) {
