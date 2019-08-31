@@ -8,8 +8,7 @@ const oauth = {
     },
   },
   bitbucket: {
-    basic_client_id: process.env.BITBUCKET_BASIC_CLIENT_ID,
-    admin_client_id: process.env.BITBUCKET_ADMIN_CLIENT_ID,
+    client_id: process.env.BITBUCKET_CLIENT_ID,
     scopes: {
       basic: 'account',
       admin: 'repository:admin',

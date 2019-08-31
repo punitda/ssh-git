@@ -110,7 +110,7 @@ export function getOauthUrlsForBasicInfo(provider) {
       url = `${oauth_base_urls.GITHUB}/authorize?client_id=${github.client_id}&scope=${github.scopes.basic}&state=${state}&redirect_uri=${REDIRECT_URI}`;
       break;
     case providers.BITBUCKET:
-      url = `${oauth_base_urls.BITBUCKET}/authorize?client_id=${bitbucket.basic_client_id}&scope=${bitbucket.scopes.basic}&response_type=token&state=${state}&redirect_uri=${REDIRECT_URI}`;
+      url = `${oauth_base_urls.BITBUCKET}/authorize?client_id=${bitbucket.client_id}&scope=${bitbucket.scopes.basic}&response_type=token&state=${state}&redirect_uri=${REDIRECT_URI}`;
       break;
     case providers.GITLAB:
       url = `${oauth_base_urls.GITLAB}/authorize?client_id=${gitlab.client_id}&scope=${gitlab.scopes.basic}&response_type=token&state=${state}&redirect_uri=${REDIRECT_URI}`;

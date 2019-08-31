@@ -140,17 +140,19 @@ function AddKeys({ onNext }) {
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-center justify-center mx-16">
-        <h2 className="text-center text-gray-600 text-xl mt-12">
-          Do you think the above manual process is boring 😒 and want to add
-          keys directly? Yes, you can!
-        </h2>
-        <p className="text-gray-600">
-          (We can add keys on your behalf but you need to grant us some
-          permissions for it)
-        </p>
-        <button className="primary-btn my-4">Add Keys</button>
-      </div>
+      {selectedProvider !== providers.BITBUCKET && (
+        <div className="flex flex-col items-center justify-center mx-16">
+          <h2 className="text-center text-gray-600 text-xl mt-12">
+            Do you think the above manual process is boring 😒 and want to add
+            keys directly? Yes, you can!
+          </h2>
+          <p className="text-gray-600">
+            (We can add keys on your behalf but you need to grant us some
+            permissions for it)
+          </p>
+          <button className="primary-btn my-4">Add Keys</button>
+        </div>
+      )}
     </div>
   );
 }
