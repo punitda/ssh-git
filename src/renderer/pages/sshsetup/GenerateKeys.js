@@ -3,8 +3,8 @@ import React, { useContext, useState, useEffect, useReducer } from 'react';
 
 // Internal React
 import { ClientStateContext } from '../../Context';
-import { useRequestUserProfile } from '../../hooks/useRequestUserProfile';
-import fetchReducer from '../../fetchReducer';
+import useRequestUserProfile from '../../hooks/useRequestUserProfile';
+import fetchReducer from '../../reducers/fetchReducer';
 
 // Images and Loaders
 import SquareLoader from 'react-spinners/SquareLoader';

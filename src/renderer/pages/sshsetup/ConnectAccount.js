@@ -4,7 +4,7 @@ import React, { useContext, useEffect, useState, useReducer } from 'react';
 // internal React
 import { ClientStateContext } from '../../Context';
 import { getOauthUrlsForBasicInfo } from '../../service/api';
-import fetchReducer from '../../fetchReducer';
+import fetchReducer from '../../reducers/fetchReducer';
 
 // internal libs
 import { openExternal } from '../../../lib/app-shell';

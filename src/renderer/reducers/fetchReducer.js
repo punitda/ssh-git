@@ -1,4 +1,4 @@
-function fetchReducer(state, action) {
+export default function fetchReducer(state, action) {
   switch (action.type) {
     case 'FETCH_INIT':
       return { ...state, isLoading: true, isError: false };
@@ -15,5 +15,3 @@ function fetchReducer(state, action) {
       throw new Error(`Invalid action.type: ${action.type}`);
   }
 }
-
-export default fetchReducer;
