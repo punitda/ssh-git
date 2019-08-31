@@ -150,6 +150,22 @@ export function getOauthUrlsForBasicInfo(provider) {
   }
   return { url, state };
 }
+
+export function getOauthUrlsForSshKeys(provider) {
+  const state = uuid();
+  const REDIRECT_URI = 'ssh-git://oauth/admin';
+  let url;
+  switch (provider) {
+    case providers.GITHUB:
+      url = `${oauth_base_urls.GITHUB}/authorize?client_id=${github.client_id}&scope=${github.scopes.admin}&state=${state}&redirect_uri=${REDIRECT_URI}`;
+      break;
+    case providers.GITLAB:
+      url = `${oauth_base_urls.GITLAB}/authorize?client_id=${gitlab.client_id}&scope=${gitlab.scopes.admin}&response_type=token&state=${state}&redirect_uri=${REDIRECT_URI}`;
+      break;
+    default:
+      throw new Error(
+        'Invalid provider provided for generating oauth url for adding ssh keys'
+      );
   }
   return { url, state };
 }
