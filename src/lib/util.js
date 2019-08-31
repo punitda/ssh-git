@@ -51,9 +51,50 @@ Host ${config.host}
 `;
 }
 
+function getManualSteps(selectedProvider) {
+  switch (selectedProvider) {
+    case providers.GITHUB:
+      return github_steps;
+    case providers.BITBUCKET:
+      return bitbucket_steps;
+    case providers.GITLAB:
+      return gitlab_steps;
+    default:
+      break;
+  }
+}
+
+const github_steps = [
+  `Copy the Public Key you see on the right side to the clipboard`,
+  `Login in to your Github account`,
+  `Open this `,
+  `Once you're on that page, paste the key you just copied in 1st step under "Key" input and
+  for "Title" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
+  `Update Remote url of the repository`,
+];
+
+const bitbucket_steps = [
+  `Copy the Public Key you see on the right side to the clipboard`,
+  `Login in to your Bitbucket account`,
+  `Open this `,
+  `Once you're on that page, click on "Add key" button and paste the key you just copied in 1st step under "Key" input
+  and for "Label" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
+  `Update Remote url of the repository`,
+];
+
+const gitlab_steps = [
+  `Copy the Public Key you see on the right side to the clipboard`,
+  `Login in to your Gitlab account`,
+  `Open this `,
+  `Once you're on that page, paste the key you just copied in 1st step under "Key" input 
+  and for "Title" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
+  `Update Remote url of the repository`,
+];
+
 module.exports = {
   getCommands,
   createSshConfig,
   getConfigFileContents,
   getPublicKeyFileName,
+  getManualSteps,
 };

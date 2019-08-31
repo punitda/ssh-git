@@ -6,12 +6,17 @@ const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const isDev = require('./electron-is-dev');
 const requestGithubAccessToken = require('./api');
 const parseAppURL = require('../lib/parse-app-url');
-const { generateKey, getPublicKeyContent } = require('../lib/core');
+const {
+  generateKey,
+  getPublicKeyContent,
+  getSystemName,
+} = require('../lib/core');
 const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
 
 const {
   PUBLIC_KEY_COPY_REQUEST_CHANNEL,
   PUBLIC_KEY_COPY_RESPONSE_CHANNEL,
+  ADD_KEYS_PERMISSION_RESULT_CHANNEL,
 } = require('../lib/constants');
 
 let mainWindow; //reference to our mainWindow.
@@ -76,8 +81,12 @@ function setUpListeners() {
   ipcMain.on(PUBLIC_KEY_COPY_REQUEST_CHANNEL, async (event, config) => {
     try {
       const publicKeyContent = await getPublicKeyContent(config);
+      const systemName = getSystemName();
       if (publicKeyContent) {
-        event.reply(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, publicKeyContent);
+        event.reply(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, {
+          key: publicKeyContent,
+          title: systemName,
+        });
       }
     } catch (error) {
       event.reply(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, null);
@@ -190,10 +199,20 @@ async function handleAppURL(callbackurl) {
         }
       }
       mainWindow.focus();
-      mainWindow.webContents.send('start-auth', {
-        state,
-        token,
-      });
+
+      if (callbackurl.includes('basic')) {
+        mainWindow.webContents.send('start-auth', {
+          state,
+          token,
+        });
+      } else if (callbackurl.includes('admin')) {
+        mainWindow.webContents.send(ADD_KEYS_PERMISSION_RESULT_CHANNEL, {
+          state,
+          token,
+        });
+      } else {
+        throw new Error();
+      }
     } catch (error) {
       showError(`Something went wrong. Please try again. ${error}`);
     }

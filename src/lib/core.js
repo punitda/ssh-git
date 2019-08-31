@@ -126,7 +126,12 @@ async function getPublicKeyContent(config) {
   }
 }
 
+function getSystemName() {
+  return os.hostname();
+}
+
 module.exports = {
   generateKey,
   getPublicKeyContent,
+  getSystemName,
 };

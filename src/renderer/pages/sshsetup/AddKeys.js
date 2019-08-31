@@ -1,46 +1,133 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 
+// built-in react imports
 import { ClientStateContext } from '../../Context';
+import useAddKeysToAccount from '../../hooks/useAddKeysToAccount';
 
+// Api imports
+import { getOauthUrlsForSshKeys } from '../../service/api';
+
+// libs import
 import { openExternal } from '../../../lib/app-shell';
 import { providers } from '../../../lib/config';
+import { getManualSteps } from '../../../lib/util';
 import {
   PUBLIC_KEY_COPY_REQUEST_CHANNEL,
   PUBLIC_KEY_COPY_RESPONSE_CHANNEL,
+  ADD_KEYS_PERMISSION_RESULT_CHANNEL,
 } from '../../../lib/constants';
 
 function AddKeys({ onNext }) {
   const clientStateContext = useContext(ClientStateContext);
-
   const {
     selectedProvider = null,
     bitbucket_uuid = null,
     username = null,
   } = clientStateContext.authState;
 
-  const textareaRef = useRef();
-  const [keyCopied, setKeyCopied] = useState(false);
-  const [publicKeyContent, setPublicKeyContent] = useState(' ');
+  const textareaRef = useRef(); // need ref to textarea's node to use `copy` command on it for copying to clipboard.
+  const [keyCopied, setKeyCopied] = useState(false); // use to show minor animation when key is copied
+  const [publicKey, setPublicKeyContent] = useState({
+    content: ' ',
+    title: null,
+  }); // set public key's content
 
+  const { content: publicKeyContent, title = null } = publicKey;
+
+  // Custom hook to manage entire state of 2 things
+  // 1. asking permissions and
+  // 2. adding keys
+  const [state, dispatch, setUserData] = useAddKeysToAccount(selectedProvider);
+  const {
+    askingPermission,
+    askingPermissionSuccess,
+    askingPermissionError,
+    addingKeys,
+    addingKeysSuccess,
+    addingKeysError,
+  } = state;
+
+  //Open next page after state reaches `addingKeysSucess` - when keys are added successfully
   useEffect(() => {
+    if (addingKeysSuccess) {
+      setTimeout(() => {
+        openNextPage();
+      }, 1500);
+    }
+  }, [addingKeysSuccess]);
+
+  /**
+   * Communication between main and renderer process for 2 reasons.
+   * 1. Getting Public Key content based on current `selectedProvider`and `username`.
+   * 2. Listening to `ssh-git://oauth/admin` permission results from main process
+   * when redirected to app.
+   */
+  useEffect(() => {
+    // Send request for getting public key content
     window.ipcRenderer.send(PUBLIC_KEY_COPY_REQUEST_CHANNEL, {
       selectedProvider,
       username,
     });
+    // Public key content listener
     window.ipcRenderer.on(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, publicKeyListener);
 
+    // Permission result listener
+    window.ipcRenderer.on(
+      ADD_KEYS_PERMISSION_RESULT_CHANNEL,
+      adminPermissionResultListener
+    );
+
+    //Remove listeners
     return () => {
       window.ipcRenderer.removeListener(
         PUBLIC_KEY_COPY_RESPONSE_CHANNEL,
         publicKeyListener
       );
+
+      window.ipcRenderer.removeListener(
+        ADD_KEYS_PERMISSION_RESULT_CHANNEL,
+        adminPermissionResultListener
+      );
     };
   }, [clientStateContext.authState]);
 
-  function publicKeyListener(_event, publicKey) {
-    setPublicKeyContent(publicKey);
+  // "Public Key content" result listener from main process
+  function publicKeyListener(_event, { key = null, title = null }) {
+    if (key && title) setPublicKeyContent({ content: key, title }); // set in local state for public key fields like `key` and `title`.
   }
 
+  // "Admin Permission" result listener from main process
+  function adminPermissionResultListener(_event, authState) {
+    // Making sure state's match to avoid any security issues
+    if (clientStateContext.authState.state === authState.state) {
+      // Keeping updated state in global store
+      clientStateContext.setAuthState({
+        ...authState,
+      });
+      // needed to update local state in our custom hook to trigger addKeys api call
+      setUserData({
+        token: authState.token,
+        publicKeyContent,
+        title,
+      });
+
+      // Dispatching actions
+      dispatch({
+        type: 'PERMISSION_SUCCESS',
+      });
+
+      //Added timeout so that its visible for 0.5 secs(otherwise it gets batched)
+      setTimeout(() => {
+        dispatch({
+          type: 'ADDING_KEYS',
+        });
+      }, 500);
+    } else {
+      dispatch({ type: 'PERMISSION_ERROR' });
+    }
+  }
+
+  //Open ssh-keys settings page of selected provider(Manual flow)
   function openSettingsPage() {
     switch (selectedProvider) {
       case providers.GITHUB:
@@ -59,16 +146,20 @@ function AddKeys({ onNext }) {
     }
   }
 
+  //Open next screen on successfull adding of keys either manually or automatically.
   function openNextPage() {
     onNext('oauth/updateRemote');
   }
 
+  // Copies the content of `textarea` to the clipboard
   function copyToClipboard() {
     let textarea = textareaRef.current;
     textarea.focus();
     textarea.select();
     textarea.setSelectionRange(0, 99999); //Not sure if this is the correct way.
     let copied = document.execCommand('copy');
+
+    //Minor key copied animation logic
     if (copied) {
       setKeyCopied(true);
       setTimeout(() => {
@@ -77,9 +168,22 @@ function AddKeys({ onNext }) {
     }
   }
 
+  // Add listener for textarea change event which we don't allow to keep
+  // React happy. Not sure if this is the correct way.
   function onPublicKeyChange(event) {
     event.preventDefault();
     //Don't allow changing public key content
+  }
+
+  // Open external oauth url asking admin permission
+  // to post keys to account on user's behalf.
+  function askForAdminPermission() {
+    dispatch({ type: 'ASKING_PERMISSION' });
+    const { url, state } = getOauthUrlsForSshKeys(selectedProvider);
+    clientStateContext.setAuthState({
+      state,
+    });
+    openExternal(url);
   }
 
   return (
@@ -150,55 +254,41 @@ function AddKeys({ onNext }) {
             (We can add keys on your behalf but you need to grant us some
             permissions for it)
           </p>
-          <button className="primary-btn my-4">Add Keys</button>
+          <button
+            onClick={askForAdminPermission}
+            disabled={publicKeyContent === ' ' || askingPermission}
+            className={
+              askingPermission || addingKeys
+                ? `primary-btn my-4 px-16 text-2xl generateKey`
+                : askingPermissionError || addingKeysError
+                ? `primary-btn-error my-4`
+                : askingPermissionSuccess || addingKeysSuccess
+                ? `primary-btn-success my-4`
+                : `primary-btn my-4`
+            }>
+            {askingPermission
+              ? 'Asking Permissions...'
+              : askingPermissionError
+              ? 'Retry'
+              : askingPermissionSuccess
+              ? 'Permission Granted!'
+              : addingKeys
+              ? 'Adding Keys...'
+              : addingKeysSuccess
+              ? 'Keys Added!'
+              : addingKeysError
+              ? 'Retry'
+              : 'Add Keys'}
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-function getManualSteps(selectedProvider) {
-  switch (selectedProvider) {
-    case providers.GITHUB:
-      return github_steps;
-    case providers.BITBUCKET:
-      return bitbucket_steps;
-    case providers.GITLAB:
-      return gitlab_steps;
-    default:
-      break;
-  }
-}
-
-const github_steps = [
-  `Copy the Public Key you see on the right side to the clipboard`,
-  `Login in to your Github account`,
-  `Open this `,
-  `Once you're on that page, paste the key you just copied in 1st step under "Key" input and
-  for "Title" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
-  `Update Remote url of the repository`,
-];
-
-const bitbucket_steps = [
-  `Copy the Public Key you see on the right side to the clipboard`,
-  `Login in to your Bitbucket account`,
-  `Open this `,
-  `Once you're on that page, click on "Add key" button and paste the key you just copied in 1st step under "Key" input
-  and for "Label" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
-  `Update Remote url of the repository`,
-];
-
-const gitlab_steps = [
-  `Copy the Public Key you see on the right side to the clipboard`,
-  `Login in to your Gitlab account`,
-  `Open this `,
-  `Once you're on that page, paste the key you just copied in 1st step under "Key" input 
-  and for "Title" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
-  `Update Remote url of the repository`,
-];
-
 const styles = {
   keyCopied: `absolute mt-2 py-2 px-4 font-semibold right-0 top-0 bg-green-600 hover:bg-green-800 text-white rounded-bl-lg`,
   normal: `absolute mt-2 py-2 px-4 font-semibold right-0 top-0 bg-green-400 hover:bg-green-600 text-white rounded-bl-lg`,
 };
+
 export default AddKeys;
