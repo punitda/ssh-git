@@ -144,7 +144,12 @@ export function getOauthUrlsForBasicInfo(provider) {
       url = `${oauth_base_urls.GITLAB}/authorize?client_id=${gitlab.client_id}&scope=${gitlab.scopes.basic}&response_type=token&state=${state}&redirect_uri=${REDIRECT_URI}`;
       break;
     default:
-      throw new Error('Invalid provider provided for generating oauth url');
+      throw new Error(
+        'Invalid provider provided for generating oauth url for getting user info'
+      );
+  }
+  return { url, state };
+}
   }
   return { url, state };
 }
