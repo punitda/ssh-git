@@ -2,15 +2,24 @@ const oauth = {
   github: {
     client_id: process.env.GITHUB_CLIENT_ID,
     client_secret: process.env.GITHUB_CLIENT_SECRET,
-    scopes: 'user admin:public_key',
+    scopes: {
+      basic: 'user',
+      admin: 'admin:public_key',
+    },
   },
   bitbucket: {
     client_id: process.env.BITBUCKET_CLIENT_ID,
-    scopes: 'account repository:admin',
+    scopes: {
+      basic: 'account',
+      admin: 'repository:admin', //Note : This is **not** used currently in our code. This is because Bitbucket consent screen doesn't takes into consideration `scope` parameter.
+    },
   },
   gitlab: {
     client_id: process.env.GITLAB_CLIENT_ID,
-    scopes: 'api read_user',
+    scopes: {
+      basic: 'read_user',
+      admin: 'api',
+    },
   },
 };
 

@@ -7,9 +7,9 @@ import {
   requestGitlabUserProfile,
 } from '../service/api';
 
-import fetchReducer from '../fetchReducer';
+import fetchReducer from '../reducers/fetchReducer';
 
-export function useRequestUserProfile(selectedProvider, token) {
+export default function useRequestUserProfile(selectedProvider, token) {
   const [state, dispatch] = useReducer(fetchReducer, {
     isLoading: false,
     isError: false,
@@ -46,6 +46,7 @@ export function useRequestUserProfile(selectedProvider, token) {
                   email: profile.email,
                   username: profile.username,
                   avatar_url: profile.avatar_url,
+                  bitbucket_uuid: profile.uuid,
                 },
               });
             }

@@ -3,8 +3,8 @@ import React, { useContext, useState, useEffect, useReducer } from 'react';
 
 // Internal React
 import { ClientStateContext } from '../../Context';
-import { useRequestUserProfile } from '../../hooks/useRequestUserProfile';
-import fetchReducer from '../../fetchReducer';
+import useRequestUserProfile from '../../hooks/useRequestUserProfile';
+import fetchReducer from '../../reducers/fetchReducer';
 
 // Images and Loaders
 import SquareLoader from 'react-spinners/SquareLoader';
@@ -53,7 +53,7 @@ const GenerateKeys = ({ onNext }) => {
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { keyGenerated: true } });
       setTimeout(() => {
-        onNext('/oauth/addKeys');
+        onNext('oauth/addKeys');
       }, 1500);
     }
 
@@ -67,7 +67,7 @@ const GenerateKeys = ({ onNext }) => {
 
   //Generate Key clickListener
   function generateKeys(_event) {
-    const { username, email } = data;
+    const { username, email, bitbucket_uuid = null } = data;
     const config = {
       selectedProvider,
       username,
@@ -77,7 +77,7 @@ const GenerateKeys = ({ onNext }) => {
 
     dispatch({ type: 'FETCH_INIT' });
 
-    clientStateContext.setAuthState({ username, email });
+    clientStateContext.setAuthState({ username, email, bitbucket_uuid });
     window.ipcRenderer.send('start-generating-keys', config);
   }
 

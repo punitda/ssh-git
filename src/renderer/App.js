@@ -48,7 +48,7 @@ class App extends React.Component {
           <Router>
             <Home path="/" navigateTo={this.navigateTo} />
             <SSHSetup path="/oauth/*" />
-            <UpdateRemote path="/updateRemote" />
+            <UpdateRemote path="/updateRemote" isDirect={true} />
           </Router>
         </LocationProvider>
       </ClientStateContext.Provider>
