@@ -11,7 +11,7 @@ const oauth = {
     client_id: process.env.BITBUCKET_CLIENT_ID,
     scopes: {
       basic: 'account',
-      admin: 'repository:admin',
+      admin: 'repository:admin', //Note : This is **not** used currently in our code. This is because Bitbucket consent screen doesn't takes into consideration `scope` parameter.
     },
   },
   gitlab: {

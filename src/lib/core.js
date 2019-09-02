@@ -126,6 +126,9 @@ async function getPublicKeyContent(config) {
   }
 }
 
+// Using this function to get system name using `os` node package.
+// we use it to set "title" of the ssh key when adding it automatically using the api.
+// this is done to avoid making user one more decision in the proces.
 function getSystemName() {
   return os.hostname();
 }
