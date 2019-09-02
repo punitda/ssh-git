@@ -9,6 +9,7 @@ import fetchReducer from '../../reducers/fetchReducer';
 // internal libs
 import { openExternal } from '../../../lib/app-shell';
 import { providers } from '../../../lib/config';
+import { BASIC_INFO_PERMISSION_RESULT_CHANNEL } from '../../../lib/constants';
 
 // images
 import githublogo from '../../../assets/img/github_logo.png';
@@ -28,14 +29,20 @@ function ConnectAccount({ onNext }) {
   );
 
   useEffect(() => {
-    window.ipcRenderer.on('start-auth', authEventListener);
+    window.ipcRenderer.on(
+      BASIC_INFO_PERMISSION_RESULT_CHANNEL,
+      basicInfoResultListener
+    );
     return () => {
-      window.ipcRenderer.removeListener('start-auth', authEventListener);
+      window.ipcRenderer.removeListener(
+        BASIC_INFO_PERMISSION_RESULT_CHANNEL,
+        basicInfoResultListener
+      );
     };
   }, [clientStateContext]);
 
   // Listen to redirect uris coming in from auth providers after successful authentication
-  function authEventListener(_event, authState) {
+  function basicInfoResultListener(_event, authState) {
     if (clientStateContext.authState.state === authState.state) {
       clientStateContext.setAuthState({ ...authState });
 

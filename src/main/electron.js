@@ -17,6 +17,7 @@ const {
   PUBLIC_KEY_COPY_REQUEST_CHANNEL,
   PUBLIC_KEY_COPY_RESPONSE_CHANNEL,
   ADD_KEYS_PERMISSION_RESULT_CHANNEL,
+  BASIC_INFO_PERMISSION_RESULT_CHANNEL,
 } = require('../lib/constants');
 
 let mainWindow; //reference to our mainWindow.
@@ -201,7 +202,7 @@ async function handleAppURL(callbackurl) {
       mainWindow.focus();
 
       if (callbackurl.includes('basic')) {
-        mainWindow.webContents.send('start-auth', {
+        mainWindow.webContents.send(BASIC_INFO_PERMISSION_RESULT_CHANNEL, {
           state,
           token,
         });
