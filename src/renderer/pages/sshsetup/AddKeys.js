@@ -121,7 +121,7 @@ function AddKeys({ onNext }) {
         dispatch({
           type: 'ADDING_KEYS',
         });
-      }, 500);
+      }, 1000);
     } else {
       dispatch({ type: 'PERMISSION_ERROR' });
     }
