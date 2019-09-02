@@ -256,7 +256,9 @@ function AddKeys({ onNext }) {
           </p>
           <button
             onClick={askForAdminPermission}
-            disabled={publicKeyContent === ' ' || askingPermission}
+            disabled={
+              publicKeyContent === ' ' || askingPermission || addingKeys
+            }
             className={
               askingPermission || addingKeys
                 ? `primary-btn my-4 px-16 text-2xl generateKey`
