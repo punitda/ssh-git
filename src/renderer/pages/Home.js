@@ -23,7 +23,7 @@ export default function Home({ navigateTo }) {
           Setup SSH
         </button>
         <button
-          className="w-64 px-4 py-2 mt-8 text-gray-800 text-2xl font-semibold bg-orange-400 hover:bg-orange-200 rounded focus:outline-none"
+          className="w-64 px-4 py-2 mt-8 text-gray-800 text-2xl font-semibold bg-orange-500 hover:bg-orange-400 rounded focus:outline-none"
           onClick={_e => navigateTo('/updateRemote')}>
           Update Remote
         </button>
