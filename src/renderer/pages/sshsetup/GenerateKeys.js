@@ -10,6 +10,8 @@ import fetchReducer from '../../reducers/fetchReducer';
 import SquareLoader from 'react-spinners/SquareLoader';
 import githublogo from '../../../assets/img/github_logo.png';
 
+import { SHOW_ERROR_DIALOG_REQUEST_CHANNEL } from '../../../lib/constants';
+
 const GenerateKeys = ({ onNext }) => {
   const clientStateContext = useContext(ClientStateContext);
   const {
@@ -82,7 +84,7 @@ const GenerateKeys = ({ onNext }) => {
   }
 
   function showErrorDialog(errorMessage) {
-    window.ipcRenderer.send('show-error-dialog', errorMessage);
+    window.ipcRenderer.send(SHOW_ERROR_DIALOG_REQUEST_CHANNEL, errorMessage);
   }
 
   return (
