@@ -2,7 +2,7 @@
 node_modules
 
 #editor settings file
-.vscode
+.vscode/settings.json
 
 #output folders
 out
