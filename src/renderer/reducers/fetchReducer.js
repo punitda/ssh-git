@@ -11,6 +11,8 @@ export default function fetchReducer(state, action) {
       };
     case 'FETCH_ERROR':
       return { ...state, isLoading: false, isError: true };
+    case 'FETCH_RESET':
+      return { ...state, isLoading: false, isError: false, data: null };
     default:
       throw new Error(`Invalid action.type: ${action.type}`);
   }
