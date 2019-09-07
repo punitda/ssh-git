@@ -128,7 +128,7 @@ export default function UpdateRemoteStepped() {
           value={repoUrl}
           onChange={e => setRepoUrl(e.target.value)}
         />
-        <p className="text-gray-700 mt-2 mb-8">
+        <p className="text-gray-600 text-sm mt-2 mb-6">
           [Example : git@github.com:nodejs/node.git]
         </p>
         <button
@@ -169,9 +169,16 @@ export default function UpdateRemoteStepped() {
             you want it to clone to.
           </p>
         ) : (
-          <p className="mt-4 text-sm text-gray-600">
-            Folder selected : <span className="font-bold">{repoFolder}</span>
-          </p>
+          <>
+            <div className="mt-4 text-base text-gray-700">
+              Folder selected :
+            </div>
+            <div
+              className="font-bold text-sm text-gray-600 hover:text-gray-700 bg-yellow-200 hover:bg-yellow-300 rounded-sm px-2 py-2 mt-2 cursor-pointer"
+              onClick={changeDefaultFolder}>
+              {repoFolder}
+            </div>
+          </>
         )}
       </div>
     );
