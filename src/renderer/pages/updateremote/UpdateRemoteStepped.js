@@ -24,8 +24,8 @@ import { ClientStateContext } from '../../Context';
 export default function UpdateRemoteStepped() {
   const clientStateContext = useContext(ClientStateContext);
   const {
-    username = 'github',
-    selectedProvider = 'punitda',
+    username = null,
+    selectedProvider = null,
   } = clientStateContext.authState;
 
   const cloneRepoButtonRef = useRef(null); //Used in modal for focusing reason
