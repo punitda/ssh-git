@@ -62,7 +62,9 @@
   height: 100%;
   padding: 0rem 2.5rem 2.5rem 2.5rem;
   background-color: #ffffff;
-  box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
   overflow-y: auto;
 }
 
