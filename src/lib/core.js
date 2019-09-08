@@ -17,11 +17,13 @@ const {
   createSshConfig,
   getConfigFileContents,
   getPublicKeyFileName,
+  getCloneRepoCommand,
 } = require('./util');
 const { SSHKeyExistsError } = require('./error');
 
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
+const desktopFolder = path.join(os.homedir(), 'Desktop');
 
 //Core method(Meat of the App)
 async function generateKey(config) {
@@ -133,8 +135,75 @@ function getSystemName() {
   return os.hostname();
 }
 
+/**
+ * Run `git clone` command using child process and report back results.
+ * @param {*} selectedProvider - used to construct modified SSH url based on this value.
+ * @param {*} username - used to construct modified SSH url based on this value.
+ * @param {*} repoUrl - used to do some validations and clone the repo
+ * @param {*} repoFolder - used to determine the path where to clone the repo.
+ */
+async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
+  let selectedFolder;
+  if (repoFolder === 'default') {
+    selectedFolder = desktopFolder;
+  } else {
+    selectedFolder = repoFolder;
+  }
+
+  // Check if the repoUrl entered by user is a valid SSH url
+  if (
+    !(
+      repoUrl.startsWith(`git@${selectedProvider}`) &&
+      repoUrl.includes(`git@${selectedProvider}`) &&
+      repoUrl.endsWith('.git')
+    )
+  ) {
+    return Promise.reject(
+      'The SSH url you just entered is not correct one. Please enter correct SSH url'
+    );
+  }
+
+  // Extracting repo name from repoUrl using combination of `substring()` and `replace()` method.
+  let lastPartOfRepoUrl = repoUrl.substring(
+    repoUrl.lastIndexOf('/') + 1,
+    repoUrl.length
+  );
+  let repoName = lastPartOfRepoUrl.replace('.git', '');
+
+  // Check if the folder with same name as "repoName" exists in currently "selectedFolder"
+  // and if yes throw error message correctly notifying user about it.
+  let selectedFolderPath = path.join(selectedFolder, repoName);
+  if (fs.existsSync(selectedFolderPath)) {
+    return Promise.reject(
+      `The repo your are trying to clone with name "${repoName}" already exists in path : "${selectedFolderPath}". Please check`
+    );
+  }
+
+  // Run clone command if everything looks good
+  const cloneRepoCommand = getCloneRepoCommand(
+    selectedProvider,
+    username,
+    repoUrl
+  );
+
+  try {
+    const childProcess = spawn(cloneRepoCommand, {
+      stdio: [process.stdin, process.stdout, process.stderr],
+      cwd: `${selectedFolder}`, //Change working directory to selectedFolder path
+      shell: true,
+    });
+    const code = await onExit(childProcess); //OnExit returns result as `undefined` in case of no errors and throws errors otherwise.
+    if (!code) {
+      return Promise.resolve(0);
+    }
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
 module.exports = {
   generateKey,
   getPublicKeyContent,
   getSystemName,
+  cloneRepo,
 };

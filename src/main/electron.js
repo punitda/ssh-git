@@ -10,6 +10,7 @@ const {
   generateKey,
   getPublicKeyContent,
   getSystemName,
+  cloneRepo,
 } = require('../lib/core');
 const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
 
@@ -18,6 +19,11 @@ const {
   PUBLIC_KEY_COPY_RESPONSE_CHANNEL,
   ADD_KEYS_PERMISSION_RESULT_CHANNEL,
   BASIC_INFO_PERMISSION_RESULT_CHANNEL,
+  SELECT_GIT_FOLDER_REQUEST_CHANNEL,
+  SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
+  CLONE_REPO_REQUEST_CHANNEL,
+  CLONE_REPO_RESPONSE_CHANNEL,
+  SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
 } = require('../lib/constants');
 
 let mainWindow; //reference to our mainWindow.
@@ -94,9 +100,42 @@ function setUpListeners() {
     }
   });
 
+  ipcMain.on(SELECT_GIT_FOLDER_REQUEST_CHANNEL, async (event, _data) => {
+    const filePaths = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    });
+
+    if (filePaths) event.reply(SELECT_GIT_FOLDER_RESPONSE_CHANNEL, filePaths);
+  });
+
+  ipcMain.on(CLONE_REPO_REQUEST_CHANNEL, async (event, data) => {
+    const { selectedProvider, username, repoUrl, repoFolder } = data;
+
+    try {
+      const result = await cloneRepo(
+        selectedProvider,
+        username,
+        repoUrl,
+        repoFolder
+      );
+
+      if (result === 0) {
+        event.reply(CLONE_REPO_RESPONSE_CHANNEL, {
+          success: true,
+          error: null,
+        });
+      }
+    } catch (error) {
+      event.reply(CLONE_REPO_RESPONSE_CHANNEL, {
+        error,
+        success: false,
+      });
+    }
+  });
+
   // Generic channel to listen to error messages sent in from renderer process
   // and show Native Error dialog to user.
-  ipcMain.on('show-error-dialog', (_event, errorMessage) => {
+  ipcMain.on(SHOW_ERROR_DIALOG_REQUEST_CHANNEL, (_event, errorMessage) => {
     showError(errorMessage);
   });
 }
@@ -212,7 +251,7 @@ async function handleAppURL(callbackurl) {
           token,
         });
       } else {
-        throw new Error();
+        throw new Error('Invalid callback url received');
       }
     } catch (error) {
       showError(`Something went wrong. Please try again. ${error}`);

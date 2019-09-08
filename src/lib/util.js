@@ -51,6 +51,31 @@ Host ${config.host}
 `;
 }
 
+/**
+ * Generate `git clone` command to be run.
+ * Based on selectedProvider and username generates the repoUrl such that it works
+ * in accordance with our host naming convention set in ssh config file
+ * @param {*} selectedProvider - e.x :  github, bitbucket or gitlab
+ * @param {*} username  - e.x : punitd
+ * @param {*} repoUrl - e.x : git@github.com:punitd/node.git
+ */
+function getCloneRepoCommand(selectedProvider, username, repoUrl) {
+  let modifiedRepoUrl;
+  if (selectedProvider === providers.BITBUCKET) {
+    modifiedRepoUrl = repoUrl.replace(
+      `${selectedProvider}.org`,
+      `${selectedProvider}.org-${username}`
+    );
+  } else {
+    modifiedRepoUrl = repoUrl.replace(
+      `${selectedProvider}.com`,
+      `${selectedProvider}.com-${username}`
+    );
+  }
+
+  return `git clone ${modifiedRepoUrl}`;
+}
+
 function getManualSteps(selectedProvider) {
   switch (selectedProvider) {
     case providers.GITHUB:
@@ -97,4 +122,5 @@ module.exports = {
   getConfigFileContents,
   getPublicKeyFileName,
   getManualSteps,
+  getCloneRepoCommand,
 };

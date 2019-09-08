@@ -9,7 +9,7 @@ import {
 //Pages
 import Home from './pages/Home';
 import SSHSetup from './pages/sshsetup/SSHSetup';
-import UpdateRemote from './pages/updateremote/UpdateRemote';
+import UpdateRemoteDirect from './pages/updateremote/UpdateRemoteDirect';
 
 //Global app wide context to store user state.
 import { ClientStateContext } from './Context';
@@ -48,7 +48,7 @@ class App extends React.Component {
           <Router>
             <Home path="/" navigateTo={this.navigateTo} />
             <SSHSetup path="/oauth/*" />
-            <UpdateRemote path="/updateRemote" isDirect={true} />
+            <UpdateRemoteDirect path="/updateRemote" />
           </Router>
         </LocationProvider>
       </ClientStateContext.Provider>
