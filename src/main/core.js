@@ -18,9 +18,24 @@ const {
   getConfigFileContents,
   getPublicKeyFileName,
   getCloneRepoCommand,
-} = require('./util');
-const { SSHKeyExistsError } = require('./error');
+} = require('../lib/util');
 
+const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
+const { showDialogAskingToOverrideKeys } = require('./dialog');
+
+const requestGithubAccessToken = require('./api');
+const parseAppURL = require('../lib/parse-app-url');
+
+const {
+  ADD_KEYS_PERMISSION_RESULT_CHANNEL,
+  BASIC_INFO_PERMISSION_RESULT_CHANNEL,
+} = require('../lib/constants');
+
+const { showErrorDialog } = require('./dialog');
+
+const { getMainWindow } = require('./electron');
+
+let githubConfig = {}; //workaround to store github config because electron-builder doesn't works with .env files.
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
 const desktopFolder = path.join(os.homedir(), 'Desktop');
@@ -201,8 +216,95 @@ async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
   }
 }
 
+/**
+ * Called when key with same name already exists.
+ *  Show dialog asking user whether they wish to override keys or not.
+ *  Depending on user's response we either
+ *  - Start with generate key process again this time telling it to override keys
+ *  OR
+ *  - Send error back to our renderer process telling it that user doesn't
+ *  wishes to override keys using custom error `DoNotOverrideKeysError`.
+ * @param {*} config - intialConfig passed from our renderer process for which we're generating key.
+ * @param {*} rsaFileName - used to show specific filename in dialog where we ask user to override key.
+ * @param {*} event - event object used to reply/send events to renderer process listening under `start-generating-key` channel.
+ */
+async function retryGeneratingKey(config, rsaFileName, event) {
+  try {
+    const userResponse = await showDialogAskingToOverrideKeys(rsaFileName);
+    if (userResponse === 0) {
+      const newSshConfig = { ...config, overrideKeys: true };
+      const result = await generateKey(newSshConfig); //Start with generate key method telling it to override the keys
+      if (result === 0) {
+        event.reply('generated-keys-result', {
+          success: true,
+          error: null,
+        });
+      }
+    } else {
+      event.reply('generated-keys-result', {
+        success: false,
+        error: new DoNotOverrideKeysError(), // Notify our GenerateKey screen that user doesn't wishes to move ahead.
+      });
+    }
+  } catch (error) {
+    event.reply('generated-keys-result', {
+      success: false,
+      error: new Error('Error overriding the SSH key'),
+    });
+  }
+}
+
+/**
+ * Used for handle Auth redirect urls coming back from auth providers
+ * like Github, Bitbucket and Gitlab with auth details like `code or access_token and state`
+ * @param {*} callbackurl - url which is received when `ssh-git://` deeplinks are opened
+ */
+async function handleAppURL(callbackurl) {
+  const authState = parseAppURL(callbackurl);
+  let { code = null, state = null, token = null } = authState;
+
+  const mainWindow = getMainWindow();
+
+  if (authState) {
+    try {
+      if (code) {
+        // This means it is github callbackurl and we need to first obtain "access_token" value.
+        token = await requestGithubAccessToken(code, githubConfig);
+
+        if (!token) {
+          showErrorDialog(`Something went wrong. Please try again`);
+          return;
+        }
+      }
+      mainWindow.focus();
+
+      if (callbackurl.includes('basic')) {
+        mainWindow.webContents.send(BASIC_INFO_PERMISSION_RESULT_CHANNEL, {
+          state,
+          token,
+        });
+      } else if (callbackurl.includes('admin')) {
+        mainWindow.webContents.send(ADD_KEYS_PERMISSION_RESULT_CHANNEL, {
+          state,
+          token,
+        });
+      } else {
+        throw new Error('Invalid callback url received');
+      }
+    } catch (error) {
+      showErrorDialog(`Something went wrong. Please try again. ${error}`);
+    }
+  } else {
+    showErrorDialog(
+      `Something went wrong. We couldn't verify the validity of the request. Please try again.`
+    );
+  }
+}
+
 module.exports = {
+  handleAppURL,
   generateKey,
+  retryGeneratingKey,
   getPublicKeyContent,
   getSystemName,
   cloneRepo,
