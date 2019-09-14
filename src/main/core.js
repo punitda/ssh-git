@@ -29,7 +29,6 @@ const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
 // Paths to be used in core logic
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
-const desktopFolder = path.join(os.homedir(), 'Desktop'); // used to store desktop folder location as default location for cloning repo
 
 //Core method(Meat of the App)
 async function generateKey(config) {
@@ -150,13 +149,6 @@ function getSystemName() {
  * @param {*} repoFolder - used to determine the path where to clone the repo.
  */
 async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
-  let selectedFolder;
-  if (repoFolder === 'default') {
-    selectedFolder = desktopFolder;
-  } else {
-    selectedFolder = repoFolder;
-  }
-
   // Check if the repoUrl entered by user is a valid SSH url
   if (
     !(
@@ -179,7 +171,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
 
   // Check if the folder with same name as "repoName" exists in currently "selectedFolder"
   // and if yes throw error message correctly notifying user about it.
-  let selectedFolderPath = path.join(selectedFolder, repoName);
+  let selectedFolderPath = path.join(repoFolder, repoName);
   if (fs.existsSync(selectedFolderPath)) {
     return Promise.reject(
       `The repo your are trying to clone with name "${repoName}" already exists in path : "${selectedFolderPath}". Please check`
@@ -196,7 +188,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
   try {
     const childProcess = spawn(cloneRepoCommand, {
       stdio: [process.stdin, process.stdout, process.stderr],
-      cwd: `${selectedFolder}`, //Change working directory to selectedFolder path
+      cwd: `${repoFolder}`, //Change working directory to selectedFolder path
       shell: true,
     });
     const code = await onExit(childProcess); //OnExit returns result as `undefined` in case of no errors and throws errors otherwise.

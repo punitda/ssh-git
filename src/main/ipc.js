@@ -1,3 +1,5 @@
+const path = require('path');
+const os = require('os');
 const { ipcMain, shell } = require('electron');
 
 // core methods
@@ -20,6 +22,8 @@ const {
   SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
   CLONE_REPO_REQUEST_CHANNEL,
   CLONE_REPO_RESPONSE_CHANNEL,
+  SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL,
+  SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
 } = require('../lib/constants');
 
@@ -76,10 +80,15 @@ function register() {
     }
   });
 
-  // Listen to `select folder` request coming in from update remote screens
+  // Listen to request asking for system's desktop folder path coming from "updateRemote" screens
+  ipcMain.on(SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL, (event, _data) => {
+    const desktopFolderPath = path.join(os.homedir(), 'Desktop');
+    event.reply(SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL, desktopFolderPath);
+  });
+
+  // Listen to request for selecting folder to which to clone the repo to coming in from "updateRemote" screens
   ipcMain.on(SELECT_GIT_FOLDER_REQUEST_CHANNEL, async (event, _data) => {
     const filePaths = await dialog.showOpenDirectoryDialog();
-
     if (filePaths) event.reply(SELECT_GIT_FOLDER_RESPONSE_CHANNEL, filePaths);
   });
 
@@ -112,7 +121,8 @@ function register() {
   // Generic channel to listen to error messages sent in from renderer process
   // and show Native Error dialog to user.
   ipcMain.on(SHOW_ERROR_DIALOG_REQUEST_CHANNEL, (_event, errorMessage) => {
-    dialog.showErrorDialog(errorMessage);
+    if (!errorMessage) dialog.showErrorDialog('Uh-Oh! Something went wrong.');
+    else dialog.showErrorDialog(errorMessage);
   });
 }
 

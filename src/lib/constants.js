@@ -13,6 +13,11 @@ const CLONE_REPO_RESPONSE_CHANNEL = 'clone-repo-response-channel';
 
 const SHOW_ERROR_DIALOG_REQUEST_CHANNEL = 'show-error-dialog-request-channel';
 
+const SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL =
+  'system-desktop-folder-request-channel';
+const SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL =
+  'system-desktop-folder-response-channel';
+
 module.exports = {
   PUBLIC_KEY_COPY_REQUEST_CHANNEL,
   PUBLIC_KEY_COPY_RESPONSE_CHANNEL,
@@ -23,4 +28,6 @@ module.exports = {
   CLONE_REPO_REQUEST_CHANNEL,
   CLONE_REPO_RESPONSE_CHANNEL,
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
+  SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL,
+  SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
 };
