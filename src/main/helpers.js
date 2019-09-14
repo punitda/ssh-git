@@ -34,7 +34,6 @@ async function handleAppURL(callbackUrl, mainWindow, githubConfig = null) {
       if (code) {
         // This means it is github callbackUrl and we need to first obtain "access_token" value.
         token = await requestGithubAccessToken(code, githubConfig);
-
         if (!token) {
           dialog.showErrorDialog(`Something went wrong. Please try again`);
           return;

@@ -11,7 +11,7 @@ const readFileAsync = promisify(fs.readFile);
 // npm lib(used to simplify dealing with child_process i/o)
 const { onExit, streamWrite, streamEnd } = require('@rauschma/stringio');
 
-// core
+// dialog wrapper
 const dialog = require('./dialog');
 
 // utils
@@ -92,7 +92,7 @@ async function runCommand() {
     /**
      * This is important. Otherwise we cannot input our passphrase unless
      * this child process is detached from parent process.
-     * detaching this child process i guess makes it parent allowing us to write our passphrase
+     * Detaching this child process i guess makes it parent allowing us to write our passphrase
      * into it's stdin which is waiting for that passphrase when 3rd step is run.
      */
     detached: passphrase ? true : false,
