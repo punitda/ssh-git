@@ -3,7 +3,7 @@
   "productName": "ssh-git",
   "version": "0.0.1",
   "description": "Electron app used to generate, add and manage ssh keys for using git with dev platforms like Github/Bitbucket/Gitlab, etc.",
-  "main": "src/main/electron.js",
+  "main": "src/main/index.js",
   "scripts": {
     "start": "yarn build-css && concurrently \"yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
     "clean-start": "yarn clean && yarn start",

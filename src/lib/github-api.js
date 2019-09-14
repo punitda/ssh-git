@@ -1,5 +1,5 @@
-const { oauth_base_urls, providers } = require('../lib/config');
-const request = require('../lib/http');
+const { oauth_base_urls, providers } = require('./config');
+const request = require('./http');
 
 async function requestGithubAccessToken(code, githubConfig) {
   try {

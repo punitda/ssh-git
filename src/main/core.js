@@ -8,10 +8,13 @@ const { spawn } = require('child_process');
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
 
-// libs
+// npm lib(used to simplify dealing with child_process i/o)
 const { onExit, streamWrite, streamEnd } = require('@rauschma/stringio');
 
-// internal
+// core
+const dialog = require('./dialog');
+
+// utils
 const {
   getCommands,
   createSshConfig,
@@ -20,25 +23,13 @@ const {
   getCloneRepoCommand,
 } = require('../lib/util');
 
+// Custom Errors
 const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
-const { showDialogAskingToOverrideKeys } = require('./dialog');
 
-const requestGithubAccessToken = require('./api');
-const parseAppURL = require('../lib/parse-app-url');
-
-const {
-  ADD_KEYS_PERMISSION_RESULT_CHANNEL,
-  BASIC_INFO_PERMISSION_RESULT_CHANNEL,
-} = require('../lib/constants');
-
-const { showErrorDialog } = require('./dialog');
-
-const { getMainWindow } = require('./electron');
-
-let githubConfig = {}; //workaround to store github config because electron-builder doesn't works with .env files.
+// Paths to be used in core logic
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
-const desktopFolder = path.join(os.homedir(), 'Desktop');
+const desktopFolder = path.join(os.homedir(), 'Desktop'); // used to store desktop folder location as default location for cloning repo
 
 //Core method(Meat of the App)
 async function generateKey(config) {
@@ -91,6 +82,7 @@ async function generateKey(config) {
   return Promise.resolve(0); //If everything goes well send status code of '0' indicating success.
 }
 
+// Internal method for running one command at a time using `spawn`.
 async function runCommand() {
   const [commandToRun, passphrase] = arguments;
   const childProcess = spawn(commandToRun, {
@@ -100,8 +92,8 @@ async function runCommand() {
     /**
      * This is important. Otherwise we cannot input our passphrase unless
      * this child process is detached from parent process.
-     * This i guess makes it parent allowing us to write our passphrase
-     * into child process's stdin waiting for that passphrase when 3rd step is run.
+     * detaching this child process i guess makes it parent allowing us to write our passphrase
+     * into it's stdin which is waiting for that passphrase when 3rd step is run.
      */
     detached: passphrase ? true : false,
   });
@@ -130,9 +122,9 @@ async function writePassPhraseToStdIn(writable, passphrase) {
   await streamEnd(writable);
 }
 
-// get contents of public key based on current config values like username and selectedProvider.
-async function getPublicKeyContent(config) {
-  const publicKeyFileName = getPublicKeyFileName(config);
+// get contents of public key based on username and selectedProvider.
+async function getPublicKeyContent(selectedProvider, username) {
+  const publicKeyFileName = getPublicKeyFileName(selectedProvider, username);
   const publicKeyFilePath = path.join(os.homedir(), '.ssh', publicKeyFileName);
 
   try {
@@ -145,7 +137,7 @@ async function getPublicKeyContent(config) {
 
 // Using this function to get system name using `os` node package.
 // we use it to set "title" of the ssh key when adding it automatically using the api.
-// this is done to avoid making user one more decision in the proces.
+// this is done to avoid user to make one more decision in the process.
 function getSystemName() {
   return os.hostname();
 }
@@ -230,7 +222,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
  */
 async function retryGeneratingKey(config, rsaFileName, event) {
   try {
-    const userResponse = await showDialogAskingToOverrideKeys(rsaFileName);
+    const userResponse = await dialog.showOverrideKeysDialog(rsaFileName);
     if (userResponse === 0) {
       const newSshConfig = { ...config, overrideKeys: true };
       const result = await generateKey(newSshConfig); //Start with generate key method telling it to override the keys
@@ -254,55 +246,7 @@ async function retryGeneratingKey(config, rsaFileName, event) {
   }
 }
 
-/**
- * Used for handle Auth redirect urls coming back from auth providers
- * like Github, Bitbucket and Gitlab with auth details like `code or access_token and state`
- * @param {*} callbackurl - url which is received when `ssh-git://` deeplinks are opened
- */
-async function handleAppURL(callbackurl) {
-  const authState = parseAppURL(callbackurl);
-  let { code = null, state = null, token = null } = authState;
-
-  const mainWindow = getMainWindow();
-
-  if (authState) {
-    try {
-      if (code) {
-        // This means it is github callbackurl and we need to first obtain "access_token" value.
-        token = await requestGithubAccessToken(code, githubConfig);
-
-        if (!token) {
-          showErrorDialog(`Something went wrong. Please try again`);
-          return;
-        }
-      }
-      mainWindow.focus();
-
-      if (callbackurl.includes('basic')) {
-        mainWindow.webContents.send(BASIC_INFO_PERMISSION_RESULT_CHANNEL, {
-          state,
-          token,
-        });
-      } else if (callbackurl.includes('admin')) {
-        mainWindow.webContents.send(ADD_KEYS_PERMISSION_RESULT_CHANNEL, {
-          state,
-          token,
-        });
-      } else {
-        throw new Error('Invalid callback url received');
-      }
-    } catch (error) {
-      showErrorDialog(`Something went wrong. Please try again. ${error}`);
-    }
-  } else {
-    showErrorDialog(
-      `Something went wrong. We couldn't verify the validity of the request. Please try again.`
-    );
-  }
-}
-
 module.exports = {
-  handleAppURL,
   generateKey,
   retryGeneratingKey,
   getPublicKeyContent,

@@ -1,5 +1,7 @@
 const { dialog } = require('electron');
+const window = require('./window');
 
+// Dialog to show generic error message when something goes wrong.
 function showErrorDialog(errorMessage) {
   dialog.showErrorBox(
     'Oops!',
@@ -9,7 +11,8 @@ function showErrorDialog(errorMessage) {
   );
 }
 
-function showDialogAskingToOverrideKeys(rsaFileName) {
+// Dialog asking user whether they wish to override ssh keys or not.
+function showOverrideKeysDialog(rsaFileName) {
   const buttons = ['Yes, please', 'No, thanks'];
 
   const options = {
@@ -21,6 +24,7 @@ function showDialogAskingToOverrideKeys(rsaFileName) {
     message: 'Do you wish to override the key?',
   };
 
+  const mainWindow = window.getMainWindow();
   return new Promise((resolve, _reject) => {
     dialog.showMessageBox(mainWindow, options, (response, _checkboxChecked) => {
       resolve(response);
@@ -28,4 +32,15 @@ function showDialogAskingToOverrideKeys(rsaFileName) {
   });
 }
 
-module.exports = { showErrorDialog, showDialogAskingToOverrideKeys };
+// Used to show default system dialog for selecting directory.
+async function showOpenDirectoryDialog() {
+  return dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  });
+}
+
+module.exports = {
+  showErrorDialog,
+  showOverrideKeysDialog,
+  showOpenDirectoryDialog,
+};
