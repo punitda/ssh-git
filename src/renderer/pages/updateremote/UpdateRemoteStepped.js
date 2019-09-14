@@ -16,6 +16,8 @@ import {
   CLONE_REPO_REQUEST_CHANNEL,
   CLONE_REPO_RESPONSE_CHANNEL,
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
+  SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL,
+  SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
 } from '../../../lib/constants';
 
 import fetchReducer from '../../reducers/fetchReducer';
@@ -32,7 +34,7 @@ export default function UpdateRemoteStepped() {
   const updateRemoteUrlButtonRef = useRef(null); // Used in modal for focusing reason
 
   const [repoUrl, setRepoUrl] = useState(''); // Stores repourl entered by user
-  const [repoFolder, setRepoFolder] = useState('default'); // Stores selected folder where to clone the repo
+  const [repoFolder, setRepoFolder] = useState(''); // Stores selected folder where to clone the repo
 
   const [
     { isLoading: isCloning, isError, data: clonedSuccess },
@@ -64,6 +66,26 @@ export default function UpdateRemoteStepped() {
     };
   }, [selectedProvider]);
 
+  useEffect(() => {
+    // Making sure that we ask for desktop folder path only
+    // when repoFolder is empty('') which would happen
+    // in case dialog is closed and re-opened again.
+    if (!repoFolder) {
+      window.ipcRenderer.send(SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL);
+    }
+    window.ipcRenderer.on(
+      SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
+      desktopFolderPathListener
+    );
+
+    return () => {
+      window.ipcRenderer.removeListener(
+        SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
+        desktopFolderPathListener
+      );
+    };
+  }, [repoFolder]);
+
   // Event listener when folder is selected by user when changing default folder
   function folderSelectedListener(_event, filePaths) {
     if (filePaths && filePaths.length > 0) {
@@ -82,6 +104,10 @@ export default function UpdateRemoteStepped() {
         error ? error : 'Something went wrong when cloning the repo :('
       );
     }
+  }
+
+  function desktopFolderPathListener(_event, path) {
+    setRepoFolder(path);
   }
 
   function goBackToHomeScreen() {
@@ -107,7 +133,7 @@ export default function UpdateRemoteStepped() {
   // Listen to onClose events of Modal component to reset local state.
   function onCloneRepoModalClose() {
     setRepoUrl('');
-    setRepoFolder('default');
+    setRepoFolder('');
     dispatch({ type: 'FETCH_RESET' });
   }
 
@@ -123,14 +149,30 @@ export default function UpdateRemoteStepped() {
         </label>
         <input
           type="text"
-          className="text-gray-600 text-lg bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
+          className="text-gray-600 text-base bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
           placeholder="Enter your repository url."
           value={repoUrl}
           onChange={e => setRepoUrl(e.target.value)}
         />
-        <p className="text-gray-600 text-sm mt-2 mb-6">
+        <p className="text-gray-600 text-sm mt-2">
           [Example : git@github.com:nodejs/node.git]
         </p>
+        <label className="text-gray-800 block text-left text-base mt-4 font-semibold">
+          Choose Folder
+        </label>
+        <div className="relative mb-6 mt-2">
+          <input
+            type="text"
+            className="text-gray-600 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full"
+            value={repoFolder}
+            readOnly
+          />
+          <button
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none "
+            onClick={changeDefaultFolder}>
+            Choose
+          </button>
+        </div>
         <button
           className={
             isCloning
@@ -141,7 +183,7 @@ export default function UpdateRemoteStepped() {
               ? `primary-btn-success`
               : `primary-btn`
           }
-          disabled={!repoUrl}
+          disabled={!(repoUrl && repoFolder)}
           onClick={cloneRepo}>
           {isCloning
             ? 'Cloning Repo...'
@@ -152,33 +194,9 @@ export default function UpdateRemoteStepped() {
             : 'Clone'}
         </button>
         {isCloning && (
-          <p className="text-xs text-gray-600">
-            This might take few seconds to minutes
+          <p className="text-xs text-gray-600 mt-2">
+            This might take few seconds to minutes...
           </p>
-        )}
-        {repoFolder === 'default' ? (
-          <p className="mt-4 text-sm text-gray-600">
-            <span className="font-bold text-gray-700">{`Note: `}</span>
-            This will clone your repo on the Desktop by default. To change
-            default folder please{' '}
-            <span
-              className="font-bold underline text-gray-800 hover:text-blue-500 hover:bg-blue-100 cursor-pointer"
-              onClick={changeDefaultFolder}>
-              Select Folder
-            </span>{' '}
-            you want it to clone to.
-          </p>
-        ) : (
-          <>
-            <div className="mt-4 text-base text-gray-700">
-              Folder selected :
-            </div>
-            <div
-              className="font-bold text-sm text-gray-600 hover:text-gray-700 bg-yellow-200 hover:bg-yellow-300 rounded-sm px-2 py-2 mt-2 cursor-pointer"
-              onClick={changeDefaultFolder}>
-              {repoFolder}
-            </div>
-          </>
         )}
       </div>
     );
