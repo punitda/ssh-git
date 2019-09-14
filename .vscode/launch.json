@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Electron Main",
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-      "program": "${workspaceFolder}/src/main/electron.js"
+      "program": "${workspaceFolder}/src/main/index.js"
     },
     {
       "type": "node",

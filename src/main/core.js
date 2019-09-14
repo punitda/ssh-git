@@ -8,22 +8,28 @@ const { spawn } = require('child_process');
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
 
-// libs
+// npm lib(used to simplify dealing with child_process i/o)
 const { onExit, streamWrite, streamEnd } = require('@rauschma/stringio');
 
-// internal
+// dialog wrapper
+const dialog = require('./dialog');
+
+// utils
 const {
   getCommands,
   createSshConfig,
   getConfigFileContents,
   getPublicKeyFileName,
   getCloneRepoCommand,
-} = require('./util');
-const { SSHKeyExistsError } = require('./error');
+} = require('../lib/util');
 
+// Custom Errors
+const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
+
+// Paths to be used in core logic
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
-const desktopFolder = path.join(os.homedir(), 'Desktop');
+const desktopFolder = path.join(os.homedir(), 'Desktop'); // used to store desktop folder location as default location for cloning repo
 
 //Core method(Meat of the App)
 async function generateKey(config) {
@@ -76,6 +82,7 @@ async function generateKey(config) {
   return Promise.resolve(0); //If everything goes well send status code of '0' indicating success.
 }
 
+// Internal method for running one command at a time using `spawn`.
 async function runCommand() {
   const [commandToRun, passphrase] = arguments;
   const childProcess = spawn(commandToRun, {
@@ -85,8 +92,8 @@ async function runCommand() {
     /**
      * This is important. Otherwise we cannot input our passphrase unless
      * this child process is detached from parent process.
-     * This i guess makes it parent allowing us to write our passphrase
-     * into child process's stdin waiting for that passphrase when 3rd step is run.
+     * Detaching this child process i guess makes it parent allowing us to write our passphrase
+     * into it's stdin which is waiting for that passphrase when 3rd step is run.
      */
     detached: passphrase ? true : false,
   });
@@ -115,9 +122,9 @@ async function writePassPhraseToStdIn(writable, passphrase) {
   await streamEnd(writable);
 }
 
-// get contents of public key based on current config values like username and selectedProvider.
-async function getPublicKeyContent(config) {
-  const publicKeyFileName = getPublicKeyFileName(config);
+// get contents of public key based on username and selectedProvider.
+async function getPublicKeyContent(selectedProvider, username) {
+  const publicKeyFileName = getPublicKeyFileName(selectedProvider, username);
   const publicKeyFilePath = path.join(os.homedir(), '.ssh', publicKeyFileName);
 
   try {
@@ -130,7 +137,7 @@ async function getPublicKeyContent(config) {
 
 // Using this function to get system name using `os` node package.
 // we use it to set "title" of the ssh key when adding it automatically using the api.
-// this is done to avoid making user one more decision in the proces.
+// this is done to avoid user to make one more decision in the process.
 function getSystemName() {
   return os.hostname();
 }
@@ -201,8 +208,47 @@ async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
   }
 }
 
+/**
+ * Called when key with same name already exists.
+ *  Show dialog asking user whether they wish to override keys or not.
+ *  Depending on user's response we either
+ *  - Start with generate key process again this time telling it to override keys
+ *  OR
+ *  - Send error back to our renderer process telling it that user doesn't
+ *  wishes to override keys using custom error `DoNotOverrideKeysError`.
+ * @param {*} config - intialConfig passed from our renderer process for which we're generating key.
+ * @param {*} rsaFileName - used to show specific filename in dialog where we ask user to override key.
+ * @param {*} event - event object used to reply/send events to renderer process listening under `start-generating-key` channel.
+ */
+async function retryGeneratingKey(config, rsaFileName, event) {
+  try {
+    const userResponse = await dialog.showOverrideKeysDialog(rsaFileName);
+    if (userResponse === 0) {
+      const newSshConfig = { ...config, overrideKeys: true };
+      const result = await generateKey(newSshConfig); //Start with generate key method telling it to override the keys
+      if (result === 0) {
+        event.reply('generated-keys-result', {
+          success: true,
+          error: null,
+        });
+      }
+    } else {
+      event.reply('generated-keys-result', {
+        success: false,
+        error: new DoNotOverrideKeysError(), // Notify our GenerateKey screen that user doesn't wishes to move ahead.
+      });
+    }
+  } catch (error) {
+    event.reply('generated-keys-result', {
+      success: false,
+      error: new Error('Error overriding the SSH key'),
+    });
+  }
+}
+
 module.exports = {
   generateKey,
+  retryGeneratingKey,
   getPublicKeyContent,
   getSystemName,
   cloneRepo,
