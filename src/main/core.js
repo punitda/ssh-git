@@ -9,7 +9,12 @@ const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
 
 // npm lib(used to simplify dealing with child_process i/o)
-const { onExit, streamWrite, streamEnd } = require('@rauschma/stringio');
+const {
+  onExit,
+  streamWrite,
+  streamEnd,
+  chunksToLinesAsync,
+} = require('@rauschma/stringio');
 
 // dialog wrapper
 const dialog = require('./dialog');
@@ -21,6 +26,7 @@ const {
   getConfigFileContents,
   getPublicKeyFileName,
   getCloneRepoCommand,
+  getRemoteUrlAndAliasName,
 } = require('../lib/util');
 
 // Custom Errors
@@ -200,6 +206,82 @@ async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
   }
 }
 
+async function updateRemoteUrl(selectedProvider, username, repoFolder) {
+  // check if it is git repo or not and show error message accordingly.
+  const gitFolder = path.join(repoFolder, '.git');
+  if (!fs.existsSync(gitFolder)) {
+    return Promise.reject(
+      "The folder you selected is not .git repository. Please make sure you're selecting correct folder."
+    );
+  }
+
+  try {
+    const childProcess = spawn('git remote -v', {
+      stdio: [process.stdin, 'pipe', process.stderr],
+      cwd: `${repoFolder}`,
+      shell: true,
+    });
+
+    const remoteCommandResult = await readChildProcessOutput(
+      childProcess.stdout
+    );
+
+    // Throw error in case git remote -v gives no result.
+    // This would happen in case repo has git init done but no remote url set.
+    // We could do nothing over here.
+    if (!remoteCommandResult) {
+      return Promise.reject(
+        'No remote url found on the repo you just selected. Nothing to update here.'
+      );
+    }
+
+    // Split `git remote -v` command's result by new line and assign it to remoteUrls array
+    const remoteUrls = remoteCommandResult.split('\n');
+    // Throw error indicating to user in case no remote urls found after running `git remote -v`
+    if (!remoteUrls || remoteUrls.length === 0) {
+      return Promise.reject(
+        'No remote url found on the repo you just selected. Nothing to update here.'
+      );
+    }
+
+    const {
+      remoteUrlAliasName,
+      updatedRemoteUrl,
+    } = await getRemoteUrlAndAliasName(
+      remoteUrls[0],
+      selectedProvider,
+      username
+    );
+
+    if (updatedRemoteUrl && remoteUrlAliasName) {
+      const childProcess = spawn(
+        `git remote set-url ${remoteUrlAliasName} ${updatedRemoteUrl}`,
+        {
+          stdio: [process.stdin, process.stdout, process.stderr],
+          cwd: `${repoFolder}`,
+          shell: true,
+        }
+      );
+
+      const result = await onExit(childProcess);
+      if (!result) {
+        return Promise.resolve(0);
+      }
+    } else {
+      return Promise.reject('Error updating remote url');
+    }
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+async function readChildProcessOutput(readable) {
+  let result = '';
+  for await (const line of chunksToLinesAsync(readable)) {
+    result += line;
+  }
+  return result;
+}
 /**
  * Called when key with same name already exists.
  *  Show dialog asking user whether they wish to override keys or not.
@@ -244,4 +326,5 @@ module.exports = {
   getPublicKeyContent,
   getSystemName,
   cloneRepo,
+  updateRemoteUrl,
 };

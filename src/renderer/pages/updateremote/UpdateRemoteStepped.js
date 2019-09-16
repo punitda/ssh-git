@@ -18,6 +18,8 @@ import {
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
   SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL,
   SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
+  UPDATE_REMOTE_URL_REQUEST_CHANNEL,
+  UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
 } from '../../../lib/constants';
 
 import fetchReducer from '../../reducers/fetchReducer';
@@ -36,14 +38,16 @@ export default function UpdateRemoteStepped() {
   const [repoUrl, setRepoUrl] = useState(''); // Stores repourl entered by user
   const [repoFolder, setRepoFolder] = useState(''); // Stores selected folder where to clone the repo
 
-  const [
-    { isLoading: isCloning, isError, data: clonedSuccess },
-    dispatch,
-  ] = useReducer(fetchReducer, {
-    isLoading: false,
-    isError: false,
-    data: null,
-  });
+  const [updateRemoteRepoFolder, setUpdateRemoteRepoFolder] = useState('');
+
+  const [{ isLoading, isError, data: success }, dispatch] = useReducer(
+    fetchReducer,
+    {
+      isLoading: false,
+      isError: false,
+      data: null,
+    }
+  );
 
   useEffect(() => {
     window.ipcRenderer.on(
@@ -52,6 +56,11 @@ export default function UpdateRemoteStepped() {
     );
 
     window.ipcRenderer.on(CLONE_REPO_RESPONSE_CHANNEL, cloneRepoResultListener);
+
+    window.ipcRenderer.on(
+      UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
+      remoteUrlUpdateResultListener
+    );
 
     return () => {
       window.ipcRenderer.removeListener(
@@ -62,6 +71,11 @@ export default function UpdateRemoteStepped() {
       window.ipcRenderer.removeListener(
         CLONE_REPO_RESPONSE_CHANNEL,
         cloneRepoResultListener
+      );
+
+      window.ipcRenderer.removeListener(
+        UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
+        remoteUrlUpdateResultListener
       );
     };
   }, [selectedProvider]);
@@ -90,13 +104,26 @@ export default function UpdateRemoteStepped() {
   function folderSelectedListener(_event, filePaths) {
     if (filePaths && filePaths.length > 0) {
       setRepoFolder(filePaths[0]);
+      setUpdateRemoteRepoFolder(filePaths[0]);
     }
   }
 
   // Event listener for `git clone` command results.
   function cloneRepoResultListener(_event, { success, error }) {
     if (success) {
-      dispatch({ type: 'FETCH_SUCCESS', payload: { clonedSuccess: true } });
+      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
+    } else {
+      dispatch({ type: 'FETCH_ERROR' });
+      window.ipcRenderer.send(
+        SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
+        error ? error : 'Something went wrong when updating remote url :('
+      );
+    }
+  }
+
+  function remoteUrlUpdateResultListener(_event, { success, error }) {
+    if (success) {
+      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
     } else {
       dispatch({ type: 'FETCH_ERROR' });
       window.ipcRenderer.send(
@@ -130,15 +157,27 @@ export default function UpdateRemoteStepped() {
     });
   }
 
-  // Listen to onClose events of Modal component to reset local state.
+  function updateRemoteUrl() {
+    dispatch({ type: 'FETCH_INIT' });
+    window.ipcRenderer.send(UPDATE_REMOTE_URL_REQUEST_CHANNEL, {
+      selectedProvider,
+      username,
+      updateRemoteRepoFolder,
+    });
+  }
+
+  // Listen to onClose event of Modal component to reset local state for "Clone Repo" Modal.
   function onCloneRepoModalClose() {
     setRepoUrl('');
     setRepoFolder('');
     dispatch({ type: 'FETCH_RESET' });
   }
 
-  // To be implemented
-  function onUpdateRemoteUrlModalClose() {}
+  // Listen to onClose event of Modal component to reset local state for "Update Remote Url" Modal.
+  function onUpdateRemoteUrlModalClose() {
+    setUpdateRemoteRepoFolder('');
+    dispatch({ type: 'FETCH_RESET' });
+  }
 
   function renderCloneRepoDialog() {
     return (
@@ -175,29 +214,75 @@ export default function UpdateRemoteStepped() {
         </div>
         <button
           className={
-            isCloning
+            isLoading
               ? `primary-btn px-16 text-2xl generateKey`
               : isError
               ? `primary-btn-error`
-              : clonedSuccess
+              : success
               ? `primary-btn-success`
               : `primary-btn`
           }
           disabled={!(repoUrl && repoFolder)}
           onClick={cloneRepo}>
-          {isCloning
+          {isLoading
             ? 'Cloning Repo...'
             : isError
             ? 'Retry'
-            : clonedSuccess
+            : success
             ? 'Cloned Successfully!'
             : 'Clone'}
         </button>
-        {isCloning && (
+        {isLoading && (
           <p className="text-xs text-gray-600 mt-2">
             This might take few seconds to minutes...
           </p>
         )}
+      </div>
+    );
+  }
+
+  function renderUpdateRemoteUrlDialog() {
+    return (
+      <div>
+        <h1 className="text-2xl font-semibold">Update Remote Url</h1>
+        <label className="text-gray-800 block text-left text-base mt-4 font-semibold">
+          Select Repo Folder
+        </label>
+        <div className="relative mb-6 mt-2">
+          <input
+            type="text"
+            className="text-gray-600 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
+            value={updateRemoteRepoFolder}
+            placeholder="Select Repo Folder"
+            readOnly
+            onClick={changeDefaultFolder}
+          />
+          <button
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none "
+            onClick={changeDefaultFolder}>
+            Select
+          </button>
+        </div>
+        <button
+          className={
+            isLoading
+              ? `primary-btn px-16 text-2xl generateKey`
+              : isError
+              ? `primary-btn-error`
+              : success
+              ? `primary-btn-success`
+              : `primary-btn`
+          }
+          disabled={!updateRemoteRepoFolder}
+          onClick={updateRemoteUrl}>
+          {isLoading
+            ? 'Upating Remote Url...'
+            : isError
+            ? 'Retry'
+            : success
+            ? 'Remote Url Updated!'
+            : 'Update Remote Url'}
+        </button>
       </div>
     );
   }
@@ -226,12 +311,7 @@ export default function UpdateRemoteStepped() {
           {...updateRepoModalProps}
           buttonRef={updateRemoteUrlButtonRef}
           onModalClose={onUpdateRemoteUrlModalClose}>
-          <div>
-            <h1 className="text-xl font-semibold">Update Remote Url</h1>
-            <p className="mt-4">
-              We can help update remote url of the repo. Bitch!!
-            </p>
-          </div>
+          {renderUpdateRemoteUrlDialog()}
         </Modal>
         <p className="mt-2">
           (Use this if your already have repository on your system)
