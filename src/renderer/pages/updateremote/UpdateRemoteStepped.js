@@ -166,14 +166,14 @@ export default function UpdateRemoteStepped() {
     });
   }
 
-  // Listen to onClose events of Modal component to reset local state.
+  // Listen to onClose event of Modal component to reset local state for "Clone Repo" Modal.
   function onCloneRepoModalClose() {
     setRepoUrl('');
     setRepoFolder('');
     dispatch({ type: 'FETCH_RESET' });
   }
 
-  // To be implemented
+  // Listen to onClose event of Modal component to reset local state for "Update Remote Url" Modal.
   function onUpdateRemoteUrlModalClose() {
     setUpdateRemoteRepoFolder('');
     dispatch({ type: 'FETCH_RESET' });

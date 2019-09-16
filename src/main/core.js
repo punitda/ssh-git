@@ -218,7 +218,7 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
   try {
     const childProcess = spawn('git remote -v', {
       stdio: [process.stdin, 'pipe', process.stderr],
-      cwd: `${repoFolder}`, //Change working directory to selectedFolder path
+      cwd: `${repoFolder}`,
       shell: true,
     });
 
@@ -258,7 +258,7 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
         `git remote set-url ${remoteUrlAliasName} ${updatedRemoteUrl}`,
         {
           stdio: [process.stdin, process.stdout, process.stderr],
-          cwd: `${repoFolder}`, //Change working directory to selectedFolder path
+          cwd: `${repoFolder}`,
           shell: true,
         }
       );
