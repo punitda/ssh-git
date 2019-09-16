@@ -20,8 +20,8 @@ function init() {
   });
 
   app.on('activate', () => {
-    if (mainWindow === null) {
-      createWindow();
+    if (window.getMainWindow() === null) {
+      window.createWindow();
     }
   });
 
