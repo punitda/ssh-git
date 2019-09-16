@@ -283,11 +283,6 @@ export default function UpdateRemoteStepped() {
             ? 'Remote Url Updated!'
             : 'Update Remote Url'}
         </button>
-        {isLoading && (
-          <p className="text-xs text-gray-600 mt-2">
-            This might take few seconds to minutes...
-          </p>
-        )}
       </div>
     );
   }
