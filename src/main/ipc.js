@@ -150,9 +150,14 @@ function register() {
 
   // Generic channel to listen to error messages sent in from renderer process
   // and show Native Error dialog to user.
-  ipcMain.on(SHOW_ERROR_DIALOG_REQUEST_CHANNEL, (_event, errorMessage) => {
-    if (!errorMessage) dialog.showErrorDialog('Uh-Oh! Something went wrong.');
-    else dialog.showErrorDialog(errorMessage);
+  ipcMain.on(SHOW_ERROR_DIALOG_REQUEST_CHANNEL, (_event, error) => {
+    if (!error) {
+      dialog.showErrorDialog('Uh-Oh! Something went wrong.');
+    } else if (error instanceof Error) {
+      dialog.showErrorDialog(error.message);
+    } else {
+      dialog.showErrorDialog(error);
+    }
   });
 }
 
