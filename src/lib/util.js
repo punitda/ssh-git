@@ -89,6 +89,76 @@ function getManualSteps(selectedProvider) {
   }
 }
 
+async function getRemoteUrlAndAliasName(fetchUrl, selectedProvider, username) {
+  // Check if remote url is already updated with correct url we want to update to
+  // like `git@github.com-{username}:owner/repo.git`.
+  // If that is the case, don't do anything just notify user about it.
+  const requiredSSHUrlRegex = getRequiredSshUrlRegex(
+    selectedProvider,
+    username
+  );
+  const alreadyUpdatedUrl = fetchUrl.match(requiredSSHUrlRegex);
+  if (alreadyUpdatedUrl && alreadyUpdatedUrl.length > 0) {
+    return Promise.reject(
+      'You remote url is already updated correctly. No update required.'
+    );
+  }
+
+  const validSshUrlRegex = getValidGitSshUrlRegex(selectedProvider);
+  const remoteUrlMatches = fetchUrl.match(validSshUrlRegex);
+  // Check if it is an valid ssh url based on selectedProvider and throw error if not.
+  if (!remoteUrlMatches || remoteUrlMatches.length === 0) {
+    return Promise.reject(
+      'The repo you selected has an invalid remote ssh url. Please check.'
+    );
+  }
+
+  const remoteUrl = remoteUrlMatches[0];
+  // Update remote url based on selectedProvider and username
+  const updatedRemoteUrl = replaceRemoteUrl(
+    remoteUrl,
+    selectedProvider,
+    username
+  );
+
+  // Extract remote url's alias name(like origin or upstream)
+  const remoteUrlAliasName = fetchUrl
+    .substring(0, fetchUrl.indexOf('git@'))
+    .trim();
+
+  return Promise.resolve({ remoteUrlAliasName, updatedRemoteUrl });
+}
+
+function getValidGitSshUrlRegex(selectedProvider) {
+  if (selectedProvider === providers.BITBUCKET) {
+    return new RegExp(`git@${selectedProvider}.org:(.*).git`);
+  } else {
+    return new RegExp(`git@${selectedProvider}.com:(.*).git`);
+  }
+}
+
+function getRequiredSshUrlRegex(selectedProvider, username) {
+  if (selectedProvider === providers.BITBUCKET) {
+    return new RegExp(`git@${selectedProvider}.org-${username}:(.*).git`);
+  } else {
+    return new RegExp(`git@${selectedProvider}.com-${username}:(.*).git`);
+  }
+}
+
+function replaceRemoteUrl(remoteUrl, selectedProvider, username) {
+  if (selectedProvider === providers.BITBUCKET) {
+    return remoteUrl.replace(
+      `git@${selectedProvider}.org`,
+      `git@${selectedProvider}.org-${username}`
+    );
+  } else {
+    return remoteUrl.replace(
+      `git@${selectedProvider}.com`,
+      `git@${selectedProvider}.com-${username}`
+    );
+  }
+}
+
 const github_steps = [
   `Copy the Public Key you see on the right side to the clipboard`,
   `Login in to your Github account`,
@@ -123,4 +193,5 @@ module.exports = {
   getPublicKeyFileName,
   getManualSteps,
   getCloneRepoCommand,
+  getRemoteUrlAndAliasName,
 };

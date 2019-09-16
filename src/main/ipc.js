@@ -9,6 +9,7 @@ const {
   getPublicKeyContent,
   getSystemName,
   cloneRepo,
+  updateRemoteUrl,
 } = require('./core');
 
 // errors
@@ -24,6 +25,8 @@ const {
   CLONE_REPO_RESPONSE_CHANNEL,
   SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL,
   SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
+  UPDATE_REMOTE_URL_REQUEST_CHANNEL,
+  UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
 } = require('../lib/constants');
 
@@ -112,6 +115,33 @@ function register() {
       }
     } catch (error) {
       event.reply(CLONE_REPO_RESPONSE_CHANNEL, {
+        error,
+        success: false,
+      });
+    }
+  });
+
+  ipcMain.on(UPDATE_REMOTE_URL_REQUEST_CHANNEL, async (event, data) => {
+    const {
+      selectedProvider,
+      username,
+      updateRemoteRepoFolder: repoFolder,
+    } = data;
+
+    try {
+      const result = await updateRemoteUrl(
+        selectedProvider,
+        username,
+        repoFolder
+      );
+      if (result === 0) {
+        event.reply(UPDATE_REMOTE_URL_RESPONSE_CHANNEL, {
+          success: true,
+          error: null,
+        });
+      }
+    } catch (error) {
+      event.reply(UPDATE_REMOTE_URL_RESPONSE_CHANNEL, {
         error,
         success: false,
       });
