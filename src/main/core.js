@@ -273,8 +273,6 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
   } catch (error) {
     return Promise.reject(error);
   }
-
-  return Promise.resolve(0);
 }
 
 async function readChildProcessOutput(readable) {
