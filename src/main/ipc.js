@@ -38,8 +38,13 @@ let githubConfig = null; //workaround to store github config because electron-bu
 // Register for all ipc channel in the app over here once.
 function register() {
   // Listen to request from renderer process to open external links
-  ipcMain.on('open-external', (_event, { path }) => {
-    shell.openExternal(path);
+  ipcMain.on('open-external', (_event, uri) => {
+    shell.openExternal(uri);
+  });
+
+  // Listen to request from renderer process to open folder
+  ipcMain.on('open-folder', (_event, folderPath) => {
+    shell.openItem(folderPath);
   });
 
   // Workaround to store github config coming in from our renderer process :(
@@ -97,19 +102,20 @@ function register() {
 
   // Listen to "clone repo" request and clone the repo based on data passed
   ipcMain.on(CLONE_REPO_REQUEST_CHANNEL, async (event, data) => {
-    const { selectedProvider, username, repoUrl, repoFolder } = data;
+    const { selectedProvider, username, repoUrl, selectedFolder } = data;
 
     try {
-      const result = await cloneRepo(
+      const { code, repoFolder } = await cloneRepo(
         selectedProvider,
         username,
         repoUrl,
-        repoFolder
+        selectedFolder
       );
 
-      if (result === 0) {
+      if (code === 0) {
         event.reply(CLONE_REPO_RESPONSE_CHANNEL, {
           success: true,
+          repoFolder,
           error: null,
         });
       }

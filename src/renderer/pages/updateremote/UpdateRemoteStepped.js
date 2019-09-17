@@ -10,6 +10,8 @@ import { history } from '../../App';
 
 import Modal from '../../components/Modal';
 
+import { openFolder } from '../../../lib/app-shell';
+
 import {
   SELECT_GIT_FOLDER_REQUEST_CHANNEL,
   SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
@@ -109,9 +111,12 @@ export default function UpdateRemoteStepped() {
   }
 
   // Event listener for `git clone` command results.
-  function cloneRepoResultListener(_event, { success, error }) {
+  function cloneRepoResultListener(_event, { success, error, repoFolder }) {
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
+      setTimeout(() => {
+        openFolder(repoFolder);
+      }, 1000);
     } else {
       dispatch({ type: 'FETCH_ERROR' });
       window.ipcRenderer.send(
@@ -153,7 +158,7 @@ export default function UpdateRemoteStepped() {
       selectedProvider,
       username,
       repoUrl,
-      repoFolder,
+      selectedFolder: repoFolder,
     });
   }
 
@@ -219,7 +224,7 @@ export default function UpdateRemoteStepped() {
               : isError
               ? `primary-btn-error`
               : success
-              ? `primary-btn-success`
+              ? `primary-btn-success w-full`
               : `primary-btn`
           }
           disabled={!(repoUrl && repoFolder)}
