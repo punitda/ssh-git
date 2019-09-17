@@ -16,6 +16,8 @@ import Toolbar from '../../components/Toolbar';
 
 import fetchReducer from '../../reducers/fetchReducer';
 
+import { openFolder } from '../../../lib/app-shell';
+
 export default function UpdateRemoteDirect() {
   const selectedProvider = 'github';
   const username = 'punitda';
@@ -63,9 +65,12 @@ export default function UpdateRemoteDirect() {
   }
 
   // Event listener for `git clone` command results.
-  function cloneRepoResultListener(_event, { success, error }) {
+  function cloneRepoResultListener(_event, { success, error, repoFolder }) {
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { clonedSuccess: true } });
+      setTimeout(() => {
+        openFolder(repoFolder);
+      }, 1000);
     } else {
       dispatch({ type: 'FETCH_ERROR' });
       window.ipcRenderer.send(
@@ -91,7 +96,7 @@ export default function UpdateRemoteDirect() {
       selectedProvider,
       username,
       repoUrl,
-      repoFolder,
+      selectedFolder: repoFolder,
     });
   }
 
@@ -129,7 +134,7 @@ export default function UpdateRemoteDirect() {
               : isError
               ? `primary-btn-error`
               : clonedSuccess
-              ? `primary-btn-success`
+              ? `primary-btn-success w-full`
               : `primary-btn`
           }
           disabled={!repoUrl}

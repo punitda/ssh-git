@@ -154,7 +154,7 @@ function getSystemName() {
  * @param {*} repoUrl - used to do some validations and clone the repo
  * @param {*} repoFolder - used to determine the path where to clone the repo.
  */
-async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
+async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
   // Check if the repoUrl entered by user is a valid SSH url
   if (
     !(
@@ -177,10 +177,10 @@ async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
 
   // Check if the folder with same name as "repoName" exists in currently "selectedFolder"
   // and if yes throw error message correctly notifying user about it.
-  let selectedFolderPath = path.join(repoFolder, repoName);
-  if (fs.existsSync(selectedFolderPath)) {
+  let repoFolder = path.join(selectedFolder, repoName);
+  if (fs.existsSync(repoFolder)) {
     return Promise.reject(
-      `The repo your are trying to clone with name "${repoName}" already exists in path : "${selectedFolderPath}". Please check`
+      `The repo your are trying to clone with name "${repoName}" already exists in path : "${repoFolder}". Please check`
     );
   }
 
@@ -194,12 +194,12 @@ async function cloneRepo(selectedProvider, username, repoUrl, repoFolder) {
   try {
     const childProcess = spawn(cloneRepoCommand, {
       stdio: [process.stdin, process.stdout, process.stderr],
-      cwd: `${repoFolder}`, //Change working directory to selectedFolder path
+      cwd: `${selectedFolder}`, //Change working directory to selectedFolder path
       shell: true,
     });
     const code = await onExit(childProcess); //OnExit returns result as `undefined` in case of no errors and throws errors otherwise.
     if (!code) {
-      return Promise.resolve(0);
+      return Promise.resolve({ code: 0, repoFolder });
     }
   } catch (error) {
     return Promise.reject(error);
