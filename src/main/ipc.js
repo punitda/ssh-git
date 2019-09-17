@@ -94,7 +94,7 @@ function register() {
     event.reply(SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL, desktopFolderPath);
   });
 
-  // Listen to request for selecting folder to which to clone the repo to coming in from "updateRemote" screens
+  // Listen to request for selecting folder to which to "clone the repo" or "update remote url" to coming in from "updateRemote" screens
   ipcMain.on(SELECT_GIT_FOLDER_REQUEST_CHANNEL, async (event, _data) => {
     const filePaths = await dialog.showOpenDirectoryDialog();
     if (filePaths) event.reply(SELECT_GIT_FOLDER_RESPONSE_CHANNEL, filePaths);
@@ -128,11 +128,7 @@ function register() {
   });
 
   ipcMain.on(UPDATE_REMOTE_URL_REQUEST_CHANNEL, async (event, data) => {
-    const {
-      selectedProvider,
-      username,
-      updateRemoteRepoFolder: repoFolder,
-    } = data;
+    const { selectedProvider, username, repoFolder } = data;
 
     try {
       const result = await updateRemoteUrl(

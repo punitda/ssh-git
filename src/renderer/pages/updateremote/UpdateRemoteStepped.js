@@ -34,13 +34,12 @@ export default function UpdateRemoteStepped() {
     selectedProvider = null,
   } = clientStateContext.authState;
 
-  const cloneRepoButtonRef = useRef(null); //Used in modal for focusing reason
-  const updateRemoteUrlButtonRef = useRef(null); // Used in modal for focusing reason
+  const cloneRepoButtonRef = useRef(null); //Used in clone repo modal for focusing reason
+  const updateRemoteUrlButtonRef = useRef(null); // Used in update remote modal for focusing reason
 
   const [repoUrl, setRepoUrl] = useState(''); // Stores repourl entered by user
-  const [repoFolder, setRepoFolder] = useState(''); // Stores selected folder where to clone the repo
-
-  const [updateRemoteRepoFolder, setUpdateRemoteRepoFolder] = useState('');
+  const [selectedFolder, setSelectedFolder] = useState(''); // Stores parent folder that user selects where to "clone repo"
+  const [repoFolder, setRepoFolder] = useState(''); // Stores repoFolder user selects for which they are updating "remote url"
 
   const [{ isLoading, isError, data: success }, dispatch] = useReducer(
     fetchReducer,
@@ -84,9 +83,9 @@ export default function UpdateRemoteStepped() {
 
   useEffect(() => {
     // Making sure that we ask for desktop folder path only
-    // when repoFolder is empty('') which would happen
-    // in case dialog is closed and re-opened again.
-    if (!repoFolder) {
+    // when `selectedFolder` is empty('') which would happen
+    // in case "clone repo" dialog is closed and re-opened again.
+    if (!selectedFolder) {
       window.ipcRenderer.send(SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL);
     }
     window.ipcRenderer.on(
@@ -100,13 +99,17 @@ export default function UpdateRemoteStepped() {
         desktopFolderPathListener
       );
     };
-  }, [repoFolder]);
+  }, [selectedFolder]);
 
   // Event listener when folder is selected by user when changing default folder
   function folderSelectedListener(_event, filePaths) {
+    // Setting both selectedFolder(used to store parent folder for cloning repo)
+    // and repoFolder(used to store selected repo folder for updating remote url)
+    // because we've setup one listener for both.
+    // As we're clearing this state on both dialog close this shouldn't be a concern.
     if (filePaths && filePaths.length > 0) {
+      setSelectedFolder(filePaths[0]);
       setRepoFolder(filePaths[0]);
-      setUpdateRemoteRepoFolder(filePaths[0]);
     }
   }
 
@@ -139,7 +142,7 @@ export default function UpdateRemoteStepped() {
   }
 
   function desktopFolderPathListener(_event, path) {
-    setRepoFolder(path);
+    setSelectedFolder(path);
   }
 
   function goBackToHomeScreen() {
@@ -158,7 +161,7 @@ export default function UpdateRemoteStepped() {
       selectedProvider,
       username,
       repoUrl,
-      selectedFolder: repoFolder,
+      selectedFolder,
     });
   }
 
@@ -167,20 +170,22 @@ export default function UpdateRemoteStepped() {
     window.ipcRenderer.send(UPDATE_REMOTE_URL_REQUEST_CHANNEL, {
       selectedProvider,
       username,
-      updateRemoteRepoFolder,
+      repoFolder,
     });
   }
 
   // Listen to onClose event of Modal component to reset local state for "Clone Repo" Modal.
   function onCloneRepoModalClose() {
     setRepoUrl('');
+    setSelectedFolder('');
     setRepoFolder('');
     dispatch({ type: 'FETCH_RESET' });
   }
 
   // Listen to onClose event of Modal component to reset local state for "Update Remote Url" Modal.
   function onUpdateRemoteUrlModalClose() {
-    setUpdateRemoteRepoFolder('');
+    setRepoFolder('');
+    setSelectedFolder('');
     dispatch({ type: 'FETCH_RESET' });
   }
 
@@ -207,12 +212,12 @@ export default function UpdateRemoteStepped() {
         <div className="relative mb-6 mt-2">
           <input
             type="text"
-            className="text-gray-600 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full"
-            value={repoFolder}
+            className="text-gray-600 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
+            value={selectedFolder}
             readOnly
           />
           <button
-            className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none "
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none"
             onClick={changeDefaultFolder}>
             Choose
           </button>
@@ -227,7 +232,7 @@ export default function UpdateRemoteStepped() {
               ? `primary-btn-success w-full`
               : `primary-btn`
           }
-          disabled={!(repoUrl && repoFolder)}
+          disabled={!(repoUrl && selectedFolder)}
           onClick={cloneRepo}>
           {isLoading
             ? 'Cloning Repo...'
@@ -257,7 +262,7 @@ export default function UpdateRemoteStepped() {
           <input
             type="text"
             className="text-gray-600 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
-            value={updateRemoteRepoFolder}
+            value={repoFolder}
             placeholder="Select Repo Folder"
             readOnly
             onClick={changeDefaultFolder}
@@ -275,10 +280,10 @@ export default function UpdateRemoteStepped() {
               : isError
               ? `primary-btn-error`
               : success
-              ? `primary-btn-success`
+              ? `primary-btn-success w-full`
               : `primary-btn`
           }
-          disabled={!updateRemoteRepoFolder}
+          disabled={!repoFolder}
           onClick={updateRemoteUrl}>
           {isLoading
             ? 'Upating Remote Url...'
