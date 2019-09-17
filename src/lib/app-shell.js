@@ -1,7 +1,7 @@
 const ipcRenderer = window.ipcRenderer;
 
-const openExternal = path => {
-  ipcRenderer.send('open-external', path);
+const openExternal = uri => {
+  ipcRenderer.send('open-external', uri);
 };
 
 const openFolder = folderPath => {
