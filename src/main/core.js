@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 
+const SSHConfig = require('ssh-config');
+
 // Using promisify utility from node to convert readFile function to return Promise.
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
@@ -320,6 +322,57 @@ async function retryGeneratingKey(config, rsaFileName, event) {
   }
 }
 
+async function parseSSHConfigFile() {
+  try {
+    const sshConfigFileContents = await readFileAsync(sshConfigFileLocation, {
+      encoding: 'utf8',
+    });
+    // Using ssh-config lib from npm to parse the contents of ssh config file
+    // into meaningful object on which we could work onbundleRenderer.renderToString
+    const parsedConfig = SSHConfig.parse(sshConfigFileContents);
+    const hosts = parsedConfig.map(config => config.value); // Getting hosts value out of it.
+
+    // Reducing values based on "host" by separating username from it.
+    const initialValue = { github: [], bitbucket: [], gitlab: [] };
+    const result = hosts.reduce((acc, currentValue) => {
+      // Below logic is reducing only host who have values like `github-username`, `bitbucket-username` or `gitlab-username`.
+      // and ignoring rest.
+      if (currentValue.includes('github') && currentValue.includes('-')) {
+        acc.github.push(
+          currentValue.substring(
+            currentValue.indexOf('-') + 1,
+            currentValue.length
+          )
+        );
+      } else if (
+        currentValue.includes('bitbucket') &&
+        currentValue.includes('-')
+      ) {
+        acc.bitbucket.push(
+          currentValue.substring(
+            currentValue.indexOf('-') + 1,
+            currentValue.length
+          )
+        );
+      } else if (
+        currentValue.includes('gitlab') &&
+        currentValue.includes('-')
+      ) {
+        acc.gitlab.push(
+          currentValue.substring(
+            currentValue.indexOf('-') + 1,
+            currentValue.length
+          )
+        );
+      }
+      return acc;
+    }, initialValue);
+    return Promise.resolve(result);
+  } catch (error) {
+    Promise.reject(error);
+  }
+}
+
 module.exports = {
   generateKey,
   retryGeneratingKey,
@@ -327,4 +380,5 @@ module.exports = {
   getSystemName,
   cloneRepo,
   updateRemoteUrl,
+  parseSSHConfigFile,
 };

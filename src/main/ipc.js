@@ -10,6 +10,7 @@ const {
   getSystemName,
   cloneRepo,
   updateRemoteUrl,
+  parseSSHConfigFile,
 } = require('./core');
 
 // errors
@@ -27,6 +28,8 @@ const {
   SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
   UPDATE_REMOTE_URL_REQUEST_CHANNEL,
   UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
+  SSH_CONFIG_REQUEST_CHANNEL,
+  SSH_CONFIG_RESPONSE_CHANNEL,
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
 } = require('../lib/constants');
 
@@ -144,6 +147,22 @@ function register() {
       }
     } catch (error) {
       event.reply(UPDATE_REMOTE_URL_RESPONSE_CHANNEL, {
+        error,
+        success: false,
+      });
+    }
+  });
+
+  ipcMain.on(SSH_CONFIG_REQUEST_CHANNEL, async (event, _data) => {
+    try {
+      const sshConfig = await parseSSHConfigFile();
+      event.reply(SSH_CONFIG_RESPONSE_CHANNEL, {
+        success: true,
+        sshConfig,
+        error: null,
+      });
+    } catch (error) {
+      event.reply(SSH_CONFIG_RESPONSE_CHANNEL, {
         error,
         success: false,
       });
