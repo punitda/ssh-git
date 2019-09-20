@@ -157,6 +157,16 @@ function getSystemName() {
  * @param {*} repoFolder - used to determine the path where to clone the repo.
  */
 async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
+  // Check if user has entered correct repo url based on currently selected provider
+  if (
+    repoUrl.startsWith('git@') &&
+    repoUrl.endsWith('.git') &&
+    !repoUrl.includes(selectedProvider)
+  ) {
+    return Promise.reject(
+      `Looks like you've entered the wrong repo url. It doesn't belongs to ${selectedProvider} account. Please check.`
+    );
+  }
   // Check if the repoUrl entered by user is a valid SSH url
   if (
     !(
@@ -195,16 +205,27 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
 
   try {
     const childProcess = spawn(cloneRepoCommand, {
-      stdio: [process.stdin, process.stdout, process.stderr],
+      stdio: [process.stdin, process.stdout, 'pipe'],
       cwd: `${selectedFolder}`, //Change working directory to selectedFolder path
       shell: true,
     });
-    const code = await onExit(childProcess); //OnExit returns result as `undefined` in case of no errors and throws errors otherwise.
-    if (!code) {
-      return Promise.resolve({ code: 0, repoFolder });
+
+    const error = await readChildProcessOutput(childProcess.stderr);
+    // If error log is not empty and contains words like `fatal` it means there was error cloning
+    // the repo. So, it is best interest to show actual error log to user in error dialog
+    if (error && error.includes('fatal')) {
+      return Promise.reject(error);
     }
+
+    // If error log didn't contain `fatal` it means everything went well.
+    // Not using exit code values which is more correct.
+    // I know it is shitty hack. But, git commands simply return status
+    // code like "128" without stating errors in most of the cases when clone command fails.
+    // So, keeping this for now. Will visit this later.
+    return Promise.resolve({ code: 0, repoFolder });
   } catch (error) {
-    return Promise.reject(error);
+    if (errorLog && errorLog.includes('fatal')) return Promise.reject(errorLog);
+    else return Promise.reject(error.message);
   }
 }
 
