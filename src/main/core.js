@@ -211,21 +211,13 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
     });
 
     const error = await readChildProcessOutput(childProcess.stderr);
-    // If error log is not empty and contains words like `fatal` it means there was error cloning
-    // the repo. So, it is best interest to show actual error log to user in error dialog
-    if (error && error.includes('fatal')) {
+    if (error) {
       return Promise.reject(error);
     }
 
-    // If error log didn't contain `fatal` it means everything went well.
-    // Not using exit code values which is more correct.
-    // I know it is shitty hack. But, git commands simply return status
-    // code like "128" without stating errors in most of the cases when clone command fails.
-    // So, keeping this for now. Will visit this later.
     return Promise.resolve({ code: 0, repoFolder });
   } catch (error) {
-    if (errorLog && errorLog.includes('fatal')) return Promise.reject(errorLog);
-    else return Promise.reject(error.message);
+    return Promise.reject(error.message);
   }
 }
 
