@@ -89,13 +89,39 @@ function getManualSteps(selectedProvider) {
   }
 }
 
-async function getRemoteUrlAndAliasName(fetchUrl, selectedProvider, username) {
+async function getNewRemoteUrlAndAliasName(
+  fetchUrl,
+  selectedProvider,
+  username
+) {
   // Check if user has entered correct repo url based on currently selected provider
+  // If fetchUrl doesn't contains selectedProvider it means wrong repo folder
+  // was selected by user.
   if (!fetchUrl.includes(selectedProvider)) {
     return Promise.reject(
       `Looks like either you've selected wrong folder or wrong account because the remote url for the selected repo folder is not setup for ${selectedProvider} account. Please check.`
     );
   }
+
+  // Handle https remote url
+  if (fetchUrl.includes('https://')) {
+    const {
+      newRemoteUrlAliasName = null,
+      newRemoteUrl = null,
+    } = getNewRemoteUrlAndAliasNameForHttpsUrl(
+      fetchUrl,
+      selectedProvider,
+      username
+    );
+    if (newRemoteUrlAliasName && newRemoteUrl) {
+      return Promise.resolve({ newRemoteUrlAliasName, newRemoteUrl });
+    } else {
+      return Promise.reject(
+        "Invalid remote url found(https). We couldn't update it"
+      );
+    }
+  }
+
   // Check if remote url is already updated with correct url we want to update to
   // like `git@github.com-{username}:owner/repo.git`.
   // If that is the case, don't do anything just notify user about it.
@@ -110,6 +136,9 @@ async function getRemoteUrlAndAliasName(fetchUrl, selectedProvider, username) {
     );
   }
 
+  // Check if remote url is already updated to format but using different username in url.
+  // If that is the case, throw error indicating to user that they might have selected wrong username
+  // or wrong folder when filling up the update remote url form.
   const requiredGenericSSHUrlRegex = getRequiredGenericSshUrlRegex(
     selectedProvider
   );
@@ -127,6 +156,10 @@ Please check you're using selecting correct username`
     );
   }
 
+  // If we reach here, now we need to check if ssh url matches the standard ssh url format:
+  // `git@<provider>:<repoOwner>/<repoName>.git`
+  // If yes, we extract that from fetchUrl using match method and see if exists.
+  // And, then we replace it with our own format of `git@<provider> - <username>:<repoOwner>/<repoName>.git`
   const validSshUrlRegex = getValidGitSshUrlRegex(selectedProvider);
   const remoteUrlMatches = fetchUrl.match(validSshUrlRegex);
   // Check if it is an valid ssh url based on selectedProvider and throw error if not.
@@ -145,11 +178,55 @@ Please check you're using selecting correct username`
   );
 
   // Extract remote url's alias name(like origin or upstream)
-  const remoteUrlAliasName = fetchUrl
+  const newRemoteUrlAliasName = fetchUrl
     .substring(0, fetchUrl.indexOf('git@'))
     .trim();
 
-  return Promise.resolve({ remoteUrlAliasName, updatedRemoteUrl });
+  return Promise.resolve({ newRemoteUrlAliasName, updatedRemoteUrl });
+}
+
+function getNewRemoteUrlAndAliasNameForHttpsUrl(
+  fetchUrl,
+  selectedProvider,
+  username
+) {
+  const urlParts = fetchUrl
+    .split('/')
+    .filter(item => item)
+    .slice(1);
+
+  // Https urls has to be divided in 3 parts max(after slicing 1st element) no matter whether it is github/bitbucket/gitlab.
+  if (urlParts.length !== 3) {
+    return Promise.reject(
+      "Invalid remote url found(https). We couldn't update remote url"
+    );
+  }
+
+  const [, repoOwner, repoName] = urlParts;
+  let newRemoteUrlAliasName = fetchUrl
+    .substring(0, fetchUrl.indexOf('https://'))
+    .trim();
+
+  // Bitbucket case
+  // This is because bitbucket https url are of format :
+  // `https://<username>@bitbucket.org/<repoOwner>/<repoName>.git`
+  if (
+    selectedProvider === providers.BITBUCKET &&
+    urlParts.includes(`${username}@${selectedProvider}.org`)
+  ) {
+    const newRemoteUrl = `git@${selectedProvider}.org-${username}:${repoOwner}/${repoName}`;
+    return { newRemoteUrlAliasName, newRemoteUrl };
+  }
+  // Github and Gitlab
+  // This is because gitlab https url are of format:
+  // - `https://github.com/<repoOwner>/<repoName>.git`
+  // - `https://gitlab.com/<repoOwner>/<repoName>.git`
+  else if (urlParts.includes(`${selectedProvider}.com`)) {
+    let newRemoteUrl = `git@${selectedProvider}.com-${username}:${repoOwner}/${repoName}`;
+    return { newRemoteUrlAliasName, newRemoteUrl };
+  } else {
+    return null;
+  }
 }
 
 function getValidGitSshUrlRegex(selectedProvider) {
@@ -224,5 +301,5 @@ module.exports = {
   getPublicKeyFileName,
   getManualSteps,
   getCloneRepoCommand,
-  getRemoteUrlAndAliasName,
+  getNewRemoteUrlAndAliasName,
 };
