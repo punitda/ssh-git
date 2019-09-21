@@ -12,6 +12,8 @@ import {
   SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
   SSH_CONFIG_REQUEST_CHANNEL,
   SSH_CONFIG_RESPONSE_CHANNEL,
+  UPDATE_REMOTE_URL_REQUEST_CHANNEL,
+  UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
 } from '../../../lib/constants';
 
@@ -34,6 +36,7 @@ export default function UpdateRemoteDirect() {
 
   const [repoUrl, setRepoUrl] = useState(''); // Stores repourl entered by user
   const [selectedFolder, setSelectedFolder] = useState(''); // Stores selected folder where to clone the repo
+  const [repoFolder, setRepoFolder] = useState(''); // Stores repoFolder user selects for which they are updating "remote url"
   const [sshConfig, setSshConfig] = useState({}); // Stores config values coming from .ssh config file.
 
   // Custom hook to handle account options to select and render
@@ -117,6 +120,20 @@ export default function UpdateRemoteDirect() {
     };
   }, [selectedFolder]);
 
+  useEffect(() => {
+    window.ipcRenderer.on(
+      UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
+      remoteUrlUpdateResultListener
+    );
+
+    return () => {
+      window.ipcRenderer.removeListener(
+        UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
+        remoteUrlUpdateResultListener
+      );
+    };
+  }, []);
+
   // Event listener listening for desktop folder path of system to show it selected by default in UI when cloning repo.
   function desktopFolderPathListener(_event, path) {
     setSelectedFolder(path);
@@ -142,6 +159,7 @@ export default function UpdateRemoteDirect() {
   function folderSelectedListener(_event, filePaths) {
     if (filePaths && filePaths.length > 0) {
       setSelectedFolder(filePaths[0]);
+      setRepoFolder(filePaths[0]);
     }
   }
 
@@ -152,6 +170,18 @@ export default function UpdateRemoteDirect() {
       setTimeout(() => {
         openFolder(repoFolder);
       }, 1000);
+    } else {
+      dispatch({ type: 'FETCH_ERROR' });
+      window.ipcRenderer.send(
+        SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
+        error ? error : 'Something went wrong when cloning the repo :('
+      );
+    }
+  }
+
+  function remoteUrlUpdateResultListener(_event, { success, error }) {
+    if (success) {
+      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
     } else {
       dispatch({ type: 'FETCH_ERROR' });
       window.ipcRenderer.send(
@@ -181,17 +211,34 @@ export default function UpdateRemoteDirect() {
     });
   }
 
+  function updateRemoteUrl() {
+    dispatch({ type: 'FETCH_INIT' });
+    window.ipcRenderer.send(UPDATE_REMOTE_URL_REQUEST_CHANNEL, {
+      selectedProvider: account,
+      username,
+      repoFolder,
+    });
+  }
+
   // Listen to onClose events of Modal component to reset local state.
   function onCloneRepoModalClose() {
     setRepoUrl('');
     setSelectedFolder('');
+    setRepoFolder('');
     setAccount('');
     setUsername('');
     dispatch({ type: 'FETCH_RESET' });
   }
 
-  // To be implemented
-  function onUpdateRemoteUrlModalClose() {}
+  // Listen to onClose event of Update Remote Url Modal component
+  // to reset local state once the modal is closed
+  function onUpdateRemoteUrlModalClose() {
+    setRepoFolder('');
+    setSelectedFolder('');
+    setAccount('');
+    setUsername('');
+    dispatch({ type: 'FETCH_RESET' });
+  }
 
   function renderCloneRepoDialog() {
     return (
@@ -236,7 +283,9 @@ export default function UpdateRemoteDirect() {
               ? `primary-btn-success w-full`
               : `primary-btn`
           }
-          disabled={!(repoUrl && selectedFolder && account) || isLoading}
+          disabled={
+            !(repoUrl && selectedFolder && account && username) || isLoading
+          }
           onClick={cloneRepo}>
           {isLoading
             ? 'Cloning Repo...'
@@ -251,6 +300,54 @@ export default function UpdateRemoteDirect() {
             This might take few seconds to minutes...
           </p>
         )}
+      </div>
+    );
+  }
+
+  function renderUpdateRemoteUrlDialog() {
+    return (
+      <div>
+        <h1 className="text-2xl font-semibold">Update Remote Url</h1>
+        <AccountDropdown />
+        <UserNameDropDown />
+        <label className="text-gray-800 block text-left text-base mt-4 font-semibold">
+          Select Repo Folder
+        </label>
+        <div className="relative mb-6 mt-2">
+          <input
+            type="text"
+            className="text-gray-600 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
+            value={repoFolder}
+            placeholder="Select Repo Folder"
+            readOnly
+            onClick={changeDefaultFolder}
+          />
+          <button
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none "
+            onClick={changeDefaultFolder}>
+            Select
+          </button>
+        </div>
+        <button
+          className={
+            isLoading
+              ? `primary-btn px-16 text-2xl generateKey`
+              : isError
+              ? `primary-btn-error`
+              : success
+              ? `primary-btn-success w-full`
+              : `primary-btn`
+          }
+          disabled={!(repoFolder && account && username) || isLoading}
+          onClick={updateRemoteUrl}>
+          {isLoading
+            ? 'Upating Remote Url...'
+            : isError
+            ? 'Retry'
+            : success
+            ? 'Remote Url Updated!'
+            : 'Update Remote Url'}
+        </button>
       </div>
     );
   }
@@ -280,12 +377,7 @@ export default function UpdateRemoteDirect() {
           {...updateRepoModalProps}
           buttonRef={updateRemoteUrlButtonRef}
           onModalClose={onUpdateRemoteUrlModalClose}>
-          <div>
-            <h1 className="text-xl font-semibold">Update Remote Url</h1>
-            <p className="mt-4">
-              We can help update remote url of the repo. Bitch!!
-            </p>
-          </div>
+          {renderUpdateRemoteUrlDialog()}
         </Modal>
         <p className="mt-2">
           (Use this if your already have repository on your system)

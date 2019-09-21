@@ -90,6 +90,12 @@ function getManualSteps(selectedProvider) {
 }
 
 async function getRemoteUrlAndAliasName(fetchUrl, selectedProvider, username) {
+  // Check if user has entered correct repo url based on currently selected provider
+  if (!fetchUrl.includes(selectedProvider)) {
+    return Promise.reject(
+      `Looks like either you've selected wrong folder or wrong account because the remote url for the selected repo folder is not setup for ${selectedProvider} account. Please check.`
+    );
+  }
   // Check if remote url is already updated with correct url we want to update to
   // like `git@github.com-{username}:owner/repo.git`.
   // If that is the case, don't do anything just notify user about it.
@@ -101,6 +107,23 @@ async function getRemoteUrlAndAliasName(fetchUrl, selectedProvider, username) {
   if (alreadyUpdatedUrl && alreadyUpdatedUrl.length > 0) {
     return Promise.reject(
       'You remote url is already updated correctly. No update required.'
+    );
+  }
+
+  const requiredGenericSSHUrlRegex = getRequiredGenericSshUrlRegex(
+    selectedProvider
+  );
+  const alreadyUpdatedButIncorrectUrl = fetchUrl.match(
+    requiredGenericSSHUrlRegex
+  );
+
+  if (
+    alreadyUpdatedButIncorrectUrl &&
+    alreadyUpdatedButIncorrectUrl.length > 0
+  ) {
+    return Promise.reject(
+      `The remote url of selected repo folder is already updated but doesn't belongs to "username: ${username}" you selected for "${selectedProvider}" account. 
+Please check you're using selecting correct username`
     );
   }
 
@@ -142,6 +165,14 @@ function getRequiredSshUrlRegex(selectedProvider, username) {
     return new RegExp(`git@${selectedProvider}.org-${username}:(.*).git`);
   } else {
     return new RegExp(`git@${selectedProvider}.com-${username}:(.*).git`);
+  }
+}
+
+function getRequiredGenericSshUrlRegex(selectedProvider) {
+  if (selectedProvider === providers.BITBUCKET) {
+    return new RegExp(`git@${selectedProvider}.org-(.*):(.*).git`);
+  } else {
+    return new RegExp(`git@${selectedProvider}.com-(.*):(.*).git`);
   }
 }
 

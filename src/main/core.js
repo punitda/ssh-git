@@ -246,7 +246,8 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
     // We could do nothing over here.
     if (!remoteCommandResult) {
       return Promise.reject(
-        'No remote url found on the repo you just selected. Nothing to update here.'
+        `No remote url found on the repo you just selected. Strange! Nothing to update here.
+If you have setup SSH keys using this App we suggest you use clone feature and updating remote url thing will be taken care of :)`
       );
     }
 
@@ -255,7 +256,8 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
     // Throw error indicating to user in case no remote urls found after running `git remote -v`
     if (!remoteUrls || remoteUrls.length === 0) {
       return Promise.reject(
-        'No remote url found on the repo you just selected. Nothing to update here.'
+        `No remote url found on the repo you just selected. Strange! Nothing to update here.
+If you have setup SSH keys using this App we suggest you use clone feature and updating remote url thing will be taken care of :)`
       );
     }
 
