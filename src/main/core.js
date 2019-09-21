@@ -341,45 +341,32 @@ async function parseSSHConfigFile() {
       encoding: 'utf8',
     });
     // Using ssh-config lib from npm to parse the contents of ssh config file
-    // into meaningful object on which we could work onbundleRenderer.renderToString
+    // and converting it into meaningful object which we could use for
+    // direct clone repo/update remote functionality
     const parsedConfig = SSHConfig.parse(sshConfigFileContents);
     const hosts = parsedConfig.map(config => config.value); // Getting hosts value out of it.
 
     // Reducing values based on "host" by separating username from it.
+    // Below logic is reducing only host who have values like `github-username`, `bitbucket-username` or `gitlab-username`.
+    // and ignoring rest.
     const initialValue = { github: [], bitbucket: [], gitlab: [] };
-    const result = hosts.reduce((acc, currentValue) => {
-      // Below logic is reducing only host who have values like `github-username`, `bitbucket-username` or `gitlab-username`.
-      // and ignoring rest.
-      if (currentValue.includes('github') && currentValue.includes('-')) {
-        acc.github.push(
-          currentValue.substring(
-            currentValue.indexOf('-') + 1,
-            currentValue.length
-          )
-        );
-      } else if (
-        currentValue.includes('bitbucket') &&
-        currentValue.includes('-')
-      ) {
-        acc.bitbucket.push(
-          currentValue.substring(
-            currentValue.indexOf('-') + 1,
-            currentValue.length
-          )
-        );
-      } else if (
-        currentValue.includes('gitlab') &&
-        currentValue.includes('-')
-      ) {
-        acc.gitlab.push(
-          currentValue.substring(
-            currentValue.indexOf('-') + 1,
-            currentValue.length
-          )
-        );
+
+    const result = hosts.reduce((accumulator, host) => {
+      if (!host.includes('-')) return accumulator;
+
+      // Extracting username from `host` value.
+      // E.x if host value is `github-punitd` it will get back `punitd` from it
+      const username = host.substring(host.indexOf('-') + 1, host.length);
+      if (host.includes('github')) {
+        accumulator.github.push(username);
+      } else if (host.includes('bitbucket')) {
+        accumulator.bitbucket.push(username);
+      } else if (host.includes('gitlab')) {
+        accumulator.gitlab.push(username);
       }
-      return acc;
+      return accumulator;
     }, initialValue);
+
     return Promise.resolve(result);
   } catch (error) {
     Promise.reject(error);

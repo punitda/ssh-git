@@ -133,7 +133,7 @@ export default function UpdateRemoteDirect() {
     } else {
       window.ipcRenderer.send(
         SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
-        error ? error : 'Something went wrong when parsing your ssh config file'
+        error ? error : 'Something went wrong when parsing ssh config file :('
       );
     }
   }

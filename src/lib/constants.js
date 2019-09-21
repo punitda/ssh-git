@@ -21,8 +21,8 @@ const SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL =
 const UPDATE_REMOTE_URL_REQUEST_CHANNEL = 'update-remote-url-request-channel';
 const UPDATE_REMOTE_URL_RESPONSE_CHANNEL = 'update-remote-url-response-channel';
 
-const SSH_CONFIG_REQUEST_CHANNEL = 'parse-ssh-config-request-channel';
-const SSH_CONFIG_RESPONSE_CHANNEL = 'parse-ssh-config-response-channel';
+const SSH_CONFIG_REQUEST_CHANNEL = 'ssh-config-request-channel';
+const SSH_CONFIG_RESPONSE_CHANNEL = 'ssh-config-response-channel';
 
 module.exports = {
   PUBLIC_KEY_COPY_REQUEST_CHANNEL,

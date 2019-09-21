@@ -27,10 +27,6 @@ export default function Home({ navigateTo }) {
           onClick={_e => navigateTo('/updateRemote')}>
           Clone or Update
         </button>
-        <p className="text-gray-500 text-center mt-2">
-          [Note : You will be only be able to clone repo or update remote url if
-          you have setup SSH keys using this App.]
-        </p>
       </div>
     </div>
   );
