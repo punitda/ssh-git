@@ -28,7 +28,7 @@ const {
   getConfigFileContents,
   getPublicKeyFileName,
   getCloneRepoCommand,
-  getRemoteUrlAndAliasName,
+  getNewRemoteUrlAndAliasName,
 } = require('../lib/util');
 
 // Custom Errors
@@ -246,7 +246,8 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
     // We could do nothing over here.
     if (!remoteCommandResult) {
       return Promise.reject(
-        'No remote url found on the repo you just selected. Nothing to update here.'
+        `No remote url found on the repo you just selected. Strange! Nothing to update here.
+If you have setup SSH keys using this App, we suggest you use clone feature and updating remote url thing will be taken care of :)`
       );
     }
 
@@ -255,22 +256,26 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
     // Throw error indicating to user in case no remote urls found after running `git remote -v`
     if (!remoteUrls || remoteUrls.length === 0) {
       return Promise.reject(
-        'No remote url found on the repo you just selected. Nothing to update here.'
+        `No remote url found on the repo you just selected. Strange! Nothing to update here.
+If you have setup SSH keys using this App, we suggest you use clone feature and updating remote url thing will be taken care of :)`
       );
     }
 
-    const {
-      remoteUrlAliasName,
-      updatedRemoteUrl,
-    } = await getRemoteUrlAndAliasName(
-      remoteUrls[0],
-      selectedProvider,
-      username
-    );
+    // Extracting fetchUrl.
+    // Note : Usually fetch and push urls are same in most of the cases. So, we're just using fetch url.
+    let fetchUrl = remoteUrls[0];
+    if (fetchUrl.includes('(fetch)')) {
+      fetchUrl = fetchUrl.replace('(fetch)', '').trim();
+    }
 
-    if (updatedRemoteUrl && remoteUrlAliasName) {
+    const {
+      newRemoteUrlAliasName,
+      newRemoteUrl,
+    } = await getNewRemoteUrlAndAliasName(fetchUrl, selectedProvider, username);
+
+    if (newRemoteUrl && newRemoteUrlAliasName) {
       const childProcess = spawn(
-        `git remote set-url ${remoteUrlAliasName} ${updatedRemoteUrl}`,
+        `git remote set-url ${newRemoteUrlAliasName} ${newRemoteUrl}`,
         {
           stdio: [process.stdin, process.stdout, process.stderr],
           cwd: `${repoFolder}`,
