@@ -136,7 +136,8 @@ async function getNewRemoteUrlAndAliasName(
     );
   }
 
-  // Check if remote url is already updated to format but using different username in url.
+  // Check if remote url is already updated to format we need but contains different username
+  // in url then the one entered by user.
   // If that is the case, throw error indicating to user that they might have selected wrong username
   // or wrong folder when filling up the update remote url form.
   const requiredGenericSSHUrlRegex = getRequiredGenericSshUrlRegex(
