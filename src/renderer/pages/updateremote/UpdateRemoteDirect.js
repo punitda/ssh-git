@@ -186,7 +186,9 @@ export default function UpdateRemoteDirect() {
       dispatch({ type: 'FETCH_ERROR' });
       window.ipcRenderer.send(
         SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
-        error ? error : 'Something went wrong when cloning the repo :('
+        error
+          ? error
+          : 'Something went wrong when updating remote url of the repo :('
       );
     }
   }
