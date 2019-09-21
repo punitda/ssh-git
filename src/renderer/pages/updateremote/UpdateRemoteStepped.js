@@ -200,7 +200,7 @@ export default function UpdateRemoteStepped() {
         </label>
         <input
           type="text"
-          className="text-gray-600 text-base bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
+          className="text-gray-800 text-base bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
           placeholder="Enter your repository url."
           value={repoUrl}
           onChange={e => setRepoUrl(e.target.value)}
@@ -214,7 +214,7 @@ export default function UpdateRemoteStepped() {
         <div className="relative mb-6 mt-2">
           <input
             type="text"
-            className="text-gray-600 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
+            className="text-gray-800 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
             value={selectedFolder}
             readOnly
           />
@@ -234,7 +234,7 @@ export default function UpdateRemoteStepped() {
               ? `primary-btn-success w-full`
               : `primary-btn`
           }
-          disabled={!(repoUrl && selectedFolder)}
+          disabled={!(repoUrl && selectedFolder) || isLoading}
           onClick={cloneRepo}>
           {isLoading
             ? 'Cloning Repo...'
@@ -263,7 +263,7 @@ export default function UpdateRemoteStepped() {
         <div className="relative mb-6 mt-2">
           <input
             type="text"
-            className="text-gray-600 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
+            className="text-gray-800 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
             value={repoFolder}
             placeholder="Select Repo Folder"
             readOnly
@@ -285,7 +285,7 @@ export default function UpdateRemoteStepped() {
               ? `primary-btn-success w-full`
               : `primary-btn`
           }
-          disabled={!repoFolder}
+          disabled={!repoFolder || isLoading}
           onClick={updateRemoteUrl}>
           {isLoading
             ? 'Upating Remote Url...'
