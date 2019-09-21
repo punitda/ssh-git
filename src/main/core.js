@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 
+const SSHConfig = require('ssh-config');
+
 // Using promisify utility from node to convert readFile function to return Promise.
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
@@ -155,6 +157,16 @@ function getSystemName() {
  * @param {*} repoFolder - used to determine the path where to clone the repo.
  */
 async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
+  // Check if user has entered correct repo url based on currently selected provider
+  if (
+    repoUrl.startsWith('git@') &&
+    repoUrl.endsWith('.git') &&
+    !repoUrl.includes(selectedProvider)
+  ) {
+    return Promise.reject(
+      `Looks like you've entered the wrong repo url. It doesn't belongs to ${selectedProvider} account. Please check.`
+    );
+  }
   // Check if the repoUrl entered by user is a valid SSH url
   if (
     !(
@@ -193,16 +205,19 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
 
   try {
     const childProcess = spawn(cloneRepoCommand, {
-      stdio: [process.stdin, process.stdout, process.stderr],
+      stdio: [process.stdin, process.stdout, 'pipe'],
       cwd: `${selectedFolder}`, //Change working directory to selectedFolder path
       shell: true,
     });
-    const code = await onExit(childProcess); //OnExit returns result as `undefined` in case of no errors and throws errors otherwise.
-    if (!code) {
-      return Promise.resolve({ code: 0, repoFolder });
+
+    const error = await readChildProcessOutput(childProcess.stderr);
+    if (error) {
+      return Promise.reject(error);
     }
+
+    return Promise.resolve({ code: 0, repoFolder });
   } catch (error) {
-    return Promise.reject(error);
+    return Promise.reject(error.message);
   }
 }
 
@@ -320,6 +335,44 @@ async function retryGeneratingKey(config, rsaFileName, event) {
   }
 }
 
+async function parseSSHConfigFile() {
+  try {
+    const sshConfigFileContents = await readFileAsync(sshConfigFileLocation, {
+      encoding: 'utf8',
+    });
+    // Using ssh-config lib from npm to parse the contents of ssh config file
+    // and converting it into meaningful object which we could use for
+    // direct clone repo/update remote functionality
+    const parsedConfig = SSHConfig.parse(sshConfigFileContents);
+    const hosts = parsedConfig.map(config => config.value); // Getting hosts value out of it.
+
+    // Reducing values based on "host" by separating username from it.
+    // Below logic is reducing only host who have values like `github-username`, `bitbucket-username` or `gitlab-username`.
+    // and ignoring rest.
+    const initialValue = { github: [], bitbucket: [], gitlab: [] };
+
+    const result = hosts.reduce((accumulator, host) => {
+      if (!host.includes('-')) return accumulator;
+
+      // Extracting username from `host` value.
+      // E.x if host value is `github-punitd` it will get back `punitd` from it
+      const username = host.substring(host.indexOf('-') + 1, host.length);
+      if (host.includes('github')) {
+        accumulator.github.push(username);
+      } else if (host.includes('bitbucket')) {
+        accumulator.bitbucket.push(username);
+      } else if (host.includes('gitlab')) {
+        accumulator.gitlab.push(username);
+      }
+      return accumulator;
+    }, initialValue);
+
+    return Promise.resolve(result);
+  } catch (error) {
+    Promise.reject(error);
+  }
+}
+
 module.exports = {
   generateKey,
   retryGeneratingKey,
@@ -327,4 +380,5 @@ module.exports = {
   getSystemName,
   cloneRepo,
   updateRemoteUrl,
+  parseSSHConfigFile,
 };

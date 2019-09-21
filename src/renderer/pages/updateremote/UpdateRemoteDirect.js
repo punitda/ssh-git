@@ -2,39 +2,63 @@ import React, { useRef, useState, useEffect, useReducer } from 'react';
 
 import { history } from '../../App';
 
-import Modal from '../../components/Modal';
-
+// Constants
 import {
   SELECT_GIT_FOLDER_REQUEST_CHANNEL,
   SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
   CLONE_REPO_REQUEST_CHANNEL,
   CLONE_REPO_RESPONSE_CHANNEL,
+  SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL,
+  SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
+  SSH_CONFIG_REQUEST_CHANNEL,
+  SSH_CONFIG_RESPONSE_CHANNEL,
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
 } from '../../../lib/constants';
 
+// Components
+import Modal from '../../components/Modal';
 import Toolbar from '../../components/Toolbar';
 
+// Reducer
 import fetchReducer from '../../reducers/fetchReducer';
 
+// Custom Hooks
+import useDropdown from '../../hooks/useDropdown';
+
+// Internal libs
 import { openFolder } from '../../../lib/app-shell';
 
 export default function UpdateRemoteDirect() {
-  const selectedProvider = 'github';
-  const username = 'punitda';
   const cloneRepoButtonRef = useRef(null); //Used in modal for focusing reason
   const updateRemoteUrlButtonRef = useRef(null); // Used in modal for focusing reason
 
   const [repoUrl, setRepoUrl] = useState(''); // Stores repourl entered by user
-  const [repoFolder, setRepoFolder] = useState('default'); // Stores selected folder where to clone the repo
+  const [selectedFolder, setSelectedFolder] = useState(''); // Stores selected folder where to clone the repo
+  const [sshConfig, setSshConfig] = useState({}); // Stores config values coming from .ssh config file.
 
-  const [
-    { isLoading: isCloning, isError, data: clonedSuccess },
-    dispatch,
-  ] = useReducer(fetchReducer, {
-    isLoading: false,
-    isError: false,
-    data: null,
-  });
+  // Custom hook to handle account options to select and render
+  const [account, setAccount, AccountDropdown] = useDropdown(
+    'Select account',
+    '',
+    sshConfig ? Object.keys(sshConfig) : []
+  );
+
+  // Custom hook to handle username options to select and render
+  const [username, setUsername, UserNameDropDown] = useDropdown(
+    'Select username',
+    '',
+    account ? Object.values(sshConfig[`${account}`]) : []
+  );
+
+  // Used to store state like "loading, error and success" when cloning repo or updating remote url
+  const [{ isLoading, isError, data: success }, dispatch] = useReducer(
+    fetchReducer,
+    {
+      isLoading: false,
+      isError: false,
+      data: null,
+    }
+  );
 
   useEffect(() => {
     window.ipcRenderer.on(
@@ -42,32 +66,89 @@ export default function UpdateRemoteDirect() {
       folderSelectedListener
     );
 
-    window.ipcRenderer.on(CLONE_REPO_RESPONSE_CHANNEL, cloneRepoResultListener);
-
     return () => {
       window.ipcRenderer.removeListener(
         SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
         folderSelectedListener
       );
+    };
+  }, []);
 
+  useEffect(() => {
+    window.ipcRenderer.on(CLONE_REPO_RESPONSE_CHANNEL, cloneRepoResultListener);
+
+    return () => {
       window.ipcRenderer.removeListener(
         CLONE_REPO_RESPONSE_CHANNEL,
         cloneRepoResultListener
       );
     };
-  }, [selectedProvider]);
+  }, []);
 
-  // Event listener when folder is selected by user when changing default folder
+  useEffect(() => {
+    window.ipcRenderer.send(SSH_CONFIG_REQUEST_CHANNEL);
+
+    window.ipcRenderer.on(SSH_CONFIG_RESPONSE_CHANNEL, sshConfigResultListener);
+    return () => {
+      window.ipcRenderer.removeListener(
+        SSH_CONFIG_RESPONSE_CHANNEL,
+        sshConfigResultListener
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    // Making sure that we ask for desktop folder path only
+    // when `selectedFolder` is empty('') which would happen
+    // in case "clone repo" dialog is closed and re-opened again.
+    if (!selectedFolder) {
+      window.ipcRenderer.send(SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL);
+    }
+    window.ipcRenderer.on(
+      SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
+      desktopFolderPathListener
+    );
+
+    return () => {
+      window.ipcRenderer.removeListener(
+        SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
+        desktopFolderPathListener
+      );
+    };
+  }, [selectedFolder]);
+
+  // Event listener listening for desktop folder path of system to show it selected by default in UI when cloning repo.
+  function desktopFolderPathListener(_event, path) {
+    setSelectedFolder(path);
+  }
+
+  // Event listener listening to ssh config values coming in from main process
+  // to be used for allowing user to select account and username
+  function sshConfigResultListener(
+    _event,
+    { success = false, error = null, sshConfig = null }
+  ) {
+    if (success) {
+      setSshConfig(sshConfig);
+    } else {
+      window.ipcRenderer.send(
+        SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
+        error ? error : 'Something went wrong when parsing ssh config file :('
+      );
+    }
+  }
+
+  // Event listener to receive folder path that is selected by user when changing the default folder
   function folderSelectedListener(_event, filePaths) {
     if (filePaths && filePaths.length > 0) {
-      setRepoFolder(filePaths[0]);
+      setSelectedFolder(filePaths[0]);
     }
   }
 
   // Event listener for `git clone` command results.
   function cloneRepoResultListener(_event, { success, error, repoFolder }) {
     if (success) {
-      dispatch({ type: 'FETCH_SUCCESS', payload: { clonedSuccess: true } });
+      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
       setTimeout(() => {
         openFolder(repoFolder);
       }, 1000);
@@ -93,17 +174,19 @@ export default function UpdateRemoteDirect() {
   function cloneRepo() {
     dispatch({ type: 'FETCH_INIT' });
     window.ipcRenderer.send(CLONE_REPO_REQUEST_CHANNEL, {
-      selectedProvider,
+      selectedProvider: account,
       username,
       repoUrl,
-      selectedFolder: repoFolder,
+      selectedFolder,
     });
   }
 
   // Listen to onClose events of Modal component to reset local state.
   function onCloneRepoModalClose() {
     setRepoUrl('');
-    setRepoFolder('default');
+    setSelectedFolder('');
+    setAccount('');
+    setUsername('');
     dispatch({ type: 'FETCH_RESET' });
   }
 
@@ -114,67 +197,59 @@ export default function UpdateRemoteDirect() {
     return (
       <div>
         <h1 className="text-2xl font-semibold">Clone Repo</h1>
+        <AccountDropdown />
+        <UserNameDropDown />
         <label className="text-gray-800 block text-left text-base mt-6 font-semibold">
           Repo url
         </label>
         <input
           type="text"
-          className="text-gray-600 text-lg bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
-          placeholder="Enter your repository url."
+          className="text-gray-800 text-base bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
+          placeholder="Enter your repository's SSH url."
           value={repoUrl}
           onChange={e => setRepoUrl(e.target.value)}
         />
-        <p className="text-gray-600 text-sm mt-2 mb-6">
-          [Example : git@github.com:nodejs/node.git]
-        </p>
+        <label className="text-gray-800 block text-left text-base mt-4 font-semibold">
+          Choose Folder
+        </label>
+        <div className="relative mb-6 mt-2">
+          <input
+            type="text"
+            className="text-gray-800 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
+            value={selectedFolder}
+            onClick={changeDefaultFolder}
+            readOnly
+          />
+          <button
+            className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none"
+            onClick={changeDefaultFolder}>
+            Choose
+          </button>
+        </div>
         <button
           className={
-            isCloning
+            isLoading
               ? `primary-btn px-16 text-2xl generateKey`
               : isError
               ? `primary-btn-error`
-              : clonedSuccess
+              : success
               ? `primary-btn-success w-full`
               : `primary-btn`
           }
-          disabled={!repoUrl}
+          disabled={!(repoUrl && selectedFolder && account) || isLoading}
           onClick={cloneRepo}>
-          {isCloning
+          {isLoading
             ? 'Cloning Repo...'
             : isError
             ? 'Retry'
-            : clonedSuccess
+            : success
             ? 'Cloned Successfully!'
             : 'Clone'}
         </button>
-        {isCloning && (
-          <p className="text-xs text-gray-600">
-            This might take few seconds to minutes
+        {isLoading && (
+          <p className="text-xs text-gray-600 mt-2">
+            This might take few seconds to minutes...
           </p>
-        )}
-        {repoFolder === 'default' ? (
-          <p className="mt-4 text-sm text-gray-600">
-            <span className="font-bold text-gray-700">{`Note: `}</span>
-            This will clone your repo on the Desktop by default. To change
-            default folder please{' '}
-            <span
-              className="font-bold underline text-gray-800 hover:text-blue-500 hover:bg-blue-100 cursor-pointer"
-              onClick={changeDefaultFolder}>
-              Select Folder
-            </span>{' '}
-            you want it to clone to.
-          </p>
-        ) : (
-          <>
-            <div className="mt-4 text-base text-gray-700">
-              Folder selected :
-            </div>
-            <div
-              className="font-bold text-sm text-gray-600 hover:text-gray-700 bg-yellow-200 hover:bg-yellow-300 rounded-sm px-2 py-2 mt-2 cursor-pointer"
-              onClick={changeDefaultFolder}>
-              {repoFolder}
-            </div>
-          </>
         )}
       </div>
     );
@@ -186,6 +261,10 @@ export default function UpdateRemoteDirect() {
       <h2 className="mx-16 mt-8 text-2xl text-center text-gray-900">
         Clone Repo or Update Remote Url
       </h2>
+      <p className="text-sm text-gray-700 text-center">
+        (Note : You will be only be able to clone repo or update remote url if
+        you have setup SSH keys using this App.)
+      </p>
       <div className="text-center mt-16">
         <Modal
           {...cloneRepoModalProps}

@@ -73,7 +73,7 @@ function getCloneRepoCommand(selectedProvider, username, repoUrl) {
     );
   }
 
-  return `git clone ${modifiedRepoUrl}`;
+  return `git clone ${modifiedRepoUrl} --quiet`;
 }
 
 function getManualSteps(selectedProvider) {

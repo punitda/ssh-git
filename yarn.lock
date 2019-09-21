@@ -7039,6 +7039,11 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
 
+ssh-config@^2.0.0-beta.1:
+  version "2.0.0-beta.1"
+  resolved "https://registry.yarnpkg.com/ssh-config/-/ssh-config-2.0.0-beta.1.tgz#7e16dd777b31eef717540ea179bc00c1c310f972"
+  integrity sha512-+jkJDdd/aQ2+ALS5VBpcRtH37EIfiAzKF9dqghGDkCgw03MnCyIrmCDmtyptu/UyS44dweXie6u3a0o4nuq87Q==
+
 sshpk@^1.7.0:
   version "1.16.1"
   resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.16.1.tgz#fb661c0bef29b39db40769ee39fa70093d6f6877"

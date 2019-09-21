@@ -28,6 +28,7 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-spinners": "^0.5.13",
+    "ssh-config": "^2.0.0-beta.1",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
