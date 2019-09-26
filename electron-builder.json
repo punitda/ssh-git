@@ -1,0 +1,23 @@
+{
+  "appId": "com.ssh-git.app",
+  "files": ["src/main/**/*", "src/lib/**/*", "build/**/*"],
+  "mac": {
+    "category": "public.app-category.developer-tools",
+    "darkModeSupport": true,
+    "target": "dmg",
+    "identity": null
+  },
+  "win": {
+    "target": "nsis"
+  },
+  "linux": {
+    "executableName": "ssh-git",
+    "category": "Development",
+    "target": ["deb", "tar.gz"]
+  },
+  "protocols": {
+    "name": "Oauth redirect uris",
+    "role": "Viewer",
+    "schemes": ["ssh-git"]
+  }
+}

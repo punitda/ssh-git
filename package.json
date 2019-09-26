@@ -7,14 +7,18 @@
   "scripts": {
     "start": "yarn build-css && concurrently \"yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
     "clean-start": "yarn clean && yarn start",
-    "build-all": "yarn clean && yarn build-css && yarn react-build && yarn electron-build",
+    "build-all": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-all",
     "build-mac": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-mac",
+    "build-linux": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-linux",
+    "build-windows": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-windows",
     "react-start": "parcel -p 3000 public/index.html",
     "build-css": "postcss public/tailwind.css -o public/build/tailwind.css",
     "watch-css": "postcss public/tailwind.css -o public/build/tailwind.css --watch",
     "react-build": "parcel build public/index.html --out-dir build --public-url ./",
-    "electron-build-all": "electron-builder -mwl",
-    "electron-build-mac": "electron-builder",
+    "electron-build-linux": "electron-builder --config electron-builder.json -l",
+    "electron-build-windows": "electron-builder --config electron-builder.json -w",
+    "electron-build-mac": "electron-builder --config electron-builder.json",
+    "electron-build-all": "electron-builder --config electron-builder.json -mwl",
     "clean": "rm -rf build/ .cache dist/ public/build"
   },
   "keywords": [],
@@ -46,29 +50,6 @@
     "postcss-cli": "^6.1.3",
     "tailwindcss": "^1.0.5",
     "wait-on": "^3.3.0"
-  },
-  "build": {
-    "appId": "dev.punitd.ssh-git",
-    "files": [
-      "src/main/**/*",
-      "src/lib/**/*",
-      "build/**/*"
-    ],
-    "mac": {
-      "target": "dmg"
-    },
-    "win": {
-      "target": "nsis"
-    },
-    "linux": {
-      "target": "deb"
-    },
-    "protocols": {
-      "name": "app-protocol",
-      "schemes": [
-        "ssh-git"
-      ]
-    }
   },
   "homepage": "./",
   "browserslist": [
