@@ -15,6 +15,34 @@ const APP_SCHEMA = 'ssh-git';
 
 function registerAppSchema() {
   app.setAsDefaultProtocolClient(APP_SCHEMA);
+  if (process.platform === 'linux') {
+    installLinux();
+  }
+}
+
+function installLinux() {
+  const fs = require('fs');
+  const path = require('path');
+  const os = require('os');
+
+  const templatePath = path.join(__dirname, 'ssh-git.desktop');
+  let desktopFile = fs.readFileSync(templatePath, 'utf8');
+
+  desktopFile = desktopFile.replace(/\$APP_NAME/g, 'ssh-git');
+  desktopFile = desktopFile.replace(
+    /\$APP_PATH/g,
+    path.dirname(process.execPath)
+  );
+  desktopFile = desktopFile.replace(/\$EXEC_PATH/g, process.execPath);
+
+  var desktopFilePath = path.join(
+    os.homedir(),
+    '.local',
+    'share',
+    'applications',
+    'ssh-git.desktop'
+  );
+  fs.writeFileSync(desktopFilePath, desktopFile);
 }
 
 function showWindow(window) {
