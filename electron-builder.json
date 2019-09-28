@@ -12,8 +12,15 @@
   },
   "linux": {
     "executableName": "ssh-git",
+    "maintainer" : "punitdama <punitdama@gmail.com>",
     "category": "Development",
-    "target": ["deb", "tar.gz"]
+    "target": ["deb"],
+    "mimeTypes" : ["x-scheme-handler/ssh-git"],
+    "desktop" : {
+      "Name": "ssh-git",
+      "Categories" : "Development",
+      "MimeType" : "x-scheme-handler/ssh-git"
+    }
   },
   "protocols": {
     "name": "Oauth redirect uris",

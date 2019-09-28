@@ -15,7 +15,7 @@ const APP_SCHEMA = 'ssh-git';
 
 function registerAppSchema() {
   app.setAsDefaultProtocolClient(APP_SCHEMA);
-  if (process.platform === 'linux') {
+  if(process.platform === 'linux'){
     installLinux();
   }
 }
@@ -35,7 +35,7 @@ function installLinux() {
   );
   desktopFile = desktopFile.replace(/\$EXEC_PATH/g, process.execPath);
 
-  var desktopFilePath = path.join(
+  const desktopFilePath = path.join(
     os.homedir(),
     '.local',
     'share',
