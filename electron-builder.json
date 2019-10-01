@@ -12,14 +12,13 @@
   },
   "linux": {
     "executableName": "ssh-git",
-    "maintainer" : "punitdama <punitdama@gmail.com>",
+    "maintainer": "punitdama <punitdama@gmail.com>",
     "category": "Development",
     "target": ["deb"],
-    "mimeTypes" : ["x-scheme-handler/ssh-git"],
-    "desktop" : {
+    "desktop": {
       "Name": "ssh-git",
-      "Categories" : "Development",
-      "MimeType" : "x-scheme-handler/ssh-git"
+      "Categories": "Development",
+      "MimeType": "x-scheme-handler/ssh-git"
     }
   },
   "protocols": {
