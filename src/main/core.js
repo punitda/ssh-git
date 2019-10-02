@@ -65,7 +65,12 @@ async function generateKey(config) {
       let code;
       if (index === 2) {
         //Pass passphrase stored in config for our 3rd command(ssh-add) so user don't have to type and remember the password again.
-        code = await runCommand(command, sshConfig.passphrase);
+        let code;
+        if (process.platform === 'linux') {
+          code = await runSshAddCommandInLinux(command);
+        } else {
+          code = await runCommand(command, sshConfig.passphrase);
+        }
       } else {
         code = await runCommand(command);
       }
@@ -118,6 +123,24 @@ async function runCommand() {
       writePassPhraseToStdIn(childProcess.stdin, passphrase);
     }
 
+    await onExit(childProcess);
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+async function runSshAddCommandInLinux(command) {
+  const childProcess = spawn(command, {
+    stdio: [process.stdin, process.stdout, 'pipe'],
+    cwd: `${sshDir}`,
+    shell: true,
+  });
+
+  try {
+    const error = await readChildProcessOutput(childProcess.stderr);
+    if (error) {
+      return Promise.reject(error);
+    }
     await onExit(childProcess);
   } catch (error) {
     throw new Error(error);

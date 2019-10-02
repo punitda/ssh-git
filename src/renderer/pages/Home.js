@@ -19,7 +19,7 @@ export default function Home({ navigateTo }) {
         </h1>
         <button
           className="w-64 px-4 py-2 mt-24 text-white text-2xl font-semibold bg-blue-700 hover:bg-blue-500 rounded focus:outline-none"
-          onClick={_e => navigateTo('/oauth')}>
+          onClick={_e => navigateTo('/oauth/generate')}>
           Setup SSH
         </button>
         <button

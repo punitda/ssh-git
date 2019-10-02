@@ -14,15 +14,21 @@ import { SHOW_ERROR_DIALOG_REQUEST_CHANNEL } from '../../../lib/constants';
 
 const GenerateKeys = ({ onNext }) => {
   const clientStateContext = useContext(ClientStateContext);
-  const {
-    token = null,
-    selectedProvider = null,
-  } = clientStateContext.authState;
+  const { token = null, selectedProvider = null } = {
+    selectedProvider: 'github',
+  };
 
-  const [{ data, isLoading, isError }] = useRequestUserProfile(
-    selectedProvider,
-    token
-  );
+  const [{ data, isLoading, isError }] = [
+    {
+      data: {
+        email: 'punitdama@gmail.com',
+        username: 'punitda',
+        avatar_url: 'https://google.com',
+      },
+      isLoading: false,
+      isError: false,
+    },
+  ];
 
   const [passphrase, setPassPhrase] = useState('');
 
