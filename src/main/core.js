@@ -32,7 +32,11 @@ const {
 } = require('../lib/util');
 
 // Custom Errors
-const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
+const {
+  SSHKeyExistsError,
+  DoNotOverrideKeysError,
+  SshAskPassNotInstalledError,
+} = require('../lib/error');
 
 // Paths to be used in core logic
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
@@ -74,11 +78,9 @@ async function generateKey(config) {
       } else {
         code = await runCommand(command);
       }
-      if (code) {
-        throw new Error(`${command} failed with code : ${code}`);
-      }
     } catch (error) {
-      return Promise.reject(error);
+      console.log('error message : ', error.message);
+      return Promise.reject(error.message);
     }
   }
 
@@ -138,12 +140,19 @@ async function runSshAddCommandInLinux(command) {
 
   try {
     const error = await readChildProcessOutput(childProcess.stderr);
+    console.log('error when running ssh-add command : ', error);
     if (error) {
+      if (error.includes('askpass')) {
+        console.log('do we come over here..');
+        return Promise.reject(new SshAskPassNotInstalledError());
+      } else if (error.includes('Identity added')) {
+        return Promise.resolve(0);
+      }
       return Promise.reject(error);
     }
     await onExit(childProcess);
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 }
 
@@ -356,6 +365,14 @@ async function retryGeneratingKey(config, rsaFileName, event) {
       });
     }
   } catch (error) {
+    console.log('do we come over here: ', error);
+    if (error) {
+      event.reply('generated-keys-result', {
+        success: false,
+        error: { message: error },
+      });
+      return;
+    }
     event.reply('generated-keys-result', {
       success: false,
       error: new Error('Error overriding the SSH key'),

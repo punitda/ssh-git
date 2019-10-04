@@ -11,6 +11,7 @@ import SquareLoader from 'react-spinners/SquareLoader';
 import githublogo from '../../../assets/img/github_logo.png';
 
 import { SHOW_ERROR_DIALOG_REQUEST_CHANNEL } from '../../../lib/constants';
+import { string } from 'postcss-selector-parser';
 
 const GenerateKeys = ({ onNext }) => {
   const clientStateContext = useContext(ClientStateContext);
@@ -69,7 +70,13 @@ const GenerateKeys = ({ onNext }) => {
       onNext('/'); //Take user back to home screen because they said no to override keys.
     } else if (error) {
       dispatch({ type: 'FETCH_ERROR' });
-      showErrorDialog(error.message);
+      if (error instanceof string) {
+        showErrorDialog(error);
+      } else {
+        showErrorDialog(
+          error.message ? error.message : 'Something went wrong.'
+        );
+      }
     }
   }
 

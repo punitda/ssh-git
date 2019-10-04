@@ -14,7 +14,10 @@ const {
 } = require('./core');
 
 // errors
-const { SSHKeyExistsError } = require('../lib/error');
+const {
+  SSHKeyExistsError,
+  SshAskPassNotInstalledError,
+} = require('../lib/error');
 
 // constants
 const {
@@ -63,10 +66,26 @@ function register() {
         event.reply('generated-keys-result', { success: true, error: null });
       }
     } catch (error) {
+      console.log('error inside ipc: ', error);
       if (error instanceof SSHKeyExistsError) {
-        await retryGeneratingKey(config, error.rsaFileName, event);
-        return;
+        try {
+          const result = await retryGeneratingKey(
+            config,
+            error.rsaFileName,
+            event
+          );
+          return;
+        } catch (error) {
+          console.log('do we reach inside nested catch lol : ', error);
+          if (error.message)
+            event.reply('generated-keys-result', {
+              success: false,
+              error: { message: error.message },
+            });
+          else event.reply('generated-keys-result', { success: false, error });
+        }
       }
+      console.log('error in ipc: ', error);
       event.reply('generated-keys-result', { success: false, error });
     }
   });
