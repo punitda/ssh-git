@@ -1,11 +1,3 @@
-class SSHKeyExistsError extends Error {
-  constructor(fileName) {
-    super('SSH Key with same name already exists');
-    this.name = 'SSHKeyExistsError';
-    this.rsaFileName = fileName;
-  }
-}
-
 class DoNotOverrideKeysError extends Error {
   constructor() {
     super("User doesn't wishes to override ssh keys");
@@ -23,7 +15,6 @@ class SshAskPassNotInstalledError extends Error {
 }
 
 module.exports = {
-  SSHKeyExistsError,
   DoNotOverrideKeysError,
   SshAskPassNotInstalledError,
 };

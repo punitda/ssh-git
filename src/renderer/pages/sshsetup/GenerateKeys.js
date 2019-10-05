@@ -10,28 +10,40 @@ import fetchReducer from '../../reducers/fetchReducer';
 import SquareLoader from 'react-spinners/SquareLoader';
 import githublogo from '../../../assets/img/github_logo.png';
 
-import { SHOW_ERROR_DIALOG_REQUEST_CHANNEL } from '../../../lib/constants';
-import { string } from 'postcss-selector-parser';
+import {
+  SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
+  CHECK_IF_KEY_ALREADY_EXISTS_REQUEST_CHANNEL,
+  CHECK_IF_KEY_ALREADY_EXISTS_RESPONSE_CHANNEL,
+  ASK_USER_TO_OVERRIDE_KEYS_REQUEST_CHANNEL,
+  ASK_USER_TO_OVERRIDE_KEYS_RESPONSE_CHANNEL,
+  GENERATE_KEY_REQUEST_CHANNEL,
+  GENERATE_KEY_RESPONSE_CHANNEL,
+} from '../../../lib/constants';
 
 const GenerateKeys = ({ onNext }) => {
   const clientStateContext = useContext(ClientStateContext);
-  const { token = null, selectedProvider = null } = {
-    selectedProvider: 'github',
-  };
+  const {
+    token = null,
+    selectedProvider = null,
+  } = clientStateContext.authState;
 
-  const [{ data, isLoading, isError }] = [
+  const [
     {
       data: {
-        email: 'punitdama@gmail.com',
-        username: 'punitda',
-        avatar_url: 'https://google.com',
-      },
-      isLoading: false,
-      isError: false,
+        email = '',
+        username = '',
+        avatar_url = '',
+        bitbucket_uuid = '',
+      } = {},
+      isLoading,
+      isError,
     },
-  ];
+  ] = useRequestUserProfile(selectedProvider, token);
 
   const [passphrase, setPassPhrase] = useState('');
+
+  const [keyAlreadyExists, setKeyAlreadyExists] = useState(false);
+  const [shouldOverrideKeys, setShouldOverrideKeys] = useState(false);
 
   const [
     {
@@ -47,14 +59,57 @@ const GenerateKeys = ({ onNext }) => {
   });
 
   useEffect(() => {
-    window.ipcRenderer.on('generated-keys-result', generatedKeysResultListener);
+    window.ipcRenderer.on(
+      GENERATE_KEY_RESPONSE_CHANNEL,
+      generatedKeysResultListener
+    );
     return () => {
       window.ipcRenderer.removeListener(
-        'generated-keys-result',
+        GENERATE_KEY_RESPONSE_CHANNEL,
         generatedKeysResultListener
       );
     };
   }, [clientStateContext]);
+
+  useEffect(() => {
+    if (selectedProvider && username) {
+      window.ipcRenderer.send(CHECK_IF_KEY_ALREADY_EXISTS_REQUEST_CHANNEL, {
+        selectedProvider,
+        username,
+      });
+    }
+    window.ipcRenderer.on(
+      CHECK_IF_KEY_ALREADY_EXISTS_RESPONSE_CHANNEL,
+      keyAlreadyExistsResultListener
+    );
+
+    return () => {
+      window.ipcRenderer.removeListener(
+        CHECK_IF_KEY_ALREADY_EXISTS_RESPONSE_CHANNEL,
+        keyAlreadyExistsResultListener
+      );
+    };
+  }, [selectedProvider, username]);
+
+  useEffect(() => {
+    window.ipcRenderer.on(
+      ASK_USER_TO_OVERRIDE_KEYS_RESPONSE_CHANNEL,
+      overrideKeysUserResponseListener
+    );
+
+    return () => {
+      window.ipcRenderer.removeListener(
+        ASK_USER_TO_OVERRIDE_KEYS_RESPONSE_CHANNEL,
+        overrideKeysUserResponseListener
+      );
+    };
+  }, [selectedProvider, username]);
+
+  useEffect(() => {
+    if (shouldOverrideKeys) {
+      generateKeys();
+    }
+  }, [shouldOverrideKeys]);
 
   //Listen to ssh generate final result
   function generatedKeysResultListener(_event, result) {
@@ -64,36 +119,42 @@ const GenerateKeys = ({ onNext }) => {
       setTimeout(() => {
         onNext('oauth/addKeys');
       }, 1500);
-    }
-
-    if (error && error.name === 'DoNotOverrideKeysError') {
-      onNext('/'); //Take user back to home screen because they said no to override keys.
     } else if (error) {
       dispatch({ type: 'FETCH_ERROR' });
-      if (error instanceof string) {
-        showErrorDialog(error);
-      } else {
-        showErrorDialog(
-          error.message ? error.message : 'Something went wrong.'
-        );
-      }
+      showErrorDialog(error.message ? error.message : 'Something went wrong.');
     }
+  }
+
+  function keyAlreadyExistsResultListener(_event, keyAlreadyExists) {
+    setKeyAlreadyExists(keyAlreadyExists);
+  }
+
+  function overrideKeysUserResponseListener(_event, shouldOverrideKeys) {
+    setShouldOverrideKeys(shouldOverrideKeys);
   }
 
   //Generate Key clickListener
   function generateKeys(_event) {
-    const { username, email, bitbucket_uuid = null } = data;
+    if (keyAlreadyExists && !shouldOverrideKeys) {
+      window.ipcRenderer.send(ASK_USER_TO_OVERRIDE_KEYS_REQUEST_CHANNEL, {
+        selectedProvider,
+        username,
+      });
+      return;
+    }
+
     const config = {
       selectedProvider,
       username,
       email,
       passphrase,
+      overrideKeys: shouldOverrideKeys,
     };
 
     dispatch({ type: 'FETCH_INIT' });
 
     clientStateContext.setAuthState({ username, email, bitbucket_uuid });
-    window.ipcRenderer.send('start-generating-keys', config);
+    window.ipcRenderer.send(GENERATE_KEY_REQUEST_CHANNEL, config);
   }
 
   function showErrorDialog(errorMessage) {
@@ -113,15 +174,13 @@ const GenerateKeys = ({ onNext }) => {
           Something went wrong. Please try again.
         </p>
       )}
-      {data ? (
+      {username && email ? (
         <>
           <img
             className="h-24 w-24 rounded-full border-2 border-gray-500 shadow-lg mx-auto -mt-24 z-10 bg-transparent"
-            src={data.avatar_url ? data.avatar_url : githublogo}
+            src={avatar_url ? avatar_url : githublogo}
           />
-          <h2 className="text-2xl font-semibold text-gray-900">
-            {data.username}
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-900">{username}</h2>
           <div className="text-left mt-2 m-8">
             <label className="text-gray-800 block text-left text-base mt-6 font-semibold">
               Email
@@ -129,7 +188,7 @@ const GenerateKeys = ({ onNext }) => {
             <input
               type="text"
               className="text-gray-600 text-lg bg-gray-200 px-4 py-2 mt-2 rounded border-2 w-full"
-              value={data.email}
+              value={email}
               disabled
             />
             <label className="text-gray-800 block text-left text-base mt-6 font-semibold">

@@ -9,6 +9,7 @@ const SSHConfig = require('ssh-config');
 // Using promisify utility from node to convert readFile function to return Promise.
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
+const unlinkFileAsync = promisify(fs.unlink);
 
 // npm lib(used to simplify dealing with child_process i/o)
 const {
@@ -33,7 +34,6 @@ const {
 
 // Custom Errors
 const {
-  SSHKeyExistsError,
   DoNotOverrideKeysError,
   SshAskPassNotInstalledError,
 } = require('../lib/error');
@@ -45,42 +45,32 @@ const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh 
 //Core method(Meat of the App)
 async function generateKey(config) {
   const sshConfig = createSshConfig(config);
-  const privateKeyFilePath = path.join(sshDir, sshConfig.rsaFileName);
-  const publicKeyFilePath = path.join(sshDir, `${sshConfig.rsaFileName}.pub`);
-
-  // Check if SSH key with same name exists and user hasn't instructed to override keys yet?
-  // In that case, throw error instructing calling process to show user dialog asking whether they
-  // wish to override keys or not.
-  if (!sshConfig.overrideKeys && fs.existsSync(privateKeyFilePath)) {
-    return Promise.reject(new SSHKeyExistsError(sshConfig.rsaFileName));
-  }
-  if (sshConfig.overrideKeys) {
-    //Removing ssh key pair in case of overriding keys.
-    fs.unlinkSync(privateKeyFilePath);
-    fs.unlinkSync(publicKeyFilePath);
-  }
-
   const commands = getCommands(sshConfig); //Get list of commands based on `config` object passed.
 
+  if (sshConfig.overrideKeys) {
+    const filesDeleted = await overrideExistingKeys(sshConfig.rsaFileName);
+    if (filesDeleted && filesDeleted.length === 0) {
+      throw new Error(
+        'Something went wrong when deleting existing ssh key files'
+      );
+    }
+  }
   //Traditional for-loop #FTW.
   for (let index = 0; index < commands.length; index++) {
     const command = commands[index];
     try {
-      let code;
       if (index === 2) {
         //Pass passphrase stored in config for our 3rd command(ssh-add) so user don't have to type and remember the password again.
-        let code;
         if (process.platform === 'linux') {
-          code = await runSshAddCommandInLinux(command);
+          await runSshAddCommandInLinux(command); // ssh-add command on Linux
         } else {
-          code = await runCommand(command, sshConfig.passphrase);
+          await runCommand(command, sshConfig.passphrase); // ssh-add command on Windows and MacOS
         }
       } else {
-        code = await runCommand(command);
+        await runCommand(command);
       }
     } catch (error) {
-      console.log('error message : ', error.message);
-      return Promise.reject(error.message);
+      throw error;
     }
   }
 
@@ -93,7 +83,32 @@ async function generateKey(config) {
     const configFileContents = getConfigFileContents(sshConfig);
     fs.appendFileSync(sshConfigFileLocation, configFileContents);
   }
-  return Promise.resolve(0); //If everything goes well send status code of '0' indicating success.
+  return 0; //If everything goes well send status code of '0' indicating success.
+}
+
+async function overrideExistingKeys(fileName) {
+  const privateKeyFilePath = path.join(sshDir, fileName);
+  const publicKeyFilePath = path.join(sshDir, `${fileName}.pub`);
+
+  const [privateKeyDeleted, publickKeyDeleted] = await Promise.all([
+    unlinkFileAsync(privateKeyFilePath),
+    unlinkFileAsync(publicKeyFilePath),
+  ]);
+
+  return [privateKeyDeleted, publickKeyDeleted];
+}
+
+function doKeyAlreadyExists(selectedProvider, username) {
+  const privateKeyFilePath = path.join(
+    sshDir,
+    `${selectedProvider}_${username}_id_rsa`
+  );
+  const publicKeyFilePath = path.join(
+    sshDir,
+    `${selectedProvider}_${username}_id_rsa.pub`
+  );
+
+  return fs.existsSync(publicKeyFilePath) || fs.existsSync(privateKeyFilePath);
 }
 
 // Internal method for running one command at a time using `spawn`.
@@ -122,12 +137,12 @@ async function runCommand() {
      * have to worry and enter the same passphrase again.
      */
     if (passphrase) {
-      writePassPhraseToStdIn(childProcess.stdin, passphrase);
+      await writePassPhraseToStdIn(childProcess.stdin, passphrase);
     }
 
     await onExit(childProcess);
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 }
 
@@ -139,16 +154,16 @@ async function runSshAddCommandInLinux(command) {
   });
 
   try {
-    const error = await readChildProcessOutput(childProcess.stderr);
-    console.log('error when running ssh-add command : ', error);
-    if (error) {
-      if (error.includes('askpass')) {
-        console.log('do we come over here..');
-        return Promise.reject(new SshAskPassNotInstalledError());
-      } else if (error.includes('Identity added')) {
-        return Promise.resolve(0);
+    const errorOutput = await readChildProcessOutput(childProcess.stderr);
+
+    if (errorOutput) {
+      if (errorOutput.includes('askpass')) {
+        throw new SshAskPassNotInstalledError();
+      } else if (errorOutput.includes('Identity added')) {
+        // ssh-add command also outputs success results to stderr. #FML.
+        return 0;
       }
-      return Promise.reject(error);
+      throw new Error(errorOutput);
     }
     await onExit(childProcess);
   } catch (error) {
@@ -334,51 +349,6 @@ async function readChildProcessOutput(readable) {
   }
   return result;
 }
-/**
- * Called when key with same name already exists.
- *  Show dialog asking user whether they wish to override keys or not.
- *  Depending on user's response we either
- *  - Start with generate key process again this time telling it to override keys
- *  OR
- *  - Send error back to our renderer process telling it that user doesn't
- *  wishes to override keys using custom error `DoNotOverrideKeysError`.
- * @param {*} config - intialConfig passed from our renderer process for which we're generating key.
- * @param {*} rsaFileName - used to show specific filename in dialog where we ask user to override key.
- * @param {*} event - event object used to reply/send events to renderer process listening under `start-generating-key` channel.
- */
-async function retryGeneratingKey(config, rsaFileName, event) {
-  try {
-    const userResponse = await dialog.showOverrideKeysDialog(rsaFileName);
-    if (userResponse === 0) {
-      const newSshConfig = { ...config, overrideKeys: true };
-      const result = await generateKey(newSshConfig); //Start with generate key method telling it to override the keys
-      if (result === 0) {
-        event.reply('generated-keys-result', {
-          success: true,
-          error: null,
-        });
-      }
-    } else {
-      event.reply('generated-keys-result', {
-        success: false,
-        error: new DoNotOverrideKeysError(), // Notify our GenerateKey screen that user doesn't wishes to move ahead.
-      });
-    }
-  } catch (error) {
-    console.log('do we come over here: ', error);
-    if (error) {
-      event.reply('generated-keys-result', {
-        success: false,
-        error: { message: error },
-      });
-      return;
-    }
-    event.reply('generated-keys-result', {
-      success: false,
-      error: new Error('Error overriding the SSH key'),
-    });
-  }
-}
 
 async function parseSSHConfigFile() {
   try {
@@ -420,10 +390,10 @@ async function parseSSHConfigFile() {
 
 module.exports = {
   generateKey,
-  retryGeneratingKey,
   getPublicKeyContent,
   getSystemName,
   cloneRepo,
   updateRemoteUrl,
   parseSSHConfigFile,
+  doKeyAlreadyExists,
 };

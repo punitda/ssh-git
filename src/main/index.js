@@ -38,7 +38,7 @@ function init() {
       try {
         window.createWindow();
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     }
   });

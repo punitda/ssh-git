@@ -13,7 +13,7 @@ export default function useRequestUserProfile(selectedProvider, token) {
   const [state, dispatch] = useReducer(fetchReducer, {
     isLoading: false,
     isError: false,
-    data: null,
+    data: {},
   });
 
   useEffect(() => {
