@@ -40,15 +40,26 @@ function getPublicKeyFileName(selectedProvider, username) {
 
 function getConfigFileContents(config) {
   const rsaFilePath = path.join(os.homedir(), '.ssh', config.rsaFileName);
-  return `
-Host ${config.host}
-  HostName ${config.hostName}
-  User git
-  IgnoreUnknown UseKeychain
-  UseKeychain yes
-  IdentityFile ${rsaFilePath}
-
-`;
+  if (process.platform === 'darwin') {
+    return `
+  Host ${config.host}
+    HostName ${config.hostName}
+    User git
+    UseKeychain yes
+    AddKeysToAgent yes
+    IdentityFile ${rsaFilePath}
+  
+  `;
+  } else {
+    return `
+  Host ${config.host}
+    HostName ${config.hostName}
+    User git
+    AddKeysToAgent yes
+    IdentityFile ${rsaFilePath}
+  
+  `;
+  }
 }
 
 /**
