@@ -12,7 +12,7 @@
     "build-mac": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-mac",
     "build-linux": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-linux",
     "build-windows": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-windows",
-    "react-start": "parcel -p 3000 public/index.html",
+    "react-start": "yarn build-css && parcel -p 3000 public/index.html",
     "build-css": "postcss public/tailwind.css -o public/build/tailwind.css",
     "watch-css": "postcss public/tailwind.css -o public/build/tailwind.css --watch",
     "react-build": "parcel build public/index.html --out-dir build --public-url ./",
