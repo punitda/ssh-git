@@ -42,7 +42,7 @@ function getConfigFileContents(config) {
   const rsaFilePath = path.join(os.homedir(), '.ssh', config.rsaFileName);
   if (process.platform === 'darwin') {
     return `
-  Host ${config.host}
+Host ${config.host}
     HostName ${config.hostName}
     User git
     UseKeychain yes
@@ -52,7 +52,7 @@ function getConfigFileContents(config) {
   `;
   } else {
     return `
-  Host ${config.host}
+Host ${config.host}
     HostName ${config.hostName}
     User git
     AddKeysToAgent yes
