@@ -70,7 +70,12 @@ function getConfigFileContents(config) {
  * @param {*} username  - e.x : punitd
  * @param {*} repoUrl - e.x : git@github.com:punitd/node.git
  */
-function getCloneRepoCommand(selectedProvider, username, repoUrl) {
+function getCloneRepoCommand(
+  selectedProvider,
+  username,
+  repoUrl,
+  disableLogging = true
+) {
   let modifiedRepoUrl;
   if (selectedProvider === providers.BITBUCKET) {
     modifiedRepoUrl = repoUrl.replace(
@@ -84,7 +89,7 @@ function getCloneRepoCommand(selectedProvider, username, repoUrl) {
     );
   }
 
-  return `git clone ${modifiedRepoUrl} --quiet`;
+  return `git clone ${modifiedRepoUrl} ${disableLogging ? `--quiet` : ''}`;
 }
 
 function getManualSteps(selectedProvider) {
@@ -109,7 +114,7 @@ async function getNewRemoteUrlAndAliasName(
   // If fetchUrl doesn't contains selectedProvider it means wrong repo folder
   // was selected by user.
   if (!fetchUrl.includes(selectedProvider)) {
-    return Promise.reject(
+    throw new Error(
       `Looks like either you've selected wrong folder or wrong account because the remote url for the selected repo folder is not setup for ${selectedProvider} account. Please check.`
     );
   }
@@ -125,11 +130,9 @@ async function getNewRemoteUrlAndAliasName(
       username
     );
     if (newRemoteUrlAliasName && newRemoteUrl) {
-      return Promise.resolve({ newRemoteUrlAliasName, newRemoteUrl });
+      return { newRemoteUrlAliasName, newRemoteUrl };
     } else {
-      return Promise.reject(
-        "Invalid remote url found(https). We couldn't update it"
-      );
+      throw new Error("Invalid remote url found(https). We couldn't update it");
     }
   }
 
@@ -142,7 +145,7 @@ async function getNewRemoteUrlAndAliasName(
   );
   const alreadyUpdatedUrl = fetchUrl.match(requiredSSHUrlRegex);
   if (alreadyUpdatedUrl && alreadyUpdatedUrl.length > 0) {
-    return Promise.reject(
+    throw new Error(
       'You remote url is already updated correctly. No update required.'
     );
   }
@@ -162,7 +165,7 @@ async function getNewRemoteUrlAndAliasName(
     alreadyUpdatedButIncorrectUrl &&
     alreadyUpdatedButIncorrectUrl.length > 0
   ) {
-    return Promise.reject(
+    throw new Error(
       `The remote url of selected repo folder is already updated but doesn't belongs to "username: ${username}" you selected for "${selectedProvider}" account. 
 Please check you're using selecting correct username`
     );
@@ -176,7 +179,7 @@ Please check you're using selecting correct username`
   const remoteUrlMatches = fetchUrl.match(validSshUrlRegex);
   // Check if it is an valid ssh url based on selectedProvider and throw error if not.
   if (!remoteUrlMatches || remoteUrlMatches.length === 0) {
-    return Promise.reject(
+    throw new Error(
       'The repo you selected has an invalid remote ssh url. Please check.'
     );
   }
@@ -194,7 +197,7 @@ Please check you're using selecting correct username`
     .substring(0, fetchUrl.indexOf('git@'))
     .trim();
 
-  return Promise.resolve({ newRemoteUrlAliasName, updatedRemoteUrl });
+  return { newRemoteUrlAliasName, updatedRemoteUrl };
 }
 
 function getNewRemoteUrlAndAliasNameForHttpsUrl(
@@ -209,7 +212,7 @@ function getNewRemoteUrlAndAliasNameForHttpsUrl(
 
   // Https urls has to be divided in 3 parts max(after slicing 1st element) no matter whether it is github/bitbucket/gitlab.
   if (urlParts.length !== 3) {
-    return Promise.reject(
+    throw new Error(
       "Invalid remote url found(https). We couldn't update remote url"
     );
   }
@@ -306,6 +309,20 @@ const gitlab_steps = [
   `Update Remote url of the repository`,
 ];
 
+function getDefaultShell() {
+  const env = process.env;
+
+  if (process.platform === 'darwin') {
+    return env.SHELL || '/bin/bash';
+  }
+
+  if (process.platform === 'win32') {
+    return env.COMPSEC || 'cmd.exe';
+  }
+
+  return env.SHELL || '/bin/sh';
+}
+
 module.exports = {
   getCommands,
   createSshConfig,
@@ -314,4 +331,5 @@ module.exports = {
   getManualSteps,
   getCloneRepoCommand,
   getNewRemoteUrlAndAliasName,
+  getDefaultShell,
 };

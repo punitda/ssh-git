@@ -20,7 +20,8 @@
     "electron-build-windows": "electron-builder --config electron-builder.json -w",
     "electron-build-mac": "electron-builder --config electron-builder.json",
     "electron-build-all": "electron-builder --config electron-builder.json -mwl",
-    "clean": "rm -rf build/ .cache dist/ public/build"
+    "clean": "rm -rf build/ .cache dist/ public/build",
+    "rebuild": "electron-rebuild -f -w node-pty"
   },
   "keywords": [],
   "license": "ISC",
@@ -28,6 +29,7 @@
     "@rauschma/stringio": "^1.4.0",
     "@reach/router": "^1.2.1",
     "axios": "^0.19.0",
+    "node-pty": "^0.8.1",
     "query-string": "^6.8.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
@@ -45,6 +47,7 @@
     "concurrently": "^4.1.1",
     "electron": "^5.0.7",
     "electron-builder": "^21.0.15",
+    "electron-rebuild": "^1.8.6",
     "lodash": "^4.17.14",
     "parcel-bundler": "^1.12.3",
     "postcss-cli": "^6.1.3",

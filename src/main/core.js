@@ -3,6 +3,7 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const pty = require('node-pty');
 
 const SSHConfig = require('ssh-config');
 
@@ -30,6 +31,7 @@ const {
   getPublicKeyFileName,
   getCloneRepoCommand,
   getNewRemoteUrlAndAliasName,
+  getDefaultShell,
 } = require('../lib/util');
 
 // Custom Errors
@@ -62,7 +64,7 @@ async function generateKey(config) {
       if (index === 2) {
         //Pass passphrase stored in config for our 3rd command(ssh-add) so user don't have to type and remember the password again.
         if (process.platform === 'linux') {
-          await runSshAddCommandInLinux(command); // ssh-add command on Linux
+          await runSshAddCommandInLinux(command, sshConfig.passphrase); // ssh-add command on Linux
         } else {
           await runCommand(command, sshConfig.passphrase); // ssh-add command on Windows and MacOS
         }
@@ -146,26 +148,27 @@ async function runCommand() {
   }
 }
 
-async function runSshAddCommandInLinux(command) {
-  const childProcess = spawn(command, {
-    stdio: [process.stdin, process.stdout, 'pipe'],
-    cwd: `${sshDir}`,
-    shell: true,
-  });
+async function runSshAddCommandInLinux(command, passphrase) {
+  const shell = getDefaultShell();
 
   try {
-    const errorOutput = await readChildProcessOutput(childProcess.stderr);
+    const ptyProcess = pty.spawn(shell, [], {
+      cwd: sshDir,
+    });
 
-    if (errorOutput) {
-      if (errorOutput.includes('askpass')) {
-        throw new SshAskPassNotInstalledError();
-      } else if (errorOutput.includes('Identity added')) {
-        // ssh-add command also outputs success results to stderr. #FML.
-        return 0;
+    ptyProcess.on('data', data => {
+      process.stdout.write(data);
+      if (data && data.includes('Enter passphrase')) {
+        ptyProcess.write(`${passphrase}\r`);
+      } else if (data && data.includes('Identity added:')) {
+        setTimeout(() => {
+          ptyProcess.kill();
+          return 0;
+        }, 1500);
       }
-      throw new Error(errorOutput);
-    }
-    await onExit(childProcess);
+    });
+
+    ptyProcess.write(`${command}\r`);
   } catch (error) {
     throw error;
   }
@@ -210,7 +213,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
     repoUrl.endsWith('.git') &&
     !repoUrl.includes(selectedProvider)
   ) {
-    return Promise.reject(
+    throw new Error(
       `Looks like you've entered the wrong repo url. It doesn't belongs to ${selectedProvider} account. Please check.`
     );
   }
@@ -222,7 +225,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
       repoUrl.endsWith('.git')
     )
   ) {
-    return Promise.reject(
+    throw new Error(
       'The SSH url you just entered is not correct one. Please enter correct SSH url'
     );
   }
@@ -238,7 +241,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
   // and if yes throw error message correctly notifying user about it.
   let repoFolder = path.join(selectedFolder, repoName);
   if (fs.existsSync(repoFolder)) {
-    return Promise.reject(
+    throw new Error(
       `The repo your are trying to clone with name "${repoName}" already exists in path : "${repoFolder}". Please check`
     );
   }
@@ -257,22 +260,77 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
       shell: true,
     });
 
-    const error = await readChildProcessOutput(childProcess.stderr);
-    if (error) {
-      return Promise.reject(error);
+    const errorOutput = await readChildProcessOutput(childProcess.stderr);
+    if (!errorOutput) {
+      return { code: 0, repoFolder };
+    } else if (
+      errorOutput &&
+      errorOutput.includes('Host key verification failed')
+    ) {
+      const result = await runCloneRepoCommandUsingNodePty(
+        selectedFolder,
+        selectedProvider,
+        username,
+        repoUrl,
+        repoFolder
+      );
+      return result;
+    } else {
+      throw new Error(errorOutput);
     }
-
-    return Promise.resolve({ code: 0, repoFolder });
   } catch (error) {
-    return Promise.reject(error.message);
+    throw error;
   }
+}
+
+async function runCloneRepoCommandUsingNodePty(
+  selectedFolder,
+  selectedProvider,
+  username,
+  repoUrl,
+  repoFolder
+) {
+  const cloneRepoCommand = getCloneRepoCommand(
+    selectedProvider,
+    username,
+    repoUrl,
+    false
+  );
+  const shell = getDefaultShell();
+
+  return new Promise((resolve, reject) => {
+    try {
+      const ptyProcess = pty.spawn(shell, [], {
+        cwd: selectedFolder, //Change working directory to selectedFolder path
+      });
+
+      ptyProcess.on('data', data => {
+        console.log('data', data);
+        if (
+          data &&
+          data.includes('Are you sure you want to continue connecting')
+        ) {
+          ptyProcess.write('yes\r');
+        } else if (data && data.includes('Resolving deltas: 100%')) {
+          setTimeout(() => {
+            ptyProcess.kill();
+            resolve({ code: 0, repoFolder });
+          }, 1500);
+        }
+      });
+
+      ptyProcess.write(`${cloneRepoCommand}\r`);
+    } catch (error) {
+      reject(error.message);
+    }
+  });
 }
 
 async function updateRemoteUrl(selectedProvider, username, repoFolder) {
   // check if it is git repo or not and show error message accordingly.
   const gitFolder = path.join(repoFolder, '.git');
   if (!fs.existsSync(gitFolder)) {
-    return Promise.reject(
+    throw new Error(
       "The folder you selected is not .git repository. Please make sure you're selecting correct folder."
     );
   }
@@ -292,7 +350,7 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
     // This would happen in case repo has git init done but no remote url set.
     // We could do nothing over here.
     if (!remoteCommandResult) {
-      return Promise.reject(
+      throw new Error(
         `No remote url found on the repo you just selected. Strange! Nothing to update here.
 If you have setup SSH keys using this App, we suggest you use clone feature and updating remote url thing will be taken care of :)`
       );
@@ -302,7 +360,7 @@ If you have setup SSH keys using this App, we suggest you use clone feature and 
     const remoteUrls = remoteCommandResult.split('\n');
     // Throw error indicating to user in case no remote urls found after running `git remote -v`
     if (!remoteUrls || remoteUrls.length === 0) {
-      return Promise.reject(
+      throw new Error(
         `No remote url found on the repo you just selected. Strange! Nothing to update here.
 If you have setup SSH keys using this App, we suggest you use clone feature and updating remote url thing will be taken care of :)`
       );
@@ -332,13 +390,13 @@ If you have setup SSH keys using this App, we suggest you use clone feature and 
 
       const result = await onExit(childProcess);
       if (!result) {
-        return Promise.resolve(0);
+        return 0;
       }
     } else {
-      return Promise.reject('Error updating remote url');
+      throw new Error('Error updating remote url');
     }
   } catch (error) {
-    return Promise.reject(error);
+    throw error;
   }
 }
 
@@ -382,9 +440,9 @@ async function parseSSHConfigFile() {
       return accumulator;
     }, initialValue);
 
-    return Promise.resolve(result);
+    return result;
   } catch (error) {
-    Promise.reject(error);
+    throw error;
   }
 }
 

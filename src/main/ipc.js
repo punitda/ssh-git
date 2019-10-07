@@ -149,7 +149,7 @@ function register() {
       }
     } catch (error) {
       event.reply(CLONE_REPO_RESPONSE_CHANNEL, {
-        error,
+        error: { message: error.message },
         success: false,
       });
     }
@@ -172,7 +172,7 @@ function register() {
       }
     } catch (error) {
       event.reply(UPDATE_REMOTE_URL_RESPONSE_CHANNEL, {
-        error,
+        error: { message: error.message },
         success: false,
       });
     }
