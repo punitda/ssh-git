@@ -34,12 +34,6 @@ const {
   getDefaultShell,
 } = require('../lib/util');
 
-// Custom Errors
-const {
-  DoNotOverrideKeysError,
-  SshAskPassNotInstalledError,
-} = require('../lib/error');
-
 // Paths to be used in core logic
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
