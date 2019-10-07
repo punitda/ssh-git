@@ -30,7 +30,7 @@ export default function useRequestUserProfile(selectedProvider, token) {
               dispatch({
                 type: 'FETCH_SUCCESS',
                 payload: {
-                  email: profile.email,
+                  email: profile.email ? profile.email : '',
                   username: profile.login,
                   avatar_url: profile.avatar_url,
                 },

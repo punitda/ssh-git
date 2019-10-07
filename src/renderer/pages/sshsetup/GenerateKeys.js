@@ -44,6 +44,7 @@ const GenerateKeys = ({ onNext }) => {
 
   const [keyAlreadyExists, setKeyAlreadyExists] = useState(false);
   const [shouldOverrideKeys, setShouldOverrideKeys] = useState(false);
+  const [userProvidedEmail, setUserProvidedEmail] = useState('');
 
   const [
     {
@@ -146,7 +147,7 @@ const GenerateKeys = ({ onNext }) => {
     const config = {
       selectedProvider,
       username,
-      email,
+      email: email ? email : userProvidedEmail,
       passphrase,
       overrideKeys: shouldOverrideKeys,
     };
@@ -159,6 +160,11 @@ const GenerateKeys = ({ onNext }) => {
 
   function showErrorDialog(errorMessage) {
     window.ipcRenderer.send(SHOW_ERROR_DIALOG_REQUEST_CHANNEL, errorMessage);
+  }
+
+  function onEmailChange(e) {
+    e.preventDefault();
+    setUserProvidedEmail(e.target.value);
   }
 
   return (
@@ -174,7 +180,7 @@ const GenerateKeys = ({ onNext }) => {
           Something went wrong. Please try again.
         </p>
       )}
-      {username && email ? (
+      {username || email ? (
         <>
           <img
             className="h-24 w-24 rounded-full border-2 border-gray-500 shadow-lg mx-auto -mt-24 z-10 bg-transparent"
@@ -187,9 +193,11 @@ const GenerateKeys = ({ onNext }) => {
             </label>
             <input
               type="text"
-              className="text-gray-600 text-lg bg-gray-200 px-4 py-2 mt-2 rounded border-2 w-full"
-              value={email}
-              disabled
+              className={email ? styles.emailExists : styles.emailDoesntExists}
+              value={email ? email : userProvidedEmail}
+              disabled={email ? true : false}
+              onChange={onEmailChange}
+              placeholder="Enter email"
             />
             <label className="text-gray-800 block text-left text-base mt-6 font-semibold">
               SSH Key Passphrase
@@ -236,6 +244,11 @@ const GenerateKeys = ({ onNext }) => {
       </button>
     </div>
   );
+};
+
+const styles = {
+  emailExists: `text-gray-600 text-lg bg-gray-200 px-4 py-2 mt-2 rounded border-2 w-full`,
+  emailDoesntExists: `text-gray-600 text-lg bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full`,
 };
 
 export default GenerateKeys;
