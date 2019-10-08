@@ -252,6 +252,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
       stdio: [process.stdin, process.stdout, 'pipe'],
       cwd: `${selectedFolder}`, //Change working directory to selectedFolder path
       shell: true,
+      detached : process.platform === 'linux' ? true : false
     });
 
     const errorOutput = await readChildProcessOutput(childProcess.stderr);
