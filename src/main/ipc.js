@@ -5,16 +5,13 @@ const { ipcMain, shell } = require('electron');
 // core methods
 const {
   generateKey,
-  retryGeneratingKey,
   getPublicKeyContent,
   getSystemName,
   cloneRepo,
   updateRemoteUrl,
   parseSSHConfigFile,
+  doKeyAlreadyExists,
 } = require('./core');
-
-// errors
-const { SSHKeyExistsError } = require('../lib/error');
 
 // constants
 const {
@@ -31,6 +28,12 @@ const {
   SSH_CONFIG_REQUEST_CHANNEL,
   SSH_CONFIG_RESPONSE_CHANNEL,
   SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
+  CHECK_IF_KEY_ALREADY_EXISTS_REQUEST_CHANNEL,
+  CHECK_IF_KEY_ALREADY_EXISTS_RESPONSE_CHANNEL,
+  ASK_USER_TO_OVERRIDE_KEYS_REQUEST_CHANNEL,
+  ASK_USER_TO_OVERRIDE_KEYS_RESPONSE_CHANNEL,
+  GENERATE_KEY_REQUEST_CHANNEL,
+  GENERATE_KEY_RESPONSE_CHANNEL,
 } = require('../lib/constants');
 
 // dialog wrapper
@@ -56,20 +59,42 @@ function register() {
   });
 
   // Listen to renderer process and start generating keys based on currently passed `config`.
-  ipcMain.on('start-generating-keys', async (event, config) => {
+  ipcMain.on(GENERATE_KEY_REQUEST_CHANNEL, async (event, config) => {
     try {
       const result = await generateKey(config);
       if (result === 0) {
-        event.reply('generated-keys-result', { success: true, error: null });
+        event.reply(GENERATE_KEY_RESPONSE_CHANNEL, {
+          success: true,
+          error: null,
+        });
       }
     } catch (error) {
-      if (error instanceof SSHKeyExistsError) {
-        await retryGeneratingKey(config, error.rsaFileName, event);
-        return;
-      }
-      event.reply('generated-keys-result', { success: false, error });
+      event.reply(GENERATE_KEY_RESPONSE_CHANNEL, { success: false, error });
     }
   });
+
+  ipcMain.on(
+    CHECK_IF_KEY_ALREADY_EXISTS_REQUEST_CHANNEL,
+    (event, { selectedProvider, username }) => {
+      const keyAlreadyExists = doKeyAlreadyExists(selectedProvider, username);
+      event.reply(
+        CHECK_IF_KEY_ALREADY_EXISTS_RESPONSE_CHANNEL,
+        keyAlreadyExists
+      );
+    }
+  );
+
+  ipcMain.on(
+    ASK_USER_TO_OVERRIDE_KEYS_REQUEST_CHANNEL,
+    async (event, { selectedProvider, username }) => {
+      const rsaFileName = `${selectedProvider}_${username}_id_rsa`;
+      const userResponse = await dialog.showOverrideKeysDialog(rsaFileName);
+      event.reply(
+        ASK_USER_TO_OVERRIDE_KEYS_RESPONSE_CHANNEL,
+        userResponse === 0 ? true : false
+      );
+    }
+  );
 
   // Listen to renderer process and send content of public key file based on config passed
   ipcMain.on(PUBLIC_KEY_COPY_REQUEST_CHANNEL, async (event, data) => {
@@ -124,7 +149,7 @@ function register() {
       }
     } catch (error) {
       event.reply(CLONE_REPO_RESPONSE_CHANNEL, {
-        error,
+        error: { message: error.message },
         success: false,
       });
     }
@@ -147,7 +172,7 @@ function register() {
       }
     } catch (error) {
       event.reply(UPDATE_REMOTE_URL_RESPONSE_CHANNEL, {
-        error,
+        error: { message: error.message },
         success: false,
       });
     }

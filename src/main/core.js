@@ -3,12 +3,14 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const pty = require('node-pty');
 
 const SSHConfig = require('ssh-config');
 
 // Using promisify utility from node to convert readFile function to return Promise.
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
+const unlinkFileAsync = promisify(fs.unlink);
 
 // npm lib(used to simplify dealing with child_process i/o)
 const {
@@ -29,10 +31,8 @@ const {
   getPublicKeyFileName,
   getCloneRepoCommand,
   getNewRemoteUrlAndAliasName,
+  getDefaultShell,
 } = require('../lib/util');
-
-// Custom Errors
-const { SSHKeyExistsError, DoNotOverrideKeysError } = require('../lib/error');
 
 // Paths to be used in core logic
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
@@ -41,39 +41,32 @@ const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh 
 //Core method(Meat of the App)
 async function generateKey(config) {
   const sshConfig = createSshConfig(config);
-  const privateKeyFilePath = path.join(sshDir, sshConfig.rsaFileName);
-  const publicKeyFilePath = path.join(sshDir, `${sshConfig.rsaFileName}.pub`);
-
-  // Check if SSH key with same name exists and user hasn't instructed to override keys yet?
-  // In that case, throw error instructing calling process to show user dialog asking whether they
-  // wish to override keys or not.
-  if (!sshConfig.overrideKeys && fs.existsSync(privateKeyFilePath)) {
-    return Promise.reject(new SSHKeyExistsError(sshConfig.rsaFileName));
-  }
-  if (sshConfig.overrideKeys) {
-    //Removing ssh key pair in case of overriding keys.
-    fs.unlinkSync(privateKeyFilePath);
-    fs.unlinkSync(publicKeyFilePath);
-  }
-
   const commands = getCommands(sshConfig); //Get list of commands based on `config` object passed.
 
+  if (sshConfig.overrideKeys) {
+    const filesDeleted = await overrideExistingKeys(sshConfig.rsaFileName);
+    if (filesDeleted && filesDeleted.length === 0) {
+      throw new Error(
+        'Something went wrong when deleting existing ssh key files'
+      );
+    }
+  }
   //Traditional for-loop #FTW.
   for (let index = 0; index < commands.length; index++) {
     const command = commands[index];
     try {
-      let code;
       if (index === 2) {
         //Pass passphrase stored in config for our 3rd command(ssh-add) so user don't have to type and remember the password again.
-        code = await runCommand(command, sshConfig.passphrase);
+        if (process.platform === 'linux') {
+          await runSshAddCommandInLinux(command, sshConfig.passphrase); // ssh-add command on Linux
+        } else {
+          await runCommand(command, sshConfig.passphrase); // ssh-add command on Windows and MacOS
+        }
       } else {
-        code = await runCommand(command);
-      }
-      if (code) {
-        throw new Error(`${command} failed with code : ${code}`);
+        await runCommand(command);
       }
     } catch (error) {
-      return Promise.reject(error);
+      throw error;
     }
   }
 
@@ -86,7 +79,32 @@ async function generateKey(config) {
     const configFileContents = getConfigFileContents(sshConfig);
     fs.appendFileSync(sshConfigFileLocation, configFileContents);
   }
-  return Promise.resolve(0); //If everything goes well send status code of '0' indicating success.
+  return 0; //If everything goes well send status code of '0' indicating success.
+}
+
+async function overrideExistingKeys(fileName) {
+  const privateKeyFilePath = path.join(sshDir, fileName);
+  const publicKeyFilePath = path.join(sshDir, `${fileName}.pub`);
+
+  const [privateKeyDeleted, publickKeyDeleted] = await Promise.all([
+    unlinkFileAsync(privateKeyFilePath),
+    unlinkFileAsync(publicKeyFilePath),
+  ]);
+
+  return [privateKeyDeleted, publickKeyDeleted];
+}
+
+function doKeyAlreadyExists(selectedProvider, username) {
+  const privateKeyFilePath = path.join(
+    sshDir,
+    `${selectedProvider}_${username}_id_rsa`
+  );
+  const publicKeyFilePath = path.join(
+    sshDir,
+    `${selectedProvider}_${username}_id_rsa.pub`
+  );
+
+  return fs.existsSync(publicKeyFilePath) || fs.existsSync(privateKeyFilePath);
 }
 
 // Internal method for running one command at a time using `spawn`.
@@ -115,12 +133,38 @@ async function runCommand() {
      * have to worry and enter the same passphrase again.
      */
     if (passphrase) {
-      writePassPhraseToStdIn(childProcess.stdin, passphrase);
+      await writePassPhraseToStdIn(childProcess.stdin, passphrase);
     }
 
     await onExit(childProcess);
   } catch (error) {
-    throw new Error(error);
+    throw error;
+  }
+}
+
+async function runSshAddCommandInLinux(command, passphrase) {
+  const shell = getDefaultShell();
+
+  try {
+    const ptyProcess = pty.spawn(shell, [], {
+      cwd: sshDir,
+    });
+
+    ptyProcess.on('data', data => {
+      process.stdout.write(data);
+      if (data && data.includes('Enter passphrase')) {
+        ptyProcess.write(`${passphrase}\r`);
+      } else if (data && data.includes('Identity added:')) {
+        setTimeout(() => {
+          ptyProcess.kill();
+          return 0;
+        }, 1500);
+      }
+    });
+
+    ptyProcess.write(`${command}\r`);
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -163,7 +207,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
     repoUrl.endsWith('.git') &&
     !repoUrl.includes(selectedProvider)
   ) {
-    return Promise.reject(
+    throw new Error(
       `Looks like you've entered the wrong repo url. It doesn't belongs to ${selectedProvider} account. Please check.`
     );
   }
@@ -175,7 +219,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
       repoUrl.endsWith('.git')
     )
   ) {
-    return Promise.reject(
+    throw new Error(
       'The SSH url you just entered is not correct one. Please enter correct SSH url'
     );
   }
@@ -191,7 +235,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
   // and if yes throw error message correctly notifying user about it.
   let repoFolder = path.join(selectedFolder, repoName);
   if (fs.existsSync(repoFolder)) {
-    return Promise.reject(
+    throw new Error(
       `The repo your are trying to clone with name "${repoName}" already exists in path : "${repoFolder}". Please check`
     );
   }
@@ -208,24 +252,80 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
       stdio: [process.stdin, process.stdout, 'pipe'],
       cwd: `${selectedFolder}`, //Change working directory to selectedFolder path
       shell: true,
+      detached : process.platform === 'linux' ? true : false
     });
 
-    const error = await readChildProcessOutput(childProcess.stderr);
-    if (error) {
-      return Promise.reject(error);
+    const errorOutput = await readChildProcessOutput(childProcess.stderr);
+    if (!errorOutput) {
+      return { code: 0, repoFolder };
+    } else if (
+      errorOutput &&
+      errorOutput.includes('Host key verification failed')
+    ) {
+      const result = await runCloneRepoCommandUsingNodePty(
+        selectedFolder,
+        selectedProvider,
+        username,
+        repoUrl,
+        repoFolder
+      );
+      return result;
+    } else {
+      throw new Error(errorOutput);
     }
-
-    return Promise.resolve({ code: 0, repoFolder });
   } catch (error) {
-    return Promise.reject(error.message);
+    throw error;
   }
+}
+
+async function runCloneRepoCommandUsingNodePty(
+  selectedFolder,
+  selectedProvider,
+  username,
+  repoUrl,
+  repoFolder
+) {
+  const cloneRepoCommand = getCloneRepoCommand(
+    selectedProvider,
+    username,
+    repoUrl,
+    false
+  );
+  const shell = getDefaultShell();
+
+  return new Promise((resolve, reject) => {
+    try {
+      const ptyProcess = pty.spawn(shell, [], {
+        cwd: selectedFolder, //Change working directory to selectedFolder path
+      });
+
+      ptyProcess.on('data', data => {
+        console.log('data', data);
+        if (
+          data &&
+          data.includes('Are you sure you want to continue connecting')
+        ) {
+          ptyProcess.write('yes\r');
+        } else if (data && data.includes('Resolving deltas: 100%')) {
+          setTimeout(() => {
+            ptyProcess.kill();
+            resolve({ code: 0, repoFolder });
+          }, 1500);
+        }
+      });
+
+      ptyProcess.write(`${cloneRepoCommand}\r`);
+    } catch (error) {
+      reject(error.message);
+    }
+  });
 }
 
 async function updateRemoteUrl(selectedProvider, username, repoFolder) {
   // check if it is git repo or not and show error message accordingly.
   const gitFolder = path.join(repoFolder, '.git');
   if (!fs.existsSync(gitFolder)) {
-    return Promise.reject(
+    throw new Error(
       "The folder you selected is not .git repository. Please make sure you're selecting correct folder."
     );
   }
@@ -245,7 +345,7 @@ async function updateRemoteUrl(selectedProvider, username, repoFolder) {
     // This would happen in case repo has git init done but no remote url set.
     // We could do nothing over here.
     if (!remoteCommandResult) {
-      return Promise.reject(
+      throw new Error(
         `No remote url found on the repo you just selected. Strange! Nothing to update here.
 If you have setup SSH keys using this App, we suggest you use clone feature and updating remote url thing will be taken care of :)`
       );
@@ -255,7 +355,7 @@ If you have setup SSH keys using this App, we suggest you use clone feature and 
     const remoteUrls = remoteCommandResult.split('\n');
     // Throw error indicating to user in case no remote urls found after running `git remote -v`
     if (!remoteUrls || remoteUrls.length === 0) {
-      return Promise.reject(
+      throw new Error(
         `No remote url found on the repo you just selected. Strange! Nothing to update here.
 If you have setup SSH keys using this App, we suggest you use clone feature and updating remote url thing will be taken care of :)`
       );
@@ -285,13 +385,13 @@ If you have setup SSH keys using this App, we suggest you use clone feature and 
 
       const result = await onExit(childProcess);
       if (!result) {
-        return Promise.resolve(0);
+        return 0;
       }
     } else {
-      return Promise.reject('Error updating remote url');
+      throw new Error('Error updating remote url');
     }
   } catch (error) {
-    return Promise.reject(error);
+    throw error;
   }
 }
 
@@ -301,43 +401,6 @@ async function readChildProcessOutput(readable) {
     result += line;
   }
   return result;
-}
-/**
- * Called when key with same name already exists.
- *  Show dialog asking user whether they wish to override keys or not.
- *  Depending on user's response we either
- *  - Start with generate key process again this time telling it to override keys
- *  OR
- *  - Send error back to our renderer process telling it that user doesn't
- *  wishes to override keys using custom error `DoNotOverrideKeysError`.
- * @param {*} config - intialConfig passed from our renderer process for which we're generating key.
- * @param {*} rsaFileName - used to show specific filename in dialog where we ask user to override key.
- * @param {*} event - event object used to reply/send events to renderer process listening under `start-generating-key` channel.
- */
-async function retryGeneratingKey(config, rsaFileName, event) {
-  try {
-    const userResponse = await dialog.showOverrideKeysDialog(rsaFileName);
-    if (userResponse === 0) {
-      const newSshConfig = { ...config, overrideKeys: true };
-      const result = await generateKey(newSshConfig); //Start with generate key method telling it to override the keys
-      if (result === 0) {
-        event.reply('generated-keys-result', {
-          success: true,
-          error: null,
-        });
-      }
-    } else {
-      event.reply('generated-keys-result', {
-        success: false,
-        error: new DoNotOverrideKeysError(), // Notify our GenerateKey screen that user doesn't wishes to move ahead.
-      });
-    }
-  } catch (error) {
-    event.reply('generated-keys-result', {
-      success: false,
-      error: new Error('Error overriding the SSH key'),
-    });
-  }
 }
 
 async function parseSSHConfigFile() {
@@ -372,18 +435,18 @@ async function parseSSHConfigFile() {
       return accumulator;
     }, initialValue);
 
-    return Promise.resolve(result);
+    return result;
   } catch (error) {
-    Promise.reject(error);
+    throw error;
   }
 }
 
 module.exports = {
   generateKey,
-  retryGeneratingKey,
   getPublicKeyContent,
   getSystemName,
   cloneRepo,
   updateRemoteUrl,
   parseSSHConfigFile,
+  doKeyAlreadyExists,
 };

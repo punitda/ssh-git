@@ -124,7 +124,9 @@ export default function UpdateRemoteStepped() {
       dispatch({ type: 'FETCH_ERROR' });
       window.ipcRenderer.send(
         SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
-        error ? error : 'Something went wrong when updating remote url :('
+        error.message
+          ? error.message
+          : 'Something went wrong when updating remote url :('
       );
     }
   }
@@ -136,8 +138,8 @@ export default function UpdateRemoteStepped() {
       dispatch({ type: 'FETCH_ERROR' });
       window.ipcRenderer.send(
         SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
-        error
-          ? error
+        error.message
+          ? error.message
           : 'Something went wrong when updating remote url of the repo :('
       );
     }

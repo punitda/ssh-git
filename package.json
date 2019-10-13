@@ -3,27 +3,33 @@
   "productName": "ssh-git",
   "version": "0.0.1",
   "description": "Electron app used to generate, add and manage ssh keys for using git with dev platforms like Github/Bitbucket/Gitlab, etc.",
+  "author": "punitdama <punitdama@gmail.com>",
   "main": "src/main/index.js",
   "scripts": {
     "start": "yarn build-css && concurrently \"yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
     "clean-start": "yarn clean && yarn start",
-    "build-all": "yarn clean && yarn build-css && yarn react-build && yarn electron-build",
+    "build-all": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-all",
     "build-mac": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-mac",
-    "react-start": "parcel -p 3000 public/index.html",
+    "build-linux": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-linux",
+    "build-windows": "yarn clean && yarn build-css && yarn react-build && yarn electron-build-windows",
+    "react-start": "yarn build-css && parcel -p 3000 public/index.html",
     "build-css": "postcss public/tailwind.css -o public/build/tailwind.css",
     "watch-css": "postcss public/tailwind.css -o public/build/tailwind.css --watch",
     "react-build": "parcel build public/index.html --out-dir build --public-url ./",
-    "electron-build-all": "electron-builder -mwl",
-    "electron-build-mac": "electron-builder",
-    "clean": "rm -rf build/ .cache dist/ public/build"
+    "electron-build-linux": "electron-builder --config electron-builder.json -l",
+    "electron-build-windows": "electron-builder --config electron-builder.json -w",
+    "electron-build-mac": "electron-builder --config electron-builder.json",
+    "electron-build-all": "electron-builder --config electron-builder.json -mwl",
+    "clean": "rm -rf build/ .cache dist/ public/build",
+    "rebuild": "electron-rebuild -f -w node-pty"
   },
   "keywords": [],
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "@rauschma/stringio": "^1.4.0",
     "@reach/router": "^1.2.1",
     "axios": "^0.19.0",
+    "node-pty": "^0.8.1",
     "query-string": "^6.8.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
@@ -41,34 +47,12 @@
     "concurrently": "^4.1.1",
     "electron": "^5.0.7",
     "electron-builder": "^21.0.15",
+    "electron-rebuild": "^1.8.6",
     "lodash": "^4.17.14",
     "parcel-bundler": "^1.12.3",
     "postcss-cli": "^6.1.3",
     "tailwindcss": "^1.0.5",
     "wait-on": "^3.3.0"
-  },
-  "build": {
-    "appId": "dev.punitd.ssh-git",
-    "files": [
-      "src/main/**/*",
-      "src/lib/**/*",
-      "build/**/*"
-    ],
-    "mac": {
-      "target": "dmg"
-    },
-    "win": {
-      "target": "nsis"
-    },
-    "linux": {
-      "target": "deb"
-    },
-    "protocols": {
-      "name": "app-protocol",
-      "schemes": [
-        "ssh-git"
-      ]
-    }
   },
   "homepage": "./",
   "browserslist": [

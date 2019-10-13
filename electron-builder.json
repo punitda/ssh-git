@@ -1,0 +1,29 @@
+{
+  "appId": "com.ssh-git.app",
+  "files": ["src/main/**/*", "src/lib/**/*", "build/**/*"],
+  "mac": {
+    "category": "public.app-category.developer-tools",
+    "darkModeSupport": true,
+    "target": "dmg",
+    "identity": null
+  },
+  "win": {
+    "target": "nsis"
+  },
+  "linux": {
+    "executableName": "ssh-git",
+    "maintainer": "punitdama <punitdama@gmail.com>",
+    "category": "Development",
+    "target": ["deb"],
+    "desktop": {
+      "Name": "ssh-git",
+      "Categories": "Development",
+      "MimeType": "x-scheme-handler/ssh-git"
+    }
+  },
+  "protocols": {
+    "name": "Oauth redirect uris",
+    "role": "Viewer",
+    "schemes": ["ssh-git"]
+  }
+}
