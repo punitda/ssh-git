@@ -43,20 +43,20 @@ function getConfigFileContents(config) {
   if (process.platform === 'darwin') {
     return `
 Host ${config.host}
-    HostName ${config.hostName}
-    User git
-    UseKeychain yes
-    AddKeysToAgent yes
-    IdentityFile ${rsaFilePath}
+  HostName ${config.hostName}
+  User git
+  UseKeychain yes
+  AddKeysToAgent yes
+  IdentityFile ${rsaFilePath}
   
   `;
   } else {
     return `
 Host ${config.host}
-    HostName ${config.hostName}
-    User git
-    AddKeysToAgent yes
-    IdentityFile ${rsaFilePath}
+  HostName ${config.hostName}
+  User git
+  AddKeysToAgent yes
+  IdentityFile ${rsaFilePath}
   
   `;
   }
@@ -286,27 +286,27 @@ const github_steps = [
   `Copy the Public Key you see on the right side to the clipboard`,
   `Login in to your Github account`,
   `Open this `,
-  `Once you're on that page, paste the key you just copied in 1st step under "Key" input and
+  `Once you're on that page, paste the key you just copied under the "Key" input and
   for "Title" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
-  `Update Remote url of the repository`,
+  `Clone Repo or Update Remote url`,
 ];
 
 const bitbucket_steps = [
   `Copy the Public Key you see on the right side to the clipboard`,
   `Login in to your Bitbucket account`,
   `Open this `,
-  `Once you're on that page, click on "Add key" button and paste the key you just copied in 1st step under "Key" input
+  `Once you're on that page, click on "Add key" button and paste the key you just copied under the "Key" input
   and for "Label" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
-  `Update Remote url of the repository`,
+  `Clone Repo or Update Remote url`,
 ];
 
 const gitlab_steps = [
   `Copy the Public Key you see on the right side to the clipboard`,
   `Login in to your Gitlab account`,
   `Open this `,
-  `Once you're on that page, paste the key you just copied in 1st step under "Key" input 
+  `Once you're on that page, paste the key you just copied under the "Key" input 
   and for "Title" input you can give it any value you prefer to identify the key in future. [E.x. Macbook Pro(Office)]`,
-  `Update Remote url of the repository`,
+  `Clone Repo or Update Remote url`,
 ];
 
 function getDefaultShell() {

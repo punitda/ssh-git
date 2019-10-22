@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 
 // built-in react imports
 import { ClientStateContext } from '../../Context';
-import useAddKeysToAccount from '../../hooks/useAddKeysToAccount';
 
 // Api imports
 import { getOauthUrlsForSshKeys } from '../../service/api';
@@ -33,28 +32,6 @@ function AddKeys({ onNext }) {
   }); // set public key's content
 
   const { content: publicKeyContent, title = null } = publicKey;
-
-  // Custom hook to manage entire state of 2 things
-  // 1. asking permissions and
-  // 2. adding keys
-  const [state, dispatch, setUserData] = useAddKeysToAccount(selectedProvider);
-  const {
-    askingPermission,
-    askingPermissionSuccess,
-    askingPermissionError,
-    addingKeys,
-    addingKeysSuccess,
-    addingKeysError,
-  } = state;
-
-  //Open next page after state reaches `addingKeysSucess` - when keys are added successfully
-  useEffect(() => {
-    if (addingKeysSuccess) {
-      setTimeout(() => {
-        openNextPage();
-      }, 1500);
-    }
-  }, [addingKeysSuccess]);
 
   /**
    * Communication between main and renderer process for 2 reasons.
@@ -194,7 +171,7 @@ function AddKeys({ onNext }) {
       </h2>
       <div className="flex flex-row mt-8 items-center justify-start mx-16">
         <div className="flex flex-col flex-1">
-          <h3 className="text-lg">Follow below steps(Manual):</h3>
+          <h3 className="text-lg">Follow below steps:</h3>
           <ul className="text-gray-800 pr-12 text-left mt-2 leading-relaxed">
             {getManualSteps(selectedProvider).map((step, index) => {
               if (index === 2) {
@@ -213,7 +190,7 @@ function AddKeys({ onNext }) {
                   <li key={index}>
                     {`${index + 1}. `}
                     <button
-                      className="underline hover:text-blue-500"
+                      className="underline text-blue-500 hover:text-blue-700"
                       onClick={openNextPage}>
                       {step}
                     </button>
@@ -244,46 +221,6 @@ function AddKeys({ onNext }) {
           </div>
         </div>
       </div>
-      {selectedProvider !== providers.BITBUCKET && (
-        <div className="flex flex-col items-center justify-center mx-16">
-          <h2 className="text-center text-gray-600 text-xl mt-12">
-            Do you think the above manual process is boring 😒 and want to add
-            keys directly? Yes, you can!
-          </h2>
-          <p className="text-gray-600">
-            (We can add keys on your behalf but you need to grant us some
-            permissions for it)
-          </p>
-          <button
-            onClick={askForAdminPermission}
-            disabled={
-              publicKeyContent === ' ' || askingPermission || addingKeys
-            }
-            className={
-              askingPermission || addingKeys
-                ? `primary-btn my-4 px-16 text-2xl generateKey`
-                : askingPermissionError || addingKeysError
-                ? `primary-btn-error my-4`
-                : askingPermissionSuccess || addingKeysSuccess
-                ? `primary-btn-success my-4`
-                : `primary-btn my-4`
-            }>
-            {askingPermission
-              ? 'Asking Permissions...'
-              : askingPermissionError
-              ? 'Retry'
-              : askingPermissionSuccess
-              ? 'Permission Granted!'
-              : addingKeys
-              ? 'Adding Keys...'
-              : addingKeysSuccess
-              ? 'Keys Added!'
-              : addingKeysError
-              ? 'Retry'
-              : 'Add Keys'}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
