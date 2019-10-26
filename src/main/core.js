@@ -174,7 +174,7 @@ async function writePassPhraseToStdIn(writable, passphrase) {
 }
 
 // get contents of public key based on username and selectedProvider.
-async function getPublicKeyContent(selectedProvider, username) {
+async function getPublicKey(selectedProvider, username) {
   const publicKeyFileName = getPublicKeyFileName(selectedProvider, username);
   const publicKeyFilePath = path.join(os.homedir(), '.ssh', publicKeyFileName);
 
@@ -184,13 +184,6 @@ async function getPublicKeyContent(selectedProvider, username) {
   } catch (error) {
     return null;
   }
-}
-
-// Using this function to get system name using `os` node package.
-// we use it to set "title" of the ssh key when adding it automatically using the api.
-// this is done to avoid user to make one more decision in the process.
-function getSystemName() {
-  return os.hostname();
 }
 
 /**
@@ -252,7 +245,7 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
       stdio: [process.stdin, process.stdout, 'pipe'],
       cwd: `${selectedFolder}`, //Change working directory to selectedFolder path
       shell: true,
-      detached : process.platform === 'linux' ? true : false
+      detached: process.platform === 'linux' ? true : false,
     });
 
     const errorOutput = await readChildProcessOutput(childProcess.stderr);
@@ -443,8 +436,7 @@ async function parseSSHConfigFile() {
 
 module.exports = {
   generateKey,
-  getPublicKeyContent,
-  getSystemName,
+  getPublicKey,
   cloneRepo,
   updateRemoteUrl,
   parseSSHConfigFile,

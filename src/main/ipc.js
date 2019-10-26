@@ -5,8 +5,7 @@ const { ipcMain, shell } = require('electron');
 // core methods
 const {
   generateKey,
-  getPublicKeyContent,
-  getSystemName,
+  getPublicKey,
   cloneRepo,
   updateRemoteUrl,
   parseSSHConfigFile,
@@ -100,16 +99,9 @@ function register() {
   ipcMain.on(PUBLIC_KEY_COPY_REQUEST_CHANNEL, async (event, data) => {
     try {
       const { selectedProvider, username } = data;
-      const publicKeyContent = await getPublicKeyContent(
-        selectedProvider,
-        username
-      );
-      const systemName = getSystemName();
-      if (publicKeyContent) {
-        event.reply(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, {
-          key: publicKeyContent,
-          title: systemName,
-        });
+      const publicKey = await getPublicKey(selectedProvider, username);
+      if (publicKey) {
+        event.reply(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, publicKey);
       }
     } catch (error) {
       event.reply(PUBLIC_KEY_COPY_RESPONSE_CHANNEL, null);

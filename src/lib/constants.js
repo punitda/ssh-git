@@ -1,7 +1,6 @@
 const PUBLIC_KEY_COPY_REQUEST_CHANNEL = 'public-key-copy-request-channel';
 const PUBLIC_KEY_COPY_RESPONSE_CHANNEL = 'public-key-copy-response-channel';
 
-const ADD_KEYS_PERMISSION_RESULT_CHANNEL = 'add-keys-permission-result-channel';
 const BASIC_INFO_PERMISSION_RESULT_CHANNEL =
   'basic-info-permission-result-channel';
 
@@ -40,7 +39,6 @@ const GENERATE_KEY_RESPONSE_CHANNEL = 'generate-key-response-channel';
 module.exports = {
   PUBLIC_KEY_COPY_REQUEST_CHANNEL,
   PUBLIC_KEY_COPY_RESPONSE_CHANNEL,
-  ADD_KEYS_PERMISSION_RESULT_CHANNEL,
   BASIC_INFO_PERMISSION_RESULT_CHANNEL,
   SELECT_GIT_FOLDER_REQUEST_CHANNEL,
   SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
