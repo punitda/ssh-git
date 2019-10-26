@@ -32,20 +32,6 @@ export async function requestGithubUserProfile(token) {
   }
 }
 
-export async function addKeysToGithubAccount(title, key, token) {
-  const baseUrl = api_base_urls.GITHUB;
-  const response = await request(
-    baseUrl,
-    '/user/keys',
-    'POST',
-    providers.GITHUB,
-    token,
-    { title, key }
-  );
-
-  return response;
-}
-
 export async function requestBitbucketUserProfile(token) {
   try {
     const baseUrl = api_base_urls.BITBUCKET;
@@ -115,20 +101,6 @@ export async function requestGitlabUserProfile(token) {
   }
 }
 
-export async function addKeysToGitlabAccount(title, key, token) {
-  const baseUrl = api_base_urls.GITLAB;
-  const response = await request(
-    baseUrl,
-    '/user/keys',
-    'POST',
-    providers.GITLAB,
-    token,
-    { title, key }
-  );
-
-  return response;
-}
-
 export function getOauthUrlsForBasicInfo(provider) {
   const state = uuid();
   const REDIRECT_URI = 'ssh-git://oauth/basic';
@@ -146,25 +118,6 @@ export function getOauthUrlsForBasicInfo(provider) {
     default:
       throw new Error(
         'Invalid provider provided for generating oauth url for getting user info'
-      );
-  }
-  return { url, state };
-}
-
-export function getOauthUrlsForSshKeys(provider) {
-  const state = uuid();
-  const REDIRECT_URI = 'ssh-git://oauth/admin';
-  let url;
-  switch (provider) {
-    case providers.GITHUB:
-      url = `${oauth_base_urls.GITHUB}/authorize?client_id=${github.client_id}&scope=${github.scopes.admin}&state=${state}&redirect_uri=${REDIRECT_URI}`;
-      break;
-    case providers.GITLAB:
-      url = `${oauth_base_urls.GITLAB}/authorize?client_id=${gitlab.client_id}&scope=${gitlab.scopes.admin}&response_type=token&state=${state}&redirect_uri=${REDIRECT_URI}`;
-      break;
-    default:
-      throw new Error(
-        'Invalid provider provided for generating oauth url for adding ssh keys'
       );
   }
   return { url, state };

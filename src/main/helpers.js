@@ -6,10 +6,7 @@ const parseAppURL = require('../lib/parse-app-url');
 const requestGithubAccessToken = require('../lib/github-api');
 
 // constants
-const {
-  ADD_KEYS_PERMISSION_RESULT_CHANNEL,
-  BASIC_INFO_PERMISSION_RESULT_CHANNEL,
-} = require('../lib/constants');
+const { BASIC_INFO_PERMISSION_RESULT_CHANNEL } = require('../lib/constants');
 
 const APP_SCHEMA = 'ssh-git';
 
@@ -42,11 +39,6 @@ async function handleAppURL(callbackUrl, mainWindow, githubConfig = null) {
 
       if (callbackUrl.includes('basic')) {
         mainWindow.webContents.send(BASIC_INFO_PERMISSION_RESULT_CHANNEL, {
-          state,
-          token,
-        });
-      } else if (callbackUrl.includes('admin')) {
-        mainWindow.webContents.send(ADD_KEYS_PERMISSION_RESULT_CHANNEL, {
           state,
           token,
         });

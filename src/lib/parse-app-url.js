@@ -7,19 +7,17 @@ module.exports = function parseAppURL(callbackUrl) {
   const url = parsedUrl.url;
 
   //Making sure callback url is our app's allowed protocol
-  if (url === 'ssh-git://oauth/basic' || url === 'ssh-git://oauth/admin') {
-    const query = parsedUrl.query;
-
-    if (Object.keys(query).length > 0) {
-      return extractValuesFromQuery(query); //Github route
-    } else {
-      //Bitbucket/Gitlab route
-      const hashedPart = callbackUrl.substring(callbackUrl.indexOf('#'));
-      const query = queryString.parse(hashedPart);
-      return extractValuesFromQuery(query);
-    }
-  } else {
+  if (url !== 'ssh-git://oauth/basic') {
     return null;
+  }
+  const query = parsedUrl.query;
+  if (Object.keys(query).length > 0) {
+    return extractValuesFromQuery(query); //Github route
+  } else {
+    //Bitbucket/Gitlab route
+    const hashedPart = callbackUrl.substring(callbackUrl.indexOf('#'));
+    const query = queryString.parse(hashedPart);
+    return extractValuesFromQuery(query);
   }
 };
 
