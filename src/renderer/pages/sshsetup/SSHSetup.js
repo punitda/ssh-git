@@ -8,8 +8,8 @@ import StepsNavBar from '../../components/StepsNavBar';
 
 //Pages
 import ConnectAccount from './ConnectAccount';
-import GenerateKeys from './GenerateKeys';
-import AddKeys from './AddKeys';
+import GenerateKey from './GenerateKey';
+import AddKeys from './AddKey';
 import UpdateRemoteStepped from '../updateremote/UpdateRemoteStepped';
 
 //Internal
@@ -49,7 +49,7 @@ export default function SSHSetup() {
       <StepsNavBar steps={steps} activeIndex={activeStepIndex} />
       <Router>
         <ConnectAccount path="/" onNext={onNext} />
-        <GenerateKeys path="/generate" onNext={onNext} />
+        <GenerateKey path="/generate" onNext={onNext} />
         <AddKeys path="/addKeys" onNext={onNext} />
         <UpdateRemoteStepped path="/updateRemote" />
       </Router>

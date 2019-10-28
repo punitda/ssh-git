@@ -2,14 +2,13 @@
 import React, { useContext, useEffect, useState, useReducer } from 'react';
 
 // internal React
-import { ClientStateContext } from '../../Context';
+import { AuthStateContext } from '../../Context';
 import { getOauthUrlsForBasicInfo } from '../../service/api';
 import fetchReducer from '../../reducers/fetchReducer';
 
 // internal libs
 import { openExternal } from '../../../lib/app-shell';
 import { providers } from '../../../lib/config';
-import { BASIC_INFO_PERMISSION_RESULT_CHANNEL } from '../../../lib/constants';
 
 // images
 import githublogo from '../../../assets/img/github_logo.png';
@@ -17,8 +16,14 @@ import bitbucketlogo from '../../../assets/img/bitbucket_logo.png';
 import gitlablogo from '../../../assets/img/gitlab_logo.png';
 
 function ConnectAccount({ onNext }) {
-  const clientStateContext = useContext(ClientStateContext);
+  // Using context to access Auth store
+  const [authState, setAuthState] = useContext(AuthStateContext);
+  const { state } = authState;
+
+  // Store currently selected provider by user.
   const [selectedProvider, setSelectedProvider] = useState('');
+
+  // Used to manage button state based on whether connect-account was successfull or not.
   const [{ isLoading: isConnecting, isError, data }, dispatch] = useReducer(
     fetchReducer,
     {
@@ -29,22 +34,19 @@ function ConnectAccount({ onNext }) {
   );
 
   useEffect(() => {
-    window.ipcRenderer.on(
-      BASIC_INFO_PERMISSION_RESULT_CHANNEL,
-      basicInfoResultListener
-    );
+    window.ipcRenderer.on('connect-account', connectAccountResultListener);
     return () => {
       window.ipcRenderer.removeListener(
-        BASIC_INFO_PERMISSION_RESULT_CHANNEL,
-        basicInfoResultListener
+        'connect-acccount',
+        connectAccountResultListener
       );
     };
-  }, [clientStateContext]);
+  }, [state]);
 
   // Listen to redirect uris coming in from auth providers after successful authentication
-  function basicInfoResultListener(_event, authState) {
-    if (clientStateContext.authState.state === authState.state) {
-      clientStateContext.setAuthState({ ...authState });
+  function connectAccountResultListener(_event, result) {
+    if (state === result.state) {
+      setAuthState(prevState => ({ ...prevState, ...result }));
 
       dispatch({ type: 'FETCH_SUCCESS', payload: { accountConnected: true } });
 
@@ -60,10 +62,12 @@ function ConnectAccount({ onNext }) {
   function connectToProvider() {
     dispatch({ type: 'FETCH_INIT' });
     const { url, state } = getOauthUrlsForBasicInfo(selectedProvider);
-    clientStateContext.setAuthState({
+
+    setAuthState(prevState => ({
+      ...prevState,
       state,
       selectedProvider,
-    });
+    }));
     openExternal(url);
   }
 

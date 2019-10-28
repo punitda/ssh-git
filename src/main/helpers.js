@@ -5,8 +5,7 @@ const dialog = require('./dialog');
 const parseAppURL = require('../lib/parse-app-url');
 const requestGithubAccessToken = require('../lib/github-api');
 
-// constants
-const { BASIC_INFO_PERMISSION_RESULT_CHANNEL } = require('../lib/constants');
+const { ipcMain: ipc } = require('electron-better-ipc');
 
 const APP_SCHEMA = 'ssh-git';
 
@@ -38,7 +37,7 @@ async function handleAppURL(callbackUrl, mainWindow, githubConfig = null) {
       }
 
       if (callbackUrl.includes('basic')) {
-        mainWindow.webContents.send(BASIC_INFO_PERMISSION_RESULT_CHANNEL, {
+        ipc.sendToRenderers('connect-account', {
           state,
           token,
         });
