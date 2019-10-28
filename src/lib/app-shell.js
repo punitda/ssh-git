@@ -1,11 +1,11 @@
-const ipcRenderer = window.ipcRenderer;
+const ipc = window.ipc;
 
-const openExternal = uri => {
-  ipcRenderer.send('open-external', uri);
+const openExternal = async uri => {
+  await ipc.callMain('open-external', uri);
 };
 
-const openFolder = folderPath => {
-  ipcRenderer.send('open-folder', folderPath);
+const openFolder = async folderPath => {
+  await ipc.callMain('open-folder', folderPath);
 };
 
 module.exports = { openExternal, openFolder };
