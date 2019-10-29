@@ -399,6 +399,7 @@ async function parseSSHConfigFile() {
   try {
     const initialValue = { github: [], bitbucket: [], gitlab: [] };
 
+    // When ssh file doesn't exists do early return with default values.
     if (!fs.existsSync(sshConfigFileLocation)) {
       return initialValue;
     }

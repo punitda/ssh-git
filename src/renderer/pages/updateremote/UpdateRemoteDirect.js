@@ -24,7 +24,7 @@ export default function UpdateRemoteDirect() {
   const [repoFolder, setRepoFolder] = useState(''); // Stores repoFolder user selects for which they are updating "remote url"
 
   const [sshConfig, setSshConfig] = useState({}); // Stores config values coming from .ssh config file.
-  const [noKeysSetupError, setNoKeysSetupError] = useState(false);
+  const [noKeysSetupError, setNoKeysSetupError] = useState(false); // Stores state to determine whether to show ssh keys not setup error at top of dialog or not.
 
   // Custom hook to handle account options to select and render
   const [account, setAccount, AccountDropdown] = useDropdown(
@@ -62,6 +62,10 @@ export default function UpdateRemoteDirect() {
     getSshConfig();
   }, []);
 
+  // Effect to check whether ssh keys are setup correctly
+  // based on parsed `sshconfig` value received from the main process
+  // using the above effect.
+  // If keys are not setup, we set `noKeySetupError` state to true for showing error to user in such case.
   useEffect(() => {
     if (Object.keys(sshConfig).length > 0) {
       const [githubKeys, bitbucketKeys, gitlabKeys] = Object.values(sshConfig);
@@ -76,15 +80,16 @@ export default function UpdateRemoteDirect() {
   }, [sshConfig]);
 
   useEffect(() => {
-    // Making sure that we ask for desktop folder path only
-    // when `selectedFolder` is empty('') which would happen
-    // in case "clone repo" dialog is closed and re-opened again and during 1st time when selectedFolder isn't set yet.
     async function getSystemDesktopFolderPath() {
       const desktopFolderPath = await window.ipc.callMain(
         'get-system-desktop-path'
       );
       setSelectedFolder(desktopFolderPath);
     }
+
+    // Making sure that we ask for desktop folder path only
+    // when `selectedFolder` is empty('') which would happen
+    // in case "clone repo" dialog is closed and re-opened again and during 1st time when selectedFolder isn't set yet.
     if (!selectedFolder) {
       getSystemDesktopFolderPath();
     }
