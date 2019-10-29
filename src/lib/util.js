@@ -74,7 +74,8 @@ function getCloneRepoCommand(
   selectedProvider,
   username,
   repoUrl,
-  disableLogging = true
+  disableLogging = true,
+  shallowClone = false
 ) {
   let modifiedRepoUrl;
   if (selectedProvider === providers.BITBUCKET) {
@@ -89,7 +90,9 @@ function getCloneRepoCommand(
     );
   }
 
-  return `git clone ${modifiedRepoUrl} ${disableLogging ? `--quiet` : ''}`;
+  return `git clone ${modifiedRepoUrl} ${shallowClone ? '--depth=1' : ''} ${
+    disableLogging ? `--quiet` : ''
+  } `;
 }
 
 function getManualSteps(selectedProvider) {
