@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Router,
   createMemorySource,
@@ -12,7 +12,7 @@ import SSHSetup from './pages/sshsetup/SSHSetup';
 import UpdateRemoteDirect from './pages/updateremote/UpdateRemoteDirect';
 
 //Global app wide context to store user state.
-import { ClientStateContext } from './Context';
+import { AuthStateContext } from './Context';
 
 //In-Memory Router
 const source = createMemorySource('/');
@@ -21,38 +21,32 @@ export const history = createHistory(source);
 //Github token workaround.
 import { oauth } from '../lib/config';
 
-class App extends React.Component {
-  setAuthState = authState => {
-    this.setState(prevState => ({
-      authState: { ...prevState.authState, ...authState },
-    }));
-  };
-
-  state = {
+function App() {
+  const state = useState({
     authState: { state: '', token: '', selectedProvider: '' },
-    setAuthState: this.setAuthState,
-  };
+  });
 
-  componentDidMount() {
-    window.ipcRenderer.send('github-config', oauth.github);
-  }
+  useEffect(() => {
+    async function sendGithubConfig() {
+      const _result = await window.ipc.callMain('github-config', oauth.github);
+    }
+    sendGithubConfig();
+  }, []);
 
-  navigateTo(path) {
+  function navigateTo(path) {
     history.navigate(path);
   }
 
-  render() {
-    return (
-      <ClientStateContext.Provider value={this.state}>
-        <LocationProvider history={history}>
-          <Router>
-            <Home path="/" navigateTo={this.navigateTo} />
-            <SSHSetup path="/oauth/*" />
-            <UpdateRemoteDirect path="/updateRemote" />
-          </Router>
-        </LocationProvider>
-      </ClientStateContext.Provider>
-    );
-  }
+  return (
+    <AuthStateContext.Provider value={state}>
+      <LocationProvider history={history}>
+        <Router>
+          <Home path="/" navigateTo={navigateTo} />
+          <SSHSetup path="/oauth/*" />
+          <UpdateRemoteDirect path="/updateRemote" />
+        </Router>
+      </LocationProvider>
+    </AuthStateContext.Provider>
+  );
 }
 export default App;

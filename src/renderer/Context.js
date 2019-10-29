@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 
-export const ClientStateContext = createContext({
-  authState: {
+export const AuthStateContext = createContext([
+  {
     code: '',
     state: '',
     token: '',
@@ -9,5 +9,5 @@ export const ClientStateContext = createContext({
     email: '',
     username: '',
   },
-  setAuthState: () => {},
-});
+  () => {},
+]);

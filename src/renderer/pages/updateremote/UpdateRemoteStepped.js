@@ -6,33 +6,16 @@ import React, {
   useContext,
 } from 'react';
 
-import { history } from '../../App';
-
 import Modal from '../../components/Modal';
 
 import { openFolder } from '../../../lib/app-shell';
 
-import {
-  SELECT_GIT_FOLDER_REQUEST_CHANNEL,
-  SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
-  CLONE_REPO_REQUEST_CHANNEL,
-  CLONE_REPO_RESPONSE_CHANNEL,
-  SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
-  SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL,
-  SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
-  UPDATE_REMOTE_URL_REQUEST_CHANNEL,
-  UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
-} from '../../../lib/constants';
-
 import fetchReducer from '../../reducers/fetchReducer';
-import { ClientStateContext } from '../../Context';
+import { AuthStateContext } from '../../Context';
 
 export default function UpdateRemoteStepped() {
-  const clientStateContext = useContext(ClientStateContext);
-  const {
-    username = null,
-    selectedProvider = null,
-  } = clientStateContext.authState;
+  const [authState, setAuthState] = useContext(AuthStateContext);
+  const { username = null, selectedProvider = null } = authState;
 
   const cloneRepoButtonRef = useRef(null); //Used in clone repo modal for focusing reason
   const updateRemoteUrlButtonRef = useRef(null); // Used in update remote modal for focusing reason
@@ -51,131 +34,66 @@ export default function UpdateRemoteStepped() {
   );
 
   useEffect(() => {
-    window.ipcRenderer.on(
-      SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
-      folderSelectedListener
-    );
-
-    window.ipcRenderer.on(CLONE_REPO_RESPONSE_CHANNEL, cloneRepoResultListener);
-
-    window.ipcRenderer.on(
-      UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
-      remoteUrlUpdateResultListener
-    );
-
-    return () => {
-      window.ipcRenderer.removeListener(
-        SELECT_GIT_FOLDER_RESPONSE_CHANNEL,
-        folderSelectedListener
-      );
-
-      window.ipcRenderer.removeListener(
-        CLONE_REPO_RESPONSE_CHANNEL,
-        cloneRepoResultListener
-      );
-
-      window.ipcRenderer.removeListener(
-        UPDATE_REMOTE_URL_RESPONSE_CHANNEL,
-        remoteUrlUpdateResultListener
-      );
-    };
-  }, [selectedProvider]);
-
-  useEffect(() => {
     // Making sure that we ask for desktop folder path only
     // when `selectedFolder` is empty('') which would happen
-    // in case "clone repo" dialog is closed and re-opened again.
-    if (!selectedFolder) {
-      window.ipcRenderer.send(SYSTEM_DESKTOP_FOLDER_PATH_REQUEST_CHANNEL);
-    }
-    window.ipcRenderer.on(
-      SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
-      desktopFolderPathListener
-    );
-
-    return () => {
-      window.ipcRenderer.removeListener(
-        SYSTEM_DESKTOP_FOLDER_PATH_RESPONSE_CHANNEL,
-        desktopFolderPathListener
+    // in case "clone repo" dialog is closed and re-opened again and during 1st time when selectedFolder isn't set yet.
+    async function getSystemDesktopFolderPath() {
+      const desktopFolderPath = await window.ipc.callMain(
+        'get-system-desktop-path'
       );
-    };
+      setSelectedFolder(desktopFolderPath);
+    }
+    if (!selectedFolder) {
+      getSystemDesktopFolderPath();
+    }
   }, [selectedFolder]);
 
-  // Event listener when folder is selected by user when changing default folder
-  function folderSelectedListener(_event, filePaths) {
-    // Setting both selectedFolder(used to store parent folder for cloning repo)
-    // and repoFolder(used to store selected repo folder for updating remote url)
-    // because we've setup one listener for both.
-    // As we're clearing this state on both dialog close this shouldn't be a concern.
-    if (filePaths && filePaths.length > 0) {
-      setSelectedFolder(filePaths[0]);
-      setRepoFolder(filePaths[0]);
+  // Click listener for "Select Folder" action
+  async function onChangeDefaultFolderClicked() {
+    const selectedFolder = await window.ipc.callMain('select-git-folder');
+    if (selectedFolder) {
+      setSelectedFolder(selectedFolder);
+      setRepoFolder(selectedFolder);
     }
-  }
-
-  // Event listener for `git clone` command results.
-  function cloneRepoResultListener(_event, { success, error, repoFolder }) {
-    if (success) {
-      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
-      setTimeout(() => {
-        openFolder(repoFolder);
-      }, 1000);
-    } else {
-      dispatch({ type: 'FETCH_ERROR' });
-      window.ipcRenderer.send(
-        SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
-        error.message
-          ? error.message
-          : 'Something went wrong when updating remote url :('
-      );
-    }
-  }
-
-  function remoteUrlUpdateResultListener(_event, { success, error }) {
-    if (success) {
-      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
-    } else {
-      dispatch({ type: 'FETCH_ERROR' });
-      window.ipcRenderer.send(
-        SHOW_ERROR_DIALOG_REQUEST_CHANNEL,
-        error.message
-          ? error.message
-          : 'Something went wrong when updating remote url of the repo :('
-      );
-    }
-  }
-
-  function desktopFolderPathListener(_event, path) {
-    setSelectedFolder(path);
-  }
-
-  function goBackToHomeScreen() {
-    history.navigate('');
-  }
-
-  // Click listener for "select folder" action
-  function changeDefaultFolder() {
-    window.ipcRenderer.send(SELECT_GIT_FOLDER_REQUEST_CHANNEL);
   }
 
   // Click listener for "Clone Repo" button
-  function cloneRepo() {
+  async function onCloneRepoClicked() {
     dispatch({ type: 'FETCH_INIT' });
-    window.ipcRenderer.send(CLONE_REPO_REQUEST_CHANNEL, {
+
+    const result = await window.ipc.callMain('clone-repo', {
       selectedProvider,
       username,
       repoUrl,
       selectedFolder,
     });
+
+    const { success, error, repoFolder } = result;
+    if (success) {
+      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
+      setTimeout(() => openFolder(repoFolder), 1000);
+    } else {
+      dispatch({ type: 'FETCH_ERROR' });
+    }
   }
 
-  function updateRemoteUrl() {
+  // Click listener for "Update Remote Url" button
+  async function onUpdateRemoteUrlClicked() {
     dispatch({ type: 'FETCH_INIT' });
-    window.ipcRenderer.send(UPDATE_REMOTE_URL_REQUEST_CHANNEL, {
+
+    const result = await window.ipc.callMain('update-remote-url', {
       selectedProvider,
       username,
       repoFolder,
     });
+
+    const { success, error } = result;
+
+    if (success) {
+      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
+    } else {
+      dispatch({ type: 'FETCH_ERROR' });
+    }
   }
 
   // Listen to onClose event of Modal component to reset local state for "Clone Repo" Modal.
@@ -222,7 +140,7 @@ export default function UpdateRemoteStepped() {
           />
           <button
             className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none"
-            onClick={changeDefaultFolder}>
+            onClick={onChangeDefaultFolderClicked}>
             Choose
           </button>
         </div>
@@ -237,7 +155,7 @@ export default function UpdateRemoteStepped() {
               : `primary-btn`
           }
           disabled={!(repoUrl && selectedFolder) || isLoading}
-          onClick={cloneRepo}>
+          onClick={onCloneRepoClicked}>
           {isLoading
             ? 'Cloning Repo...'
             : isError
@@ -269,11 +187,11 @@ export default function UpdateRemoteStepped() {
             value={repoFolder}
             placeholder="Select Repo Folder"
             readOnly
-            onClick={changeDefaultFolder}
+            onClick={onChangeDefaultFolderClicked}
           />
           <button
             className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none "
-            onClick={changeDefaultFolder}>
+            onClick={onChangeDefaultFolderClicked}>
             Select
           </button>
         </div>
@@ -288,7 +206,7 @@ export default function UpdateRemoteStepped() {
               : `primary-btn`
           }
           disabled={!repoFolder || isLoading}
-          onClick={updateRemoteUrl}>
+          onClick={onUpdateRemoteUrlClicked}>
           {isLoading
             ? 'Upating Remote Url...'
             : isError

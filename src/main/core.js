@@ -293,7 +293,6 @@ async function runCloneRepoCommandUsingNodePty(
       });
 
       ptyProcess.on('data', data => {
-        console.log('data', data);
         if (
           data &&
           data.includes('Are you sure you want to continue connecting')
