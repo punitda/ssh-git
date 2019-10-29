@@ -34,29 +34,32 @@ function ConnectAccount({ onNext }) {
   );
 
   useEffect(() => {
-    window.ipcRenderer.on('connect-account', connectAccountResultListener);
+    let dispose;
+
+    async function startListeningForRedirectUri() {
+      dispose = window.ipc.answerMain('connect-account', async result => {
+        if (state === result.state) {
+          setAuthState(prevState => ({ ...prevState, ...result }));
+
+          dispatch({
+            type: 'FETCH_SUCCESS',
+            payload: { accountConnected: true },
+          });
+          setTimeout(() => onNext('oauth/generate'), 1500);
+
+          return true;
+        } else {
+          dispatch({ type: 'FETCH_ERROR' });
+          return false;
+        }
+      });
+    }
+    startListeningForRedirectUri();
+
     return () => {
-      window.ipcRenderer.removeListener(
-        'connect-acccount',
-        connectAccountResultListener
-      );
+      if (dispose) dispose();
     };
   }, [state]);
-
-  // Listen to redirect uris coming in from auth providers after successful authentication
-  function connectAccountResultListener(_event, result) {
-    if (state === result.state) {
-      setAuthState(prevState => ({ ...prevState, ...result }));
-
-      dispatch({ type: 'FETCH_SUCCESS', payload: { accountConnected: true } });
-
-      setTimeout(() => {
-        onNext('oauth/generate');
-      }, 1500);
-    } else {
-      dispatch({ type: 'FETCH_ERROR' });
-    }
-  }
 
   // Click listener for button `Connect`.
   function connectToProvider() {
