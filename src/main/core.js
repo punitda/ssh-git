@@ -397,9 +397,17 @@ async function readChildProcessOutput(readable) {
 
 async function parseSSHConfigFile() {
   try {
+    const initialValue = { github: [], bitbucket: [], gitlab: [] };
+
+    // When ssh file doesn't exists do early return with default values.
+    if (!fs.existsSync(sshConfigFileLocation)) {
+      return initialValue;
+    }
+
     const sshConfigFileContents = await readFileAsync(sshConfigFileLocation, {
       encoding: 'utf8',
     });
+
     // Using ssh-config lib from npm to parse the contents of ssh config file
     // and converting it into meaningful object which we could use for
     // direct clone repo/update remote functionality
@@ -409,8 +417,6 @@ async function parseSSHConfigFile() {
     // Reducing values based on "host" by separating username from it.
     // Below logic is reducing only host who have values like `github-username`, `bitbucket-username` or `gitlab-username`.
     // and ignoring rest.
-    const initialValue = { github: [], bitbucket: [], gitlab: [] };
-
     const result = hosts.reduce((accumulator, host) => {
       if (!host.includes('-')) return accumulator;
 
