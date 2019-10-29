@@ -5,6 +5,7 @@ import { history } from '../../App';
 // Components
 import Modal from '../../components/Modal';
 import Toolbar from '../../components/Toolbar';
+import Switch from '../../components/Switch';
 
 // Reducer
 import fetchReducer from '../../reducers/fetchReducer';
@@ -25,6 +26,8 @@ export default function UpdateRemoteDirect() {
 
   const [sshConfig, setSshConfig] = useState({}); // Stores config values coming from .ssh config file.
   const [noKeysSetupError, setNoKeysSetupError] = useState(false); // Stores state to determine whether to show ssh keys not setup error at top of dialog or not.
+
+  const [shallowClone, setShallowClone] = useState(false);
 
   // Custom hook to handle account options to select and render
   const [account, setAccount, AccountDropdown] = useDropdown(
@@ -115,6 +118,7 @@ export default function UpdateRemoteDirect() {
       username,
       repoUrl,
       selectedFolder,
+      shallowClone,
     });
     const { success, error, repoFolder } = result;
 
@@ -151,6 +155,7 @@ export default function UpdateRemoteDirect() {
     setRepoFolder('');
     setAccount('');
     setUsername('');
+    setShallowClone(false);
     dispatch({ type: 'FETCH_RESET' });
   }
 
@@ -172,6 +177,10 @@ export default function UpdateRemoteDirect() {
 
   function navigateToSshSetupScreen() {
     history.navigate('oauth/');
+  }
+
+  function openShallowCloneInfoUrl() {
+    // To be implemented.
   }
 
   // Render functions
@@ -211,7 +220,7 @@ export default function UpdateRemoteDirect() {
         <label className="text-gray-800 block text-left text-base mt-4 font-semibold">
           Choose Folder
         </label>
-        <div className="relative mb-6 mt-2">
+        <div className="relative mt-2">
           <input
             type="text"
             className="text-gray-800 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
@@ -224,6 +233,20 @@ export default function UpdateRemoteDirect() {
             onClick={onChangeDefaultFolderClicked}>
             Choose
           </button>
+        </div>
+        <div className="my-6 flex items-center">
+          <Switch
+            className="flex-1"
+            onColor={'#38a169'}
+            isOn={shallowClone}
+            handleToggle={() => setShallowClone(!shallowClone)}
+          />
+          <span className="flex-1 ml-2 text-gray-600">Shallow Clone Repo?</span>
+          <span
+            className="flex-0 text-gray-600 hover:text-gray-700 text-sm underline cursor-pointer"
+            onClick={openShallowCloneInfoUrl}>
+            What is shallow clone?
+          </span>
         </div>
         <button
           className={
