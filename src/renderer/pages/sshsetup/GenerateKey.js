@@ -24,6 +24,7 @@ const GenerateKey = ({ onNext }) => {
 
   // State used to store user input
   const [passphrase, setPassPhrase] = useState('');
+  const [passphraseError, setPassPhraseError] = useState('');
   const [userProvidedEmail, setUserProvidedEmail] = useState('');
 
   // State used to store whether key already exists or not for current selectedProvider and username.
@@ -73,6 +74,11 @@ const GenerateKey = ({ onNext }) => {
 
   // Generate Key click listener
   async function onGenerateKeyClick(_event) {
+    // Check if passphrase is valid before proceeding
+    const isValidPassphrase = isPassphraseValid();
+    if (!isValidPassphrase) return;
+
+    // Check if we key already exists with same name as `selectedProvider-username` before proceeding
     let overrideKeys = false;
     if (keyAlreadyExists) {
       overrideKeys = await window.ipc.callMain('ask-to-override-keys', {
@@ -82,6 +88,7 @@ const GenerateKey = ({ onNext }) => {
       if (!overrideKeys) return;
     }
 
+    // All good, please generate key now.
     const config = {
       selectedProvider,
       username,
@@ -97,6 +104,19 @@ const GenerateKey = ({ onNext }) => {
   function onEmailChange(e) {
     e.preventDefault();
     setUserProvidedEmail(e.target.value);
+  }
+
+  function isPassphraseValid() {
+    if (!passphrase) {
+      setPassPhraseError('Please set passphrase to protect ssh key');
+      return false;
+    }
+    if (passphrase.length < 5) {
+      setPassPhraseError('Ssh key passphrase must be min. length of 5');
+      return false;
+    }
+    setPassPhraseError('');
+    return true;
   }
 
   async function generateKey(config) {
@@ -154,7 +174,15 @@ const GenerateKey = ({ onNext }) => {
               value={passphrase}
               onChange={e => setPassPhrase(e.target.value)}
             />
-            <p className="mt-6 text-sm text-gray-600">
+            <span
+              className={
+                passphraseError
+                  ? 'mt-2 rounded p-1 text-red-600 text-sm'
+                  : 'mt-2 rounded p-1 w-full'
+              }>
+              {passphraseError}
+            </span>
+            <p className="mt-4 py-1 px-2 text-sm text-gray-600 leading-tight bg-blue-100 rounded shadow">
               <span className="font-bold text-gray-700">{`Note: `}</span>
               The above passphrase that you will enter will be used to password
               protect the SSH keys that would be generated. Please do not use
