@@ -119,14 +119,21 @@ function registerIpcForUpdateRemoteScreen() {
 
   // Listen to "clone repo" request and clone the repo based on data passed
   ipc.answerRenderer('clone-repo', async data => {
-    const { selectedProvider, username, repoUrl, selectedFolder } = data;
+    const {
+      selectedProvider,
+      username,
+      repoUrl,
+      selectedFolder,
+      shallowClone,
+    } = data;
 
     try {
       const { code, repoFolder } = await cloneRepo(
         selectedProvider,
         username,
         repoUrl,
-        selectedFolder
+        selectedFolder,
+        shallowClone
       );
 
       if (code === 0) {

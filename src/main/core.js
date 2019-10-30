@@ -193,7 +193,13 @@ async function getPublicKey(selectedProvider, username) {
  * @param {*} repoUrl - used to do some validations and clone the repo
  * @param {*} repoFolder - used to determine the path where to clone the repo.
  */
-async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
+async function cloneRepo(
+  selectedProvider,
+  username,
+  repoUrl,
+  selectedFolder,
+  shallowClone
+) {
   // Check if user has entered correct repo url based on currently selected provider
   if (
     repoUrl.startsWith('git@') &&
@@ -233,11 +239,14 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
     );
   }
 
+  const disableLogging = true;
   // Run clone command if everything looks good
   const cloneRepoCommand = getCloneRepoCommand(
     selectedProvider,
     username,
-    repoUrl
+    repoUrl,
+    disableLogging,
+    shallowClone
   );
 
   try {
@@ -260,7 +269,8 @@ async function cloneRepo(selectedProvider, username, repoUrl, selectedFolder) {
         selectedProvider,
         username,
         repoUrl,
-        repoFolder
+        repoFolder,
+        shallowClone
       );
       return result;
     } else {
@@ -276,13 +286,16 @@ async function runCloneRepoCommandUsingNodePty(
   selectedProvider,
   username,
   repoUrl,
-  repoFolder
+  repoFolder,
+  shallowClone
 ) {
+  const disableLogging = false;
   const cloneRepoCommand = getCloneRepoCommand(
     selectedProvider,
     username,
     repoUrl,
-    false
+    disableLogging,
+    shallowClone
   );
   const shell = getDefaultShell();
 

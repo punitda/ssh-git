@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 
 import Modal from '../../components/Modal';
+import Switch from '../../components/Switch';
 
 import { openFolder } from '../../../lib/app-shell';
 
@@ -23,6 +24,8 @@ export default function UpdateRemoteStepped() {
   const [repoUrl, setRepoUrl] = useState(''); // Stores repourl entered by user
   const [selectedFolder, setSelectedFolder] = useState(''); // Stores parent folder that user selects where to "clone repo"
   const [repoFolder, setRepoFolder] = useState(''); // Stores repoFolder user selects for which they are updating "remote url"
+
+  const [shallowClone, setShallowClone] = useState(false); // Stores state whether to shallow clone based on user input
 
   const [{ isLoading, isError, data: success }, dispatch] = useReducer(
     fetchReducer,
@@ -66,9 +69,10 @@ export default function UpdateRemoteStepped() {
       username,
       repoUrl,
       selectedFolder,
+      shallowClone,
     });
-
     const { success, error, repoFolder } = result;
+
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
       setTimeout(() => openFolder(repoFolder), 1000);
@@ -101,6 +105,7 @@ export default function UpdateRemoteStepped() {
     setRepoUrl('');
     setSelectedFolder('');
     setRepoFolder('');
+    setShallowClone(false);
     dispatch({ type: 'FETCH_RESET' });
   }
 
@@ -110,6 +115,11 @@ export default function UpdateRemoteStepped() {
     setSelectedFolder('');
     dispatch({ type: 'FETCH_RESET' });
   }
+
+  function openShallowCloneInfoUrl() {
+    // To be implemented with proper openExternal link
+  }
+  // Render functions
 
   function renderCloneRepoDialog() {
     return (
@@ -131,7 +141,7 @@ export default function UpdateRemoteStepped() {
         <label className="text-gray-800 block text-left text-base mt-4 font-semibold">
           Choose Folder
         </label>
-        <div className="relative mb-6 mt-2">
+        <div className="relative mt-2">
           <input
             type="text"
             className="text-gray-800 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
@@ -143,6 +153,19 @@ export default function UpdateRemoteStepped() {
             onClick={onChangeDefaultFolderClicked}>
             Choose
           </button>
+        </div>
+        <div className="my-6 flex items-center">
+          <Switch
+            className="flex-1"
+            isOn={shallowClone}
+            handleToggle={() => setShallowClone(!shallowClone)}
+          />
+          <span className="flex-1 ml-2 text-gray-600">Shallow Clone</span>
+          <span
+            className="flex-0 text-gray-600 hover:text-gray-700 text-sm underline cursor-pointer"
+            onClick={openShallowCloneInfoUrl}>
+            What is shallow clone?
+          </span>
         </div>
         <button
           className={
