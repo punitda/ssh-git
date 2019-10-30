@@ -182,7 +182,7 @@ const GenerateKey = ({ onNext }) => {
               }>
               {passphraseError}
             </span>
-            <p className="mt-4 py-1 px-2 text-sm text-gray-600 rounded shadow bg-blue-100 leading-tight">
+            <p className="mt-4 py-1 px-2 text-sm text-gray-600 leading-tight bg-blue-100 rounded shadow">
               <span className="font-bold text-gray-700">{`Note: `}</span>
               The above passphrase that you will enter will be used to password
               protect the SSH keys that would be generated. Please do not use
