@@ -157,7 +157,6 @@ export default function UpdateRemoteStepped() {
         <div className="my-6 flex items-center">
           <Switch
             className="flex-1"
-            onColor={'#38a169'}
             isOn={shallowClone}
             handleToggle={() => setShallowClone(!shallowClone)}
           />
