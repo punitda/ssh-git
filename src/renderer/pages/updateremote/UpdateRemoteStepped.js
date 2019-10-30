@@ -160,7 +160,7 @@ export default function UpdateRemoteStepped() {
             isOn={shallowClone}
             handleToggle={() => setShallowClone(!shallowClone)}
           />
-          <span className="flex-1 ml-2 text-gray-600">Shallow Clone Repo?</span>
+          <span className="flex-1 ml-2 text-gray-600">Shallow Clone</span>
           <span
             className="flex-0 text-gray-600 hover:text-gray-700 text-sm underline cursor-pointer"
             onClick={openShallowCloneInfoUrl}>
