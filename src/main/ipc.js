@@ -15,6 +15,7 @@ const {
 
 // dialog wrapper
 const dialog = require('./dialog');
+const notification = require('./notification');
 
 let githubConfig = null; //workaround to store github config because electron-builder doesn't works with .env files.
 
@@ -137,6 +138,11 @@ function registerIpcForUpdateRemoteScreen() {
       );
 
       if (code === 0) {
+        notification.sendCloneRepoResultNotification(
+          (success = true),
+          (error = null),
+          repoFolder
+        );
         return {
           success: true,
           repoFolder,
@@ -144,6 +150,14 @@ function registerIpcForUpdateRemoteScreen() {
         };
       }
     } catch (error) {
+      notification.sendCloneRepoResultNotification(
+        (success = false),
+        (error = {
+          message: error.message
+            ? error.message
+            : 'Something went wrong when cloning repo',
+        })
+      );
       setTimeout(() =>
         dialog.showErrorDialog(
           error.message
