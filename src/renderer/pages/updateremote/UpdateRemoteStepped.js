@@ -189,7 +189,8 @@ export default function UpdateRemoteStepped() {
         </button>
         {isLoading && (
           <p className="text-xs text-gray-600 mt-2">
-            This might take few seconds to minutes...
+            This might take few seconds to minutes...You will be notified once
+            the repo is cloned.
           </p>
         )}
       </div>
