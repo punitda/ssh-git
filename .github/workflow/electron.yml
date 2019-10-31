@@ -6,7 +6,7 @@ on:
       - feat/integrate-github-actions
 
 jobs:
-  release-mac:
+  release-ubuntu:
     name: Release Ubuntu App
     runs-on: ubuntu-latest
 
