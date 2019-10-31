@@ -28,5 +28,9 @@
     "name": "Oauth redirect uris",
     "role": "Viewer",
     "schemes": ["ssh-git"]
+  },
+  "publish": {
+    "provider": "github",
+    "releaseType": "draft"
   }
 }
