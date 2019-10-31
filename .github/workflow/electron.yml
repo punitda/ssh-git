@@ -1,0 +1,38 @@
+name: Build and Release App
+
+on:
+  push:
+    branches:
+      - feat/integrate-github-actions
+
+jobs:
+  release-mac:
+    name: Release Ubuntu App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v1
+
+      - name: Use Node.js 10
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.15
+
+      - name: Install node-pty deps
+        run: sudo apt install -y make python build-essential
+
+      - name: Install yarn package manager
+        run: npm install -g yarn
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+
+      - name: See files
+        run: ls -la
+
+      - name: Build App
+        run: yarn build-linux
+
+      - name: See build dir
+        run: ls ./dist
