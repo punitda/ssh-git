@@ -1,9 +1,9 @@
 name: Build and Release App
 
-on: [push, pull_request]
+on: push
   
 jobs:
-  release-ubuntu:
+  Ubuntu-Release:
     name: Release Ubuntu App
     runs-on: ubuntu-latest
 
@@ -25,8 +25,33 @@ jobs:
       - name: Install deps
         run: yarn install --frozen-lockfile
 
-      - name: See files
-        run: ls -la
+      - name: Build and Release App
+        run: yarn release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: See dist dir
+        run: ls ./dist
+
+
+  MacOS-Release:
+    name: Release MacOS App
+    runs-on: macOS-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v1
+
+      - name: Use Node.js 10
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.15
+
+      - name: Install yarn package manager
+        run: npm install -g yarn
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile
 
       - name: Build and Release App
         run: yarn release
