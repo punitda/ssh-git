@@ -10,9 +10,6 @@
       "NSUserNotificationAlertStyle": "alert"
     }
   },
-  "win": {
-    "target": "nsis"
-  },
   "linux": {
     "executableName": "ssh-git",
     "maintainer": "punitdama <punitdama@gmail.com>",
@@ -29,8 +26,5 @@
     "role": "Viewer",
     "schemes": ["ssh-git"]
   },
-  "publish": {
-    "provider": "github",
-    "releaseType": "draft"
-  }
+  "publish": ["github"]
 }
