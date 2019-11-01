@@ -32,7 +32,14 @@ jobs:
         run: ls -la
 
       - name: Build App
-        run: yarn build-linux
+        run: yarn build
 
       - name: See build dir
         run: ls ./dist
+
+      - name: Upload to Github release
+        run: skx/github-action-publish-binaries@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: 'ssh-git*.deb'
