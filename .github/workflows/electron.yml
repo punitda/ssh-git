@@ -1,10 +1,7 @@
 name: Build and Release App
 
-on:
-  push:
-    branches:
-      - feat/integrate-github-actions
-
+on: [push, pull_request]
+  
 jobs:
   release-ubuntu:
     name: Release Ubuntu App
@@ -31,15 +28,11 @@ jobs:
       - name: See files
         run: ls -la
 
-      - name: Build App
-        run: yarn build
-
-      - name: See build dir
-        run: ls ./build
-
-      - name: Upload to Github release
-        uses: skx/github-action-publish-binaries@master
+      - name: Build and Release App
+        run: yarn release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: './build/ssh-git*.deb'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: See dist dir
+        run: ls ./dist
+
