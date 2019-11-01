@@ -10,9 +10,6 @@
       "NSUserNotificationAlertStyle": "alert"
     }
   },
-  "win": {
-    "target": "nsis"
-  },
   "linux": {
     "executableName": "ssh-git",
     "maintainer": "punitdama <punitdama@gmail.com>",
