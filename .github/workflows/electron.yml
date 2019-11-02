@@ -29,10 +29,10 @@ jobs:
         run: yarn release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_CLIENT_ID: $${{ secrets.GITHUB_CLIENT_ID }}
-          GITHUB_CLIENT_SECRET: $${{ secrets.GITHUB_CLIENT_SECRET }}
-          BITBUCKET_CLIENT_ID: $${{ secrets.BITBUCKET_CLIENT_ID }}
-          GITLAB_CLIENT_ID: $${{ secrets.GITLAB_CLIENT_ID }}
+          GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
+          BITBUCKET_CLIENT_ID: ${{ secrets.BITBUCKET_CLIENT_ID }}
+          GITLAB_CLIENT_ID: ${{ secrets.GITLAB_CLIENT_ID }}
 
       - name: See dist dir
         run: ls ./dist
@@ -61,10 +61,10 @@ jobs:
         run: yarn release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_CLIENT_ID: $${{ secrets.GITHUB_CLIENT_ID }}
-          GITHUB_CLIENT_SECRET: $${{ secrets.GITHUB_CLIENT_SECRET }}
-          BITBUCKET_CLIENT_ID: $${{ secrets.BITBUCKET_CLIENT_ID }}
-          GITLAB_CLIENT_ID: $${{ secrets.GITLAB_CLIENT_ID }}
+          GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
+          BITBUCKET_CLIENT_ID: ${{ secrets.BITBUCKET_CLIENT_ID }}
+          GITLAB_CLIENT_ID: ${{ secrets.GITLAB_CLIENT_ID }}
 
       - name: See dist dir
         run: ls ./dist
