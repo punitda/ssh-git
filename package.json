@@ -7,16 +7,17 @@
   "author": "punitdama <punitdama@gmail.com>",
   "main": "src/main/index.js",
   "scripts": {
-    "start": "yarn build-css && concurrently \"yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
-    "clean-start": "yarn clean && yarn start",
+    "start": "concurrently \"yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
+    "build": "yarn build-css && yarn react-build && yarn electron-build",
+    "release": "yarn build-css && yarn react-build && yarn electron-release",
     "react-start": "yarn build-css && parcel -p 3000 public/index.html",
+    "react-build": "parcel build public/index.html --out-dir build --public-url ./",
+    "electron-release": "electron-builder --config electron-builder.json --publish always",
+    "electron-build": "electron-builder --config electron-builder.json",
     "build-css": "postcss public/tailwind.css -o public/build/tailwind.css",
     "watch-css": "postcss public/tailwind.css -o public/build/tailwind.css --watch",
-    "react-build": "parcel build public/index.html --out-dir build --public-url ./",
-    "electron-build": "electron-builder --config electron-builder.json --publish always",
-    "release": "yarn clean && yarn build-css && yarn react-build && yarn electron-build",
     "clean": "rm -rf build/ .cache dist/ public/build",
-    "rebuild": "electron-rebuild -f -w node-pty"
+    "rebuild-node-pty": "electron-rebuild -f -w node-pty"
   },
   "keywords": [],
   "license": "ISC",
@@ -46,6 +47,7 @@
     "electron-rebuild": "^1.8.6",
     "lodash": "^4.17.14",
     "parcel-bundler": "^1.12.3",
+    "parcel-plugin-asset-copier": "^1.0.0",
     "postcss-cli": "^6.1.3",
     "tailwindcss": "^1.0.5",
     "wait-on": "^3.3.0"
@@ -53,5 +55,6 @@
   "homepage": "./",
   "browserslist": [
     "electron 5.0"
-  ]
+  ],
+  "assetsPath": "src/assets"
 }
