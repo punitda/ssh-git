@@ -365,15 +365,15 @@ export default function UpdateRemoteDirect() {
 
 const cloneRepoModalProps = {
   triggerText: 'Clone Repo',
-  buttonClassName: 'primary-btn w-64',
+  buttonClassName: 'primary-btn w-56',
   role: 'dialog',
   ariaLabel: 'Dialog to ask for details for cloning a repo',
 };
 
 const updateRepoModalProps = {
-  triggerText: 'Update Remote Url',
+  triggerText: 'Update Remote',
   buttonClassName:
-    'w-64 px-6 py-2 text-gray-100 bg-orange-500 hover:bg-orange-400 text-xl font-bold rounded inline-block',
+    'w-56 px-6 py-2 text-gray-100 bg-teal-500 hover:bg-teal-400 text-xl font-bold rounded inline-block',
   role: 'dialog',
   ariaLabel: 'Dialog to ask for details for updating remote url',
 };
