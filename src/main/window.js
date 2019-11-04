@@ -13,7 +13,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
     },
     maximizable: false,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#2d3748',
   });
 
   mainWindow.loadURL(
