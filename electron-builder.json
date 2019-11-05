@@ -3,7 +3,7 @@
   "files": ["src/main/**/*", "src/lib/**/*", "build/**/*"],
   "mac": {
     "category": "public.app-category.developer-tools",
-    "icon": "icons/icon.png",
+    "icon": "logo/icon.icns",
     "darkModeSupport": true,
     "target": "dmg",
     "identity": null,
@@ -13,7 +13,7 @@
   },
   "linux": {
     "executableName": "ssh-git",
-    "icon": "icons/icon.png",
+    "icon": "logo/icon.icns",
     "maintainer": "punitdama <punitdama@gmail.com>",
     "category": "Development",
     "target": ["deb"],
