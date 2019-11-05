@@ -40,7 +40,7 @@ jobs:
 
   MacOS-Release:
     name: Release MacOS App
-    runs-on: macOS-10.14
+    runs-on: macOS-latest
 
     steps:
       - name: Checkout master
