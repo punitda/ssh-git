@@ -1,7 +1,7 @@
 import React from 'react';
 
 import AlphaBadge from '../../assets/img/alpha_badge.svg';
-import logo from '../../assets/icons/icon.png';
+import logo from '../../assets/logo/icon.png';
 
 export default function Home({ navigateTo }) {
   return (
