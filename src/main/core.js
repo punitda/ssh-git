@@ -258,7 +258,10 @@ async function cloneRepo(
     });
 
     const errorOutput = await readChildProcessOutput(childProcess.stderr);
-    if (!errorOutput) {
+    if (
+      !errorOutput ||
+      errorOutput.toLowerCase().includes('permanently added')
+    ) {
       return { code: 0, repoFolder };
     } else if (
       errorOutput &&
