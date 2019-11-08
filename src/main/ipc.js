@@ -50,7 +50,9 @@ function registerGeneralIpcs() {
 }
 
 function registerIpcForConnectAccountScreen() {
-  // No listeners added.
+  ipc.answerRenderer('check-if-linux', async () => {
+    return process.platform === 'linux';
+  });
 }
 
 function registerIpcForGenerateKeyScreen() {
