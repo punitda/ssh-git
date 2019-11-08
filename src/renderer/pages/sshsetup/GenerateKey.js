@@ -29,6 +29,7 @@ const GenerateKey = ({ onNext }) => {
 
   // State used to store whether key already exists or not for current selectedProvider and username.
   const [keyAlreadyExists, setKeyAlreadyExists] = useState(false);
+  const [isLinux, setIsLinux] = useState(false);
 
   // Use to store several states of UI for generateKey process
   const [
@@ -71,6 +72,14 @@ const GenerateKey = ({ onNext }) => {
       checkIfKeyAlreadyExists(selectedProvider, username);
     }
   }, [selectedProvider, username]);
+
+  useEffect(() => {
+    async function isLinuxOS() {
+      const isLinux = await window.ipc.callMain('check-if-linux');
+      setIsLinux(isLinux);
+    }
+    isLinuxOS();
+  }, []);
 
   // Generate Key click listener
   async function onGenerateKeyClick(_event) {
@@ -133,7 +142,10 @@ const GenerateKey = ({ onNext }) => {
   }
 
   return (
-    <div className="h-128 w-96 my-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto">
+    <div
+      className={`${
+        isLinux ? 'h-144' : 'h-128'
+      } w-96 my-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto`}>
       <SquareLoader
         loading={isLoading}
         size={48}
@@ -148,7 +160,9 @@ const GenerateKey = ({ onNext }) => {
       {username || email ? (
         <>
           <img
-            className="h-24 w-24 rounded-full border-2 border-gray-500 shadow-lg mx-auto -mt-24 z-10 bg-transparent"
+            className={`h-24 w-24 rounded-full border-2 border-gray-500 shadow-lg mx-auto ${
+              isLinux ? '-mt-24' : '-mt-20'
+            } z-10 bg-transparent`}
             src={avatar_url ? avatar_url : githublogo}
           />
           <h2 className="text-2xl font-semibold text-gray-900">{username}</h2>
@@ -189,6 +203,12 @@ const GenerateKey = ({ onNext }) => {
               your{' '}
               <span className="font-bold text-gray-800">{`${selectedProvider}'s `}</span>
               password for additional security.
+              {isLinux ? (
+                <span className="font-semibold text-gray-700">
+                  You also need to remember this passphrase because you will be
+                  asked to enter it once across system restarts.
+                </span>
+              ) : null}
             </p>
           </div>
         </>
