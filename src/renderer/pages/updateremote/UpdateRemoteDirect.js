@@ -372,8 +372,7 @@ const cloneRepoModalProps = {
 
 const updateRepoModalProps = {
   triggerText: 'Update Remote',
-  buttonClassName:
-    'w-56 px-6 py-2 text-gray-100 bg-teal-500 hover:bg-teal-400 text-xl font-bold rounded inline-block',
+  buttonClassName: 'secondary-btn w-56',
   role: 'dialog',
   ariaLabel: 'Dialog to ask for details for updating remote url',
 };

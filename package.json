@@ -26,10 +26,12 @@
     "@reach/router": "^1.2.1",
     "axios": "^0.19.0",
     "electron-better-ipc": "^0.6.0",
+    "layout-styled-components": "^0.1.11",
     "node-pty": "^0.8.1",
     "query-string": "^6.8.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-genie": "^0.1.5",
     "react-spinners": "^0.5.13",
     "ssh-config": "^2.0.0-beta.1",
     "uuid": "^3.3.2"

@@ -15,7 +15,7 @@ import UpdateRemoteStepped from '../updateremote/UpdateRemoteStepped';
 //Internal
 import { history } from '../../App';
 
-const steps = ['Connect', 'Generate', 'Add', 'Update'];
+const steps = ['Connect', 'Generate', 'Add', 'Clone'];
 
 export default function SSHSetup() {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
