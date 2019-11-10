@@ -17,11 +17,11 @@
 }
 
 .primary-btn:enabled {
-  @apply bg-blue-600;
+  @apply bg-blue-500;
 }
 
 .primary-btn:hover:enabled {
-  @apply bg-blue-500;
+  @apply bg-blue-700;
 }
 
 .primary-btn:focus:enabled {
@@ -29,11 +29,28 @@
 }
 
 .primary-btn:active:enabled {
-  @apply bg-blue-700;
+  @apply bg-blue-800;
 }
 
 .primary-btn:disabled {
   @apply bg-blue-400;
+}
+
+.secondary-btn {
+  @apply px-6 py-2 text-gray-800 text-xl font-bold rounded inline-block;
+  transition: all 0.3s;
+}
+
+.secondary-btn:enabled {
+  @apply bg-teal-400;
+}
+
+.secondary-btn:hover:enabled {
+  @apply bg-teal-300;
+}
+
+.secondary-btn:focus:enabled {
+  @apply outline-none shadow-outline;
 }
 
 @tailwind utilities;
