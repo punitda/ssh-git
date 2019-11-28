@@ -4,6 +4,8 @@ const window = require('./window');
 const helpers = require('./helpers');
 const ipc = require('./ipc');
 
+const initSentry = require('../lib/crash-reporter');
+
 function init() {
   app.setName('ssh-git');
 
@@ -48,6 +50,8 @@ function init() {
     event.preventDefault();
     helpers.handleAppURL(url, window.getMainWindow(), ipc.getGithubConfig());
   });
+
+  initSentry();
 }
 
 init(); // this is where it all starts

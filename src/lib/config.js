@@ -38,9 +38,14 @@ const api_base_urls = {
   GITLAB: 'https://gitlab.com/api/v4/',
 };
 
+const sentry = {
+  dsn: 'https://8ec04a93dbde4b6781a3e9d0fbe1d7f8@sentry.io/1837456',
+};
+
 module.exports = {
   oauth,
   providers,
   oauth_base_urls,
   api_base_urls,
+  sentry,
 };
