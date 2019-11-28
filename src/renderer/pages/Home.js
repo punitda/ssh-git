@@ -11,11 +11,6 @@ function renderLandingPage(navigateTo) {
       <RevealGlobalStyles />
       <div className="flex justify-between">
         <AlphaBadge className="z-10" />
-        <a
-          className="mt-2 mr-4 text-gray-400 hover:text-gray-100 text-base hover:underline cursor-pointer"
-          href="#">
-          Help
-        </a>
       </div>
       <div className="flex flex-col items-center pb-8">
         <Reveal delay={100}>
@@ -65,11 +60,6 @@ function renderHomePage(navigateTo) {
     <div className="bg-gray-300 h-screen">
       <div className="flex justify-between">
         <AlphaBadge className="z-10" />
-        <a
-          className="mt-2 mr-4 text-gray-800 hover:text-gray-900 text-base hover:underline cursor-pointer"
-          href="#">
-          Help
-        </a>
       </div>
       <div className="flex flex-col items-center pb-8">
         <img src={logo} className="w-20 h-20" />
