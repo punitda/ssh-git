@@ -57,13 +57,13 @@ function renderLandingPage(navigateTo) {
 
 function renderHomePage(navigateTo) {
   return (
-    <div className="bg-gray-300 h-screen">
+    <div className="app">
       <div className="flex justify-between">
         <AlphaBadge className="z-10" />
       </div>
       <div className="flex flex-col items-center pb-8">
         <img src={logo} className="w-20 h-20" />
-        <h1 className="mt-2 font-semibold text-4xl text-gray-800 tracking-wide">
+        <h1 className="mt-2 font-semibold text-4xl text-gray-200 tracking-wide">
           ssh-git
         </h1>
         <button
@@ -72,7 +72,7 @@ function renderHomePage(navigateTo) {
           Setup SSH
         </button>
         <button
-          className="w-56 mt-8 secondary-btn"
+          className="secondary-btn w-56 mt-8"
           onClick={_e => navigateTo('/updateRemote')}>
           Clone or Update
         </button>

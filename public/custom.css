@@ -1,3 +1,21 @@
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.app {
+  -webkit-user-select: none;
+  -webkit-app-region: drag;
+
+  height: 100%;
+  background: #2d3748;
+
+  animation: fadein 0.5s;
+}
+
 ::-webkit-scrollbar {
   display: none;
 }
