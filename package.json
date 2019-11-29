@@ -27,6 +27,7 @@
     "@sentry/electron": "1.0.0",
     "axios": "^0.19.0",
     "electron-better-ipc": "^0.6.0",
+    "electron-unhandled": "^3.0.1",
     "layout-styled-components": "^0.1.11",
     "node-pty": "^0.8.1",
     "query-string": "^6.8.1",
