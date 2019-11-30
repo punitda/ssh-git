@@ -3,8 +3,10 @@ const { app } = require('electron');
 const window = require('./window');
 const helpers = require('./helpers');
 const ipc = require('./ipc');
+const updater = require('./updater');
 
 const { initSentry, catchGlobalErrors } = require('../lib/crash-reporter');
+const isDev = require('../lib/electron-is-dev');
 
 function init() {
   app.setName('ssh-git');
@@ -53,6 +55,11 @@ function init() {
 
   initSentry();
   catchGlobalErrors();
+
+  // Check if app update is available after 10 secs
+  if (!isDev) {
+    setTimeout(() => updater.init(), 10 * 1000);
+  }
 }
 
 init(); // this is where it all starts
