@@ -46,4 +46,5 @@ function createNotification(title, body, actions = []) {
 
 module.exports = {
   sendCloneRepoResultNotification,
+  createNotification,
 };

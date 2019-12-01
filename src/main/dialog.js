@@ -39,8 +39,29 @@ async function showOpenDirectoryDialog() {
   });
 }
 
+function showUpdateDialog(appName, version) {
+  const buttons = ['Download', 'Skip this release'];
+
+  const options = {
+    type: 'info',
+    buttons,
+    title: 'Download update',
+    defaultId: 0,
+    detail: `A new version(${version}) of ${appName} is available for download.`,
+    message: 'Download update',
+  };
+
+  const mainWindow = window.getMainWindow();
+  return new Promise((resolve, _reject) => {
+    dialog.showMessageBox(mainWindow, options, (response, _checkboxChecked) => {
+      resolve(response);
+    });
+  });
+}
+
 module.exports = {
   showErrorDialog,
   showOverrideKeysDialog,
   showOpenDirectoryDialog,
+  showUpdateDialog,
 };
