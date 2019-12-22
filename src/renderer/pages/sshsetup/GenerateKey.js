@@ -142,10 +142,7 @@ const GenerateKey = ({ onNext }) => {
   }
 
   return (
-    <div
-      className={`${
-        isLinux ? 'h-144' : 'h-128'
-      } w-96 my-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto`}>
+    <div className="h-144 w-96 my-20 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto">
       <SquareLoader
         loading={isLoading}
         size={48}
