@@ -23,14 +23,14 @@ function renderLandingPage(navigateTo) {
         </Reveal>
         <Reveal delay={300}>
           <h2 className="text-gray-200 text-2xl text-center tracking-wide">
-            Painlessly manage ssh keys for Github/Bitbucket/Gitlab
+            Painlessly manage ssh keys for Github, Bitbucket and Gitlab accounts
           </h2>
         </Reveal>
         <div className="mt-16 flex flex-row justify-between items-center ">
           {steps.map((step, index) => (
             <Reveal delay={400 + (index + 1) * 100}>
               <div className="w-48 h-48 mr-8 flex flex-col items-center bg-gray-700 rounded-lg shadow-lg">
-                <div className="w-8 h-8 mt-4 text-gray-900 text-xl text-center font-semibold bg-gray-100 rounded-full shadow">
+                <div className="w-8 h-8 mt-4 text-gray-700 text-xl text-center font-semibold bg-gray-100 rounded-full shadow">
                   {index + 1}
                 </div>
                 <h1 className="mt-2 px-4 text-xl text-center font-bold text-gray-300">
