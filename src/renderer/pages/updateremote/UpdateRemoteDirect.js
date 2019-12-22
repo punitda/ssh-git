@@ -345,7 +345,7 @@ export default function UpdateRemoteDirect() {
           onModalClose={onCloneRepoModalClose}>
           {renderCloneRepoDialog()}
         </Modal>
-        <p className="mt-2">
+        <p className="text-gray-700 mt-2">
           (Use this if your cloning this repository first time on your system)
         </p>
         <p className="my-4">OR</p>
@@ -355,7 +355,7 @@ export default function UpdateRemoteDirect() {
           onModalClose={onUpdateRemoteUrlModalClose}>
           {renderUpdateRemoteUrlDialog()}
         </Modal>
-        <p className="mt-2">
+        <p className="text-gray-700 mt-2">
           (Use this if your already have repository on your system)
         </p>
       </div>
