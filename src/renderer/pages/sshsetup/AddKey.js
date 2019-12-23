@@ -8,6 +8,9 @@ import { openExternal } from '../../../lib/app-shell';
 import { providers } from '../../../lib/config';
 import { getManualSteps } from '../../../lib/util';
 
+import ConfirmationModal from '../../components/ConfirmationModal';
+import Switch from '../../components/Switch';
+
 function AddKey({ onNext }) {
   const [authState] = useContext(AuthStateContext);
   const {
@@ -16,9 +19,13 @@ function AddKey({ onNext }) {
     username = null,
   } = authState;
 
-  const textareaRef = useRef(); // need ref to textarea's node to use `copy` command on it for copying to clipboard.
+  const textareaRef = useRef(null); // need ref to textarea's node to use `copy` command on it for copying to clipboard.
+  const nextPageButtonRef = useRef(null); // need ref for confirmations dialog
   const [keyCopied, setKeyCopied] = useState(false); // use to show minor animation when key is copied
   const [publicKey, setPublicKey] = useState(' '); // set public key's content
+
+  const [localDontRemindMe, setLocalDontRemindMe] = useState(false);
+  const [globalDontRemindMe, setGlobalDontRemindMe] = useState(false);
 
   /**
    * Communication between main and renderer process for :
@@ -35,6 +42,13 @@ function AddKey({ onNext }) {
 
     getPublicKey(selectedProvider, username);
   }, [selectedProvider, username]);
+
+  useEffect(() => {
+    if (window.localStorage.getItem('no-reminder-for-add-key')) {
+      setLocalDontRemindMe(true);
+      setGlobalDontRemindMe(true);
+    }
+  }, []);
 
   //Open ssh-keys settings page of selected provider
   function openSettingsPage() {
@@ -84,8 +98,29 @@ function AddKey({ onNext }) {
     //Don't allow changing public key content
   }
 
+  function renderConfirmationDialogContent() {
+    return (
+      <div className="flex flex-col justify-center">
+        <h1 className="text-2xl font-semibold">Confirm</h1>
+        <h2 className="mt-4 text-gray-700 text-lg">
+          Did you followed all steps listed down to add ssh key to your account?
+        </h2>
+        <div className="flex flex-row justify-start my-6">
+          <Switch
+            isOn={localDontRemindMe}
+            handleToggle={() => {
+              setLocalDontRemindMe(!localDontRemindMe);
+              window.localStorage.setItem('no-reminder-for-add-key', true);
+            }}
+          />
+          <span className="ml-2 text-gray-600">Don't ask me again</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div class="max-w-full mx-auto flex flex-col items-center justify-center">
+    <div className="max-w-full mx-auto flex flex-col items-center justify-center">
       <h2 className="mx-16 mt-8 text-2xl text-center text-gray-900">
         Follow below steps to add generated key to your account
       </h2>
@@ -130,13 +165,37 @@ function AddKey({ onNext }) {
           </div>
         </div>
       </div>
-      <button className="primary-btn mt-8" onClick={openNextPage}>
-        Clone Repo
-      </button>
-      <p className="text-gray-700 text-sm mt-1">
-        (Make sure you have followed the above steps otherwise SSH key generated
-        wouldn't work)
-      </p>
+
+      {!globalDontRemindMe ? (
+        <ConfirmationModal
+          {...nextPageConfirmationModalProps}
+          buttonRef={nextPageButtonRef}
+          onModalClose={() => {}}
+          content={renderConfirmationDialogContent()}
+          yesBtn={
+            <button
+              className="px-6 py-2 text-base text-gray-100 bg-green-600 hover:bg-green-700 rounded font-bold focus:outline-none"
+              onClick={openNextPage}>
+              Yes, I did
+            </button>
+          }
+          noBtn={
+            <button className="px-6 py-2 text-base text-red-600 hover:text-white hover:bg-red-600 border-0 rounded border-transparent focus:outline-none">
+              Cancel
+            </button>
+          }
+        />
+      ) : (
+        <>
+          <button className="primary-btn mt-8" onClick={openNextPage}>
+            Clone Repo
+          </button>
+          <p className="text-gray-700 text-sm mt-1">
+            (Make sure you have followed the above steps otherwise SSH key
+            generated wouldn't work)
+          </p>
+        </>
+      )}
     </div>
   );
 }
@@ -144,6 +203,13 @@ function AddKey({ onNext }) {
 const styles = {
   keyCopied: `absolute mt-2 py-2 px-4 font-semibold right-0 top-0 bg-green-600 hover:bg-green-800 text-white rounded-bl-lg`,
   normal: `absolute mt-2 py-2 px-4 font-semibold right-0 top-0 bg-green-400 hover:bg-green-600 text-white rounded-bl-lg`,
+};
+
+const nextPageConfirmationModalProps = {
+  triggerText: 'Clone Repo',
+  buttonClassName: 'primary-btn w-56 mt-8',
+  role: 'dialog',
+  ariaLabel: 'Confirmation dialog before moving to next step',
 };
 
 export default AddKey;
