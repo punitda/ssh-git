@@ -9,7 +9,7 @@ import { providers } from '../../../lib/config';
 import { getManualSteps } from '../../../lib/util';
 
 function AddKey({ onNext }) {
-  const [authState, setAuthState] = useContext(AuthStateContext);
+  const [authState] = useContext(AuthStateContext);
   const {
     selectedProvider = null,
     bitbucket_uuid = null,
@@ -85,35 +85,23 @@ function AddKey({ onNext }) {
   }
 
   return (
-    <div>
+    <div class="max-w-full mx-auto flex flex-col items-center justify-center">
       <h2 className="mx-16 mt-8 text-2xl text-center text-gray-900">
-        To start using the generated ssh key, you need to add it to your
-        account.
+        Follow below steps to add generated key to your account
       </h2>
-      <div className="flex flex-row mt-8 items-center justify-start mx-16">
+      <div className="flex flex-row items-center justify-center mx-16 my-12">
         <div className="flex flex-col flex-1">
-          <h3 className="text-lg">Follow below steps:</h3>
-          <ul className="text-gray-800 pr-12 text-left mt-2 leading-relaxed">
+          <h3 className="text-xl">Steps:</h3>
+          <ul className="text-gray-700 text-lg pr-12 text-left mt-2 leading-relaxed">
             {getManualSteps(selectedProvider).map((step, index) => {
-              if (index === 2) {
+              if (index === 1) {
                 return (
                   <li key={index}>
                     {`${index + 1}. ${step}`}
                     <button
-                      className="underline hover:text-blue-500"
+                      className="underline hover:text-blue-700 hover:font-semibold"
                       onClick={openSettingsPage}>
                       Link
-                    </button>
-                  </li>
-                );
-              } else if (index === 4) {
-                return (
-                  <li key={index}>
-                    {`${index + 1}. `}
-                    <button
-                      className="underline text-blue-500 hover:text-blue-700"
-                      onClick={openNextPage}>
-                      {step}
                     </button>
                   </li>
                 );
@@ -123,7 +111,7 @@ function AddKey({ onNext }) {
             })}
           </ul>
         </div>
-        <div className="w-1/2">
+        <div className="flex-1">
           <h3 className="text-lg">Public Key</h3>
           <div className="relative">
             <button
@@ -142,6 +130,13 @@ function AddKey({ onNext }) {
           </div>
         </div>
       </div>
+      <button className="primary-btn mt-8" onClick={openNextPage}>
+        Clone Repo
+      </button>
+      <p className="text-gray-700 text-sm mt-1">
+        (Make sure you have followed the above steps otherwise SSH key generated
+        wouldn't work)
+      </p>
     </div>
   );
 }
