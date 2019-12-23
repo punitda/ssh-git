@@ -191,8 +191,7 @@ function AddKey({ onNext }) {
             Clone Repo
           </button>
           <p className="text-gray-700 text-sm mt-1">
-            (Make sure you have followed the above steps otherwise SSH key
-            generated wouldn't work)
+            (Make sure you have followed the above steps before cloning repo)
           </p>
         </>
       )}
