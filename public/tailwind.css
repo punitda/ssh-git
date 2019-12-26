@@ -37,20 +37,16 @@
 }
 
 .secondary-btn {
-  @apply px-6 py-2 text-gray-800 text-xl font-bold rounded inline-block;
+  @apply px-6 py-2 text-gray-700 text-xl font-bold rounded border border-2 border-teal-500 inline-block;
   transition: all 0.3s;
 }
 
-.secondary-btn:enabled {
-  @apply bg-teal-400;
-}
-
 .secondary-btn:hover:enabled {
-  @apply bg-teal-300;
+  @apply text-gray-100 bg-teal-500;
 }
 
 .secondary-btn:focus:enabled {
-  @apply outline-none shadow-outline;
+  @apply bg-teal-600 outline-none shadow-outline;
 }
 
 @tailwind utilities;
