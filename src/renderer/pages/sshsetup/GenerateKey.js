@@ -8,7 +8,6 @@ import fetchReducer from '../../reducers/fetchReducer';
 
 // Images and Loaders
 import SquareLoader from 'react-spinners/SquareLoader';
-import githublogo from '../../../assets/img/github_logo.png'; // We need to replace this with default placeholder profile icon with bg-color as our primary button color
 
 const GenerateKey = ({ onNext }) => {
   const [authState, setAuthState] = useContext(AuthStateContext);
@@ -156,10 +155,20 @@ const GenerateKey = ({ onNext }) => {
       )}
       {username || email ? (
         <>
-          <img
-            className="h-24 w-24 rounded-full border-2 border-gray-500 shadow-lg mx-auto -mt-24 z-10 bg-transparent"
-            src={avatar_url ? avatar_url : githublogo}
-          />
+          {avatar_url ? (
+            <img
+              className="h-24 w-24 object-cover rounded-full border-2 border-gray-500 shadow-lg mx-auto -mt-24 z-10 bg-transparent"
+              src={avatar_url}
+            />
+          ) : (
+            <div className="h-24 w-24 rounded-full border-2 border-gray-100 shadow-lg mx-auto -mt-24 z-10 bg-blue-500 flex flex-col">
+              <p className="text-gray-100 uppercase text-2xl font-semibold text-center my-auto items-center">
+                {username && username.length > 2
+                  ? username.substring(0, 2)
+                  : ''}
+              </p>
+            </div>
+          )}
           <h2 className="text-2xl font-semibold text-gray-900">{username}</h2>
           <div className="text-left mt-2 m-8">
             <label className="text-gray-800 block text-left text-base mt-6 font-semibold">
