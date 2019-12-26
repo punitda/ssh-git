@@ -5,7 +5,7 @@ import { AuthStateContext } from '../../Context';
 
 // libs import
 import { openExternal } from '../../../lib/app-shell';
-import { providers } from '../../../lib/config';
+import { providers, web_base_url } from '../../../lib/config';
 import { getManualSteps } from '../../../lib/util';
 
 import ConfirmationModal from '../../components/ConfirmationModal';
@@ -124,7 +124,7 @@ function AddKey({ onNext }) {
       <h2 className="mx-16 mt-8 text-2xl text-center text-gray-900">
         Follow below steps to add generated key to your account
       </h2>
-      <div className="flex flex-row items-center justify-center mx-16 my-12">
+      <div className="flex flex-row items-center justify-center mx-16 my-8">
         <div className="flex flex-col flex-1">
           <h3 className="text-xl">Steps:</h3>
           <ul className="text-gray-700 text-lg pr-12 text-left mt-2 leading-relaxed">
@@ -187,7 +187,7 @@ function AddKey({ onNext }) {
         />
       ) : (
         <>
-          <button className="primary-btn mt-8" onClick={openNextPage}>
+          <button className="primary-btn mt-2" onClick={openNextPage}>
             Clone Repo
           </button>
           <p className="text-gray-700 text-sm mt-1">
@@ -195,6 +195,15 @@ function AddKey({ onNext }) {
           </p>
         </>
       )}
+      <div
+        className="absolute bottom-0 right-0 mr-6 mb-4 underline text-gray-600 hover:text-gray-700 text-sm italic cursor-pointer"
+        onClick={() =>
+          openExternal(
+            `${web_base_url}/#why_app_doesn't_adds_key_automatically?`
+          )
+        }>
+        Why app doesn't adds key automatically?
+      </div>
     </div>
   );
 }
@@ -206,7 +215,7 @@ const styles = {
 
 const nextPageConfirmationModalProps = {
   triggerText: 'Clone Repo',
-  buttonClassName: 'primary-btn w-56 mt-8',
+  buttonClassName: 'primary-btn w-56 mt-2',
   role: 'dialog',
   ariaLabel: 'Confirmation dialog before moving to next step',
 };

@@ -42,10 +42,13 @@ const sentry = {
   dsn: 'https://8ec04a93dbde4b6781a3e9d0fbe1d7f8@sentry.io/1837456',
 };
 
+const web_base_url = 'https://ssh-git.app';
+
 module.exports = {
   oauth,
   providers,
   oauth_base_urls,
   api_base_urls,
+  web_base_url,
   sentry,
 };
