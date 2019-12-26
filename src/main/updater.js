@@ -1,5 +1,7 @@
 const { autoUpdater, shell } = require('electron');
 
+const { web_base_url } = require('../lib/config');
+
 const store = require('./store');
 const { createNotification } = require('./notification');
 const dialog = require('./dialog');
@@ -10,8 +12,8 @@ const packageJSON = require('../../package.json');
 const APP_VERSION = packageJSON.version;
 const APP_NAME = packageJSON.name;
 
-const UPDATE_BASE_URL = 'https://ssh-git.com/api';
-const AUTO_UPDATE_URL = `${UPDATE_BASE_URL}/api/check-updates?version=${APP_VERSION}&platform=${process.platform}`;
+const UPDATE_BASE_URL = `${web_base_url}/api`;
+const AUTO_UPDATE_URL = `${UPDATE_BASE_URL}/check-updates?version=${APP_VERSION}&platform=${process.platform}`;
 
 function init() {
   if (process.platform === 'linux') {
