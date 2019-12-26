@@ -157,9 +157,7 @@ const GenerateKey = ({ onNext }) => {
       {username || email ? (
         <>
           <img
-            className={`h-24 w-24 rounded-full border-2 border-gray-500 shadow-lg mx-auto ${
-              isLinux ? '-mt-24' : '-mt-20'
-            } z-10 bg-transparent`}
+            className="h-24 w-24 rounded-full border-2 border-gray-500 shadow-lg mx-auto -mt-24 z-10 bg-transparent"
             src={avatar_url ? avatar_url : githublogo}
           />
           <h2 className="text-2xl font-semibold text-gray-900">{username}</h2>
