@@ -72,7 +72,7 @@ function renderHomePage(navigateTo) {
           Setup SSH
         </button>
         <button
-          className="secondary-btn w-56 mt-8"
+          className="secondary-btn text-gray-300 w-56 mt-8"
           onClick={_e => navigateTo('/updateRemote')}>
           Clone or Update
         </button>
