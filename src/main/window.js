@@ -2,6 +2,8 @@ const path = require('path');
 const { app, shell, Menu, BrowserWindow } = require('electron');
 const isDev = require('../lib/electron-is-dev');
 
+const { web_base_url } = require('../lib/config');
+
 let mainWindow;
 
 function createWindow() {
@@ -29,7 +31,7 @@ function createWindow() {
 
 function setAppMenu() {
   const isMac = process.platform === 'darwin';
-  const CHANGELOG_BASE_URL = 'https://ssh-git.com/changelog';
+  const CHANGELOG_BASE_URL = `${web_base_url}/changelog`;
 
   const template = [
     // App menu
@@ -113,7 +115,7 @@ function setAppMenu() {
               {
                 label: 'Learn More',
                 click: () => {
-                  shell.openExternal('https://ssh-git.com');
+                  shell.openExternal(web_base_url);
                 },
               },
             ]
@@ -121,7 +123,7 @@ function setAppMenu() {
               {
                 label: 'Learn More',
                 click: () => {
-                  shell.openExternal('https://ssh-git.com');
+                  shell.openExternal(web_base_url);
                 },
               },
               {
