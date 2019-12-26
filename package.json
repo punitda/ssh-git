@@ -3,7 +3,7 @@
   "productName": "ssh-git",
   "version": "0.0.1",
   "description": "Electron app used to generate, add and manage ssh keys for using git with dev platforms like Github/Bitbucket/Gitlab, etc.",
-  "repository": "https://github.com/punitda/ssh-git-electron-app.git",
+  "repository": "https://github.com/punitda/ssh-git.git",
   "author": "punitdama <punitdama@gmail.com>",
   "main": "src/main/index.js",
   "scripts": {
@@ -60,7 +60,7 @@
     "tailwindcss": "^1.0.5",
     "wait-on": "^3.3.0"
   },
-  "homepage": "./",
+  "homepage": "https://ssh-git.app",
   "browserslist": [
     "electron 5.0"
   ],
