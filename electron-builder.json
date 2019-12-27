@@ -1,5 +1,5 @@
 {
-  "appId": "com.ssh-git.app",
+  "appId": "app.ssh-git",
   "files": ["src/main/**/*", "src/lib/**/*", "build/**/*"],
   "mac": {
     "category": "public.app-category.developer-tools",
