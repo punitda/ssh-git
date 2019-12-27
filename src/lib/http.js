@@ -21,8 +21,11 @@ function request(
       provider === providers.GITHUB
         ? 'application/vnd.github.v3+json, application/json'
         : 'application/json',
-    'Content-Type': 'application/json',
   };
+
+  if (method === 'POST' || method === 'PUT') {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     if (provider === providers.GITHUB) {
