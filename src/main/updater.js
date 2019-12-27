@@ -30,11 +30,11 @@ async function initLinux() {
   try {
     const response = await request(
       UPDATE_BASE_URL,
-      `check-updates?version=${APP_VERSION}&platform=${process.platform}`,
+      `/check-updates?version=${APP_VERSION}&platform=${process.platform}`,
       'GET'
     );
-    if (response.statusCode === 200) {
-      const { version, url } = response;
+    if (response.status === 200) {
+      const { version, url } = response.data;
 
       const skippedVersions = store.get('skipVersions');
       if (!skippedVersions.includes(version)) {
@@ -45,7 +45,7 @@ async function initLinux() {
           shell.openExternal(url); // Open download url
         }
       }
-    } else if (response.statusCode === 204) {
+    } else if (response.status === 204) {
       console.log(`No new update available`);
     } else {
       console.log(`Unexpected status code received : ${response.statusCode}`);
