@@ -1,6 +1,12 @@
 name: Build and Release App
 
-on: push
+on: 
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
   
 jobs:
   Ubuntu-Release:
@@ -65,6 +71,10 @@ jobs:
           GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
           BITBUCKET_CLIENT_ID: ${{ secrets.BITBUCKET_CLIENT_ID }}
           GITLAB_CLIENT_ID: ${{ secrets.GITLAB_CLIENT_ID }}
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLEID: ${{ secrets.APPLE_ID }}
+          APPLEIDPASS: ${{ secrets.APPLEID_PASS}}
 
       - name: See dist dir
         run: ls ./dist

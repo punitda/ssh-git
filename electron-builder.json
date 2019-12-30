@@ -4,9 +4,11 @@
   "mac": {
     "category": "public.app-category.developer-tools",
     "icon": "logo/icon.icns",
-    "darkModeSupport": true,
     "target": "dmg",
-    "identity": null,
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.plist",
     "extendInfo": {
       "NSUserNotificationAlertStyle": "alert"
     }
@@ -28,5 +30,6 @@
     "role": "Viewer",
     "schemes": ["ssh-git"]
   },
-  "publish": ["github"]
+  "publish": ["github"],
+  "afterSign": "scripts/notarize.js"
 }

@@ -8,16 +8,16 @@
   "main": "src/main/index.js",
   "scripts": {
     "start": "concurrently \"yarn react-start\" \"wait-on http://localhost:3000 && electron . \"",
-    "build": "cross-env NODE_ENV=production yarn build-css && yarn react-build && yarn electron-build",
-    "release": "cross-env NODE_ENV=production yarn build-css && yarn react-build && yarn electron-release",
+    "build": "cross-env NODE_ENV=production yarn clean && yarn build-css && yarn react-build && yarn electron-build",
+    "release": "cross-env NODE_ENV=production yarn clean && yarn build-css && yarn react-build && yarn electron-release",
     "react-start": "yarn build-css && parcel -p 3000 public/index.html",
     "react-build": "parcel build public/index.html --out-dir build --public-url ./",
     "electron-release": "electron-builder --config electron-builder.json --publish always",
-    "electron-build": "electron-builder --config electron-builder.json",
+    "electron-build": "electron-builder --config electron-builder.json --publish never",
     "build-css": "postcss public/tailwind.css -o public/build/tailwind.css",
     "watch-css": "postcss public/tailwind.css -o public/build/tailwind.css --watch",
-    "clean": "rm -rf build/ .cache dist/ public/build",
-    "rebuild-node-pty": "electron-rebuild -f -w node-pty"
+    "clean": "shx rm -rf build/ .cache dist/ public/build && shx cp -Rf entitlements build",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [],
   "license": "ISC",
@@ -49,14 +49,16 @@
     "autoprefixer": "^9.6.1",
     "concurrently": "^4.1.1",
     "cross-env": "^6.0.3",
+    "dotenv": "^8.2.0",
     "electron": "^5.0.7",
     "electron-builder": "^22.1.0",
     "electron-download": "^4.1.1",
-    "electron-rebuild": "^1.8.6",
+    "electron-notarize": "^0.2.1",
     "lodash": "^4.17.14",
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-asset-copier": "^1.0.0",
     "postcss-cli": "^6.1.3",
+    "shx": "^0.3.2",
     "tailwindcss": "^1.0.5",
     "wait-on": "^3.3.0"
   },
@@ -64,5 +66,6 @@
   "browserslist": [
     "electron 5.0"
   ],
-  "assetsPath": "src/assets"
+  "assetsPath": "src/assets",
+  "afterSign": "scripts/notarize.js"
 }
