@@ -2,9 +2,11 @@ name: Build and Release App
 
 on: 
   push:
-    - develop
+    branches:
+      - develop
   pull_request:
-    - develop
+    branches:
+      - develop
   
 jobs:
   Ubuntu-Release:
