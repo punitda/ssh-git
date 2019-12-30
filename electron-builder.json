@@ -30,5 +30,6 @@
     "role": "Viewer",
     "schemes": ["ssh-git"]
   },
-  "publish": ["github"]
+  "publish": ["github"],
+  "afterSign": "scripts/notarize.js"
 }
