@@ -95,19 +95,6 @@ function getCloneRepoCommand(
   } `;
 }
 
-function getManualSteps(selectedProvider) {
-  switch (selectedProvider) {
-    case providers.GITHUB:
-      return github_steps;
-    case providers.BITBUCKET:
-      return bitbucket_steps;
-    case providers.GITLAB:
-      return gitlab_steps;
-    default:
-      break;
-  }
-}
-
 async function getNewRemoteUrlAndAliasName(
   fetchUrl,
   selectedProvider,
@@ -285,27 +272,6 @@ function replaceRemoteUrl(remoteUrl, selectedProvider, username) {
   }
 }
 
-const github_steps = [
-  `Copy the Public Key you see on the right side to the clipboard`,
-  `Open this `,
-  `Paste the key you just copied under the "Key" input and
-  for "Title" input you can give it any value you prefer to identify the key in future.`,
-];
-
-const bitbucket_steps = [
-  `Copy the Public Key you see on the right side to the clipboard`,
-  `Open this `,
-  `Click on "Add key" button and paste the key you just copied under the "Key" input
-  and for "Label" input you can give it any value you prefer to identify the key in future.`,
-];
-
-const gitlab_steps = [
-  `Copy the Public Key you see on the right side to the clipboard`,
-  `Open this `,
-  `Paste the key you just copied under the "Key" input 
-  and for "Title" input you can give it any value you prefer to identify the key in future.`,
-];
-
 function getDefaultShell() {
   const env = process.env;
 
@@ -366,7 +332,6 @@ module.exports = {
   createSshConfig,
   getConfigFileContents,
   getPublicKeyFileName,
-  getManualSteps,
   getCloneRepoCommand,
   getNewRemoteUrlAndAliasName,
   getDefaultShell,
