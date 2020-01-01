@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import toaster, { Position } from 'toasted-notes';
 
 // built-in react imports
 import { AuthStateContext } from '../../Context';
@@ -6,10 +7,13 @@ import { AuthStateContext } from '../../Context';
 // libs import
 import { openExternal } from '../../../lib/app-shell';
 import { providers, web_base_url } from '../../../lib/config';
-import { getManualSteps } from '../../../lib/util';
 
-import ConfirmationModal from '../../components/ConfirmationModal';
+// component imports
 import Switch from '../../components/Switch';
+import ConfirmationModal from '../../components/ConfirmationModal';
+
+import checkMarkAnimationData from '../../../assets/lottie/checkmark.json';
+import useLottieAnimation from '../../hooks/useLottieAnimation';
 
 function AddKey({ onNext }) {
   const [authState] = useContext(AuthStateContext);
@@ -19,13 +23,41 @@ function AddKey({ onNext }) {
     username = null,
   } = authState;
 
-  const textareaRef = useRef(null); // need ref to textarea's node to use `copy` command on it for copying to clipboard.
-  const nextPageButtonRef = useRef(null); // need ref for confirmations dialog
-  const [keyCopied, setKeyCopied] = useState(false); // use to show minor animation when key is copied
+  const textareaRef = useRef(null); // need ref to get textarea's node to use `copy` command on it for copying to clipboard.
+  const nextPageButtonRef = useRef(null); // need ref for confirmation dialog button
+
+  // Used for check mark animation when key is copied
+  const keyLottieRef = useRef(null);
+  const keyCopyAnimation = useLottieAnimation(
+    checkMarkAnimationData,
+    keyLottieRef
+  );
+
+  // Used for check mark animation when link is opened
+  const linkLottieRef = useRef(null);
+  const linkOpenAnimation = useLottieAnimation(
+    checkMarkAnimationData,
+    linkLottieRef
+  );
+
   const [publicKey, setPublicKey] = useState(' '); // set public key's content
 
+  // Used to keep check of state whether key was copied and link was opened by the user and show errors accordingly
+  const [keyCopied, setKeyCopied] = useState(false);
+  const [linkOpened, setLinkOpened] = useState(false);
+  const [error, setError] = useState(null);
+
+  //Used to keep check of state of user prefs about whether to remind again or not.
   const [localDontRemindMe, setLocalDontRemindMe] = useState(false);
   const [globalDontRemindMe, setGlobalDontRemindMe] = useState(false);
+
+  // Used to get value of user pref from local storage for reminder related to all steps followed or not confirmation dialog
+  useEffect(() => {
+    if (window.localStorage.getItem('no-reminder-for-add-key')) {
+      setLocalDontRemindMe(true);
+      setGlobalDontRemindMe(true);
+    }
+  }, []);
 
   /**
    * Communication between main and renderer process for :
@@ -37,18 +69,12 @@ function AddKey({ onNext }) {
         selectedProvider,
         username,
       });
+
       setPublicKey(publicKey);
     }
 
     getPublicKey(selectedProvider, username);
   }, [selectedProvider, username]);
-
-  useEffect(() => {
-    if (window.localStorage.getItem('no-reminder-for-add-key')) {
-      setLocalDontRemindMe(true);
-      setGlobalDontRemindMe(true);
-    }
-  }, []);
 
   //Open ssh-keys settings page of selected provider
   function openSettingsPage() {
@@ -74,20 +100,67 @@ function AddKey({ onNext }) {
     onNext('oauth/updateRemote');
   }
 
+  // Click listeners
+
+  // Triggered when "Done" button is clicked
+  function onDoneClicked(event) {
+    event.preventDefault();
+    if (!keyCopied) {
+      setError('Please copy the ssh key');
+      return;
+    }
+    if (!linkOpened) {
+      setError('Please open settings link');
+      return;
+    }
+
+    if (keyCopied && linkOpened) {
+      setError(null);
+      openNextPage();
+    }
+  }
+
+  // Triggered When "Copy" link is clicked.
   // Copies the content of `textarea` to the clipboard
-  function onCopyToClipboardClicked() {
+  function onCopyToClipboardClicked(event) {
+    event.preventDefault();
+
     let textarea = textareaRef.current;
-    textarea.focus();
     textarea.select();
     textarea.setSelectionRange(0, 99999); //Not sure if this is the correct way.
-    let copied = document.execCommand('copy');
+    document.execCommand('copy');
 
-    //Minor "key copied" animation logic
-    if (copied) {
-      setKeyCopied(true);
-      setTimeout(() => {
-        setKeyCopied(false);
-      }, 2000);
+    setKeyCopied(true); //Set "keyCopied" state to true indicating that copy key task is done by user
+
+    // Show toast
+    toaster.notify(
+      () => {
+        return (
+          <div className="py-2 px-4 rounded shadow-md bg-green-500 text-white font-semibold text-center text-lg mb-8 mr-4">
+            Key copied to clipboard
+          </div>
+        );
+      },
+      { duration: 1500, position: Position['bottom-right'] }
+    );
+
+    // Show checkmark animation after some delay
+    setTimeout(() => {
+      if (keyCopyAnimation !== null) {
+        keyCopyAnimation.play();
+      }
+    }, 1500);
+  }
+
+  function onLinkOpened(event) {
+    event.preventDefault();
+
+    setLinkOpened(true); // Set "linkOpened" state to true indicating that link has been opened by user once.
+    openSettingsPage(); // open settings page
+
+    // Show check mark animation
+    if (linkOpenAnimation !== null) {
+      linkOpenAnimation.play();
     }
   }
 
@@ -120,102 +193,115 @@ function AddKey({ onNext }) {
   }
 
   return (
-    <div className="max-w-full mx-auto flex flex-col items-center justify-center">
-      <h2 className="mx-16 mt-8 text-2xl text-center text-gray-900">
-        Follow below steps to add generated key to your account
-      </h2>
-      <div className="flex flex-row items-center justify-center mx-16 my-8">
-        <div className="flex flex-col flex-1">
-          <h3 className="text-xl">Steps:</h3>
-          <ul className="text-gray-700 text-lg pr-12 text-left mt-2 leading-relaxed">
-            {getManualSteps(selectedProvider).map((step, index) => {
-              if (index === 1) {
-                return (
-                  <li key={index}>
-                    {`${index + 1}. ${step}`}
-                    <button
-                      className="underline hover:text-blue-700 hover:font-semibold"
-                      onClick={openSettingsPage}>
-                      Link
-                    </button>
-                  </li>
-                );
-              } else {
-                return <li key={index}>{`${index + 1}. ${step}`}</li>;
-              }
-            })}
-          </ul>
-        </div>
-        <div className="flex-1">
-          <h3 className="text-lg">Public Key</h3>
-          <div className="relative">
+    <div>
+      <textarea
+        ref={textareaRef}
+        rows="1"
+        cols="1"
+        value={publicKey}
+        onChange={onPublicKeyChange}
+        className="-ml-24"
+      />
+      <div className="flex flex-col items-center justify-center">
+        <div className="mt-4 w-96 h-128 bg-gray-100 rounded-lg shadow-md flex flex-col justify-center">
+          <h2 className="mx-16 mt-6 text-xl font-semibold text-center text-gray-700">
+            Follow below steps to add SSH key to your account
+          </h2>
+          <div className="relative bg-gray-200 rounded border-gray-300 border-2 p-2 m-2 mx-4 mt-8 text-base">
+            <span className="font-semibold text-xl text-gray-800 pl-2">
+              1.{' '}
+            </span>
             <button
-              className={keyCopied ? styles.keyCopied : styles.normal}
+              className="font-semibold border-b-4 border-blue-500 hover:border-blue-700 text-blue-500 hover:text-blue-700 text-xl focus:outline-none"
               onClick={onCopyToClipboardClicked}>
-              {keyCopied ? 'Key copied!' : 'Copy to clipboard!'}
+              Copy
             </button>
-            <textarea
-              ref={textareaRef}
-              rows="8"
-              cols="5"
-              value={publicKey}
-              onChange={onPublicKeyChange}
-              className="text-gray-600 text-base bg-gray-200 p-4 rounded-lg border-2 mt-2 w-full resize-none"
+            <span className="text-gray-700 text-xl"> the key</span>
+            <div
+              className="absolute right-0 top-0 bottom-0 w-6 h-1/2 mr-2 inline"
+              ref={keyLottieRef}
             />
           </div>
-        </div>
-      </div>
-
-      {!globalDontRemindMe ? (
-        <ConfirmationModal
-          {...nextPageConfirmationModalProps}
-          buttonRef={nextPageButtonRef}
-          onModalClose={() => {}}
-          content={renderConfirmationDialogContent()}
-          yesBtn={
+          <div className="relative bg-gray-200 rounded border-gray-300 border-2 p-2 m-2 mx-4 text-base">
+            <span className="font-semibold text-xl text-gray-800 pl-2">
+              2.{' '}
+            </span>
             <button
-              className="px-6 py-2 text-base text-gray-100 bg-green-600 hover:bg-green-700 rounded font-bold focus:outline-none"
-              onClick={openNextPage}>
-              Yes, I did
+              className="font-semibold -m-px border-b-4 border-blue-500 hover:border-blue-700 text-blue-500 hover:text-blue-700 text-xl focus:outline-none"
+              onClick={onLinkOpened}>
+              Open
             </button>
-          }
-          noBtn={
-            <button className="px-6 py-2 text-base text-red-600 hover:text-white hover:bg-red-600 border-0 rounded border-transparent focus:outline-none">
-              Cancel
+            <span className="text-gray-700 text-xl"> the link</span>
+            <div
+              className="absolute right-0 top-0 bottom-0 w-6 h-1/2 mr-2 inline"
+              ref={linkLottieRef}
+            />
+          </div>
+          <div className="bg-gray-200 rounded border-gray-300 border-2 p-2 m-2 mx-4 text-base">
+            <span className="font-semibold text-xl text-gray-800 pl-2">
+              3.{' '}
+            </span>
+            <button className="font-semibold -m-px text-blue-500 cursor-default text-xl focus:outline-none">
+              Paste
             </button>
-          }
-        />
-      ) : (
-        <>
-          <button className="primary-btn mt-2" onClick={openNextPage}>
-            Clone Repo
-          </button>
-          <p className="text-gray-700 text-sm mt-1">
-            (Make sure you have followed the above steps before cloning repo)
-          </p>
-        </>
-      )}
-      <div
-        className="absolute bottom-0 right-0 mr-6 mb-4 underline text-gray-600 hover:text-gray-700 text-sm italic cursor-pointer"
-        onClick={() =>
-          openExternal(
-            `${web_base_url}/#why_app_doesn't_adds_key_automatically?`
-          )
-        }>
-        Why app doesn't adds key automatically?
+            <span className="text-gray-700 text-xl">
+              {' '}
+              the copied key and add to your account
+            </span>
+          </div>
+          <span
+            className={
+              error
+                ? 'mt-2 rounded p-1 text-center text-red-600 text-sm inline-block'
+                : 'mt-2 rounded p-1 text-center w-full inline-block'
+            }>
+            {error ? error : ''}
+          </span>
+          {!globalDontRemindMe ? (
+            <ConfirmationModal
+              {...nextPageConfirmationModalProps}
+              buttonRef={nextPageButtonRef}
+              onModalClose={() => {}}
+              content={renderConfirmationDialogContent()}
+              yesBtn={
+                <button
+                  className="px-6 py-2 text-base text-gray-100 bg-green-600 hover:bg-green-700 rounded font-bold focus:outline-none"
+                  onClick={openNextPage}>
+                  Yes, I did
+                </button>
+              }
+              noBtn={
+                <button className="px-6 py-2 text-base text-red-600 hover:text-white hover:bg-red-600 border-0 rounded border-transparent focus:outline-none">
+                  Cancel
+                </button>
+              }
+            />
+          ) : (
+            <button
+              className="primary-btn mt-6 mx-auto"
+              onClick={onDoneClicked}>
+              Done
+            </button>
+          )}
+
+          <div
+            className="mt-8 mb-4 text-center underline text-gray-600 hover:text-gray-700 text-sm cursor-pointer"
+            onClick={() =>
+              openExternal(
+                `${web_base_url}/#why_app_doesn't_adds_key_automatically?`
+              )
+            }>
+            Why app doesn't adds key automatically?
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-const styles = {
-  keyCopied: `absolute mt-2 py-2 px-4 font-semibold right-0 top-0 bg-green-600 hover:bg-green-800 text-white rounded-bl-lg`,
-  normal: `absolute mt-2 py-2 px-4 font-semibold right-0 top-0 bg-green-400 hover:bg-green-600 text-white rounded-bl-lg`,
-};
-
 const nextPageConfirmationModalProps = {
-  triggerText: 'Clone Repo',
-  buttonClassName: 'primary-btn w-56 mt-2',
+  triggerText: 'Done',
+  buttonClassName: 'primary-btn mt-6 mx-auto',
   role: 'dialog',
   ariaLabel: 'Confirmation dialog before moving to next step',
 };

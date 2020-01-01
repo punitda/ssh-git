@@ -30,13 +30,16 @@
     "electron-store": "^5.1.0",
     "electron-unhandled": "^3.0.1",
     "layout-styled-components": "^0.1.11",
+    "lottie-web": "^5.5.10",
     "node-pty": "^0.8.1",
     "query-string": "^6.8.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-genie": "^0.1.5",
     "react-spinners": "^0.5.13",
+    "react-spring": "^8.0.27",
     "ssh-config": "^2.0.0-beta.1",
+    "toasted-notes": "^3.2.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
