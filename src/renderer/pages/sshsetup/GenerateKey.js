@@ -141,7 +141,10 @@ const GenerateKey = ({ onNext }) => {
   }
 
   return (
-    <div className="h-144 w-96 my-16 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto">
+    <div
+      className={`${
+        isLoading ? 'h-144' : 'h-auto'
+      } w-96 mx-auto my-16 px-2 pb-12 bg-gray-100 flex flex-col justify-center items-center rounded-lg shadow-md mx-auto`}>
       <SquareLoader
         loading={isLoading}
         size={48}
@@ -157,7 +160,7 @@ const GenerateKey = ({ onNext }) => {
         <>
           {avatar_url ? (
             <img
-              className="h-24 w-24 object-cover rounded-full border-2 border-gray-500 shadow-lg mx-auto -mt-24 z-10 bg-transparent"
+              className="h-24 w-24 object-cover rounded-full border-2 border-gray-500 shadow-lg mx-auto -mt-12 z-10 bg-transparent"
               src={avatar_url}
             />
           ) : (
