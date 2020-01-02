@@ -136,7 +136,7 @@ async function getNewRemoteUrlAndAliasName(
   const alreadyUpdatedUrl = fetchUrl.match(requiredSSHUrlRegex);
   if (alreadyUpdatedUrl && alreadyUpdatedUrl.length > 0) {
     throw new Error(
-      'You remote url is already updated correctly. No update required.'
+      'The remote url is already updated correctly. No update required.'
     );
   }
 
