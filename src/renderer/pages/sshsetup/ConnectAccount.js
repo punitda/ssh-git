@@ -111,7 +111,7 @@ function ConnectAccount({ onNext }) {
               ? `primary-btn-success`
               : `primary-btn`
           }
-          disabled={selectedProvider === '' || isConnecting}>
+          disabled={selectedProvider === '' || isConnecting || data}>
           {isConnecting
             ? 'Connecting...'
             : isError
