@@ -314,7 +314,6 @@ export default function UpdateRemoteStepped() {
           <div className="w-24 h-24 -ml-6" ref={setupSuccessAnimRef} />
         </div>
 
-        {/* <Reveal animation={Animation.FadeIn} mode={RevealMode.Clone}></Reveal> */}
         <p className="text-center text-sm text-gray-700">
           You can now clone your repo or update remote url of existing repo
           using the SSH key.
