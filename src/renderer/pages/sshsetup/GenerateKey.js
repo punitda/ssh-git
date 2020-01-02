@@ -230,7 +230,12 @@ const GenerateKey = ({ onNext }) => {
             ? `primary-btn-success`
             : `primary-btn`
         }
-        disabled={isLoading || isGeneratingKey || passphrase === ''}>
+        disabled={
+          isLoading ||
+          isGeneratingKey ||
+          passphrase === '' ||
+          generateKeySuccess
+        }>
         {isGeneratingKey
           ? 'Generating Keys...'
           : isGenerateKeyError
