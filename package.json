@@ -34,6 +34,7 @@
     "node-pty": "^0.8.1",
     "query-string": "^6.8.1",
     "react": "^16.8.6",
+    "react-confetti": "^5.0.1",
     "react-dom": "^16.8.6",
     "react-genie": "^0.1.5",
     "react-spinners": "^0.5.13",

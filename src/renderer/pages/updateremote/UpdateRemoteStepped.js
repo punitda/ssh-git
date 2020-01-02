@@ -14,8 +14,20 @@ import { openFolder } from '../../../lib/app-shell';
 import fetchReducer from '../../reducers/fetchReducer';
 import { AuthStateContext } from '../../Context';
 
+// Lottie files and hook
+import bigLoaderAnimData from '../../../assets/lottie/blue_big_checkmark.json';
+import setupSuccessAnimData from '../../../assets/lottie/success.json';
+import useLottieAnimation from '../../hooks/useLottieAnimation';
+
+// Confetti
+import Confetti from 'react-confetti';
+import useWindowSize from '../../hooks/useWindowSize';
+
+// Reveal animation
+import { Reveal, RevealGlobalStyles } from 'react-genie';
+
 export default function UpdateRemoteStepped() {
-  const [authState, setAuthState] = useContext(AuthStateContext);
+  const [authState] = useContext(AuthStateContext);
   const { username = null, selectedProvider = null } = authState;
 
   const cloneRepoButtonRef = useRef(null); //Used in clone repo modal for focusing reason
@@ -35,6 +47,24 @@ export default function UpdateRemoteStepped() {
       data: null,
     }
   );
+
+  // Animation stuff
+
+  // For big loader shown on page load
+  const [bigAnimShown, setBigAnimShown] = useState(false);
+  const bigAnimRef = useRef(null);
+  const bigAnimation = useLottieAnimation(bigLoaderAnimData, bigAnimRef);
+
+  // For success animtation shown next to All Setup text.
+  const setupSuccessAnimRef = useRef(null);
+  const setupSuccessAnimation = useLottieAnimation(
+    setupSuccessAnimData,
+    setupSuccessAnimRef
+  );
+
+  // Used by React Confetti
+  const { width, height } = useWindowSize();
+  const [recycleConfetti, setRecycleConfetti] = useState(true);
 
   useEffect(() => {
     // Making sure that we ask for desktop folder path only
@@ -118,6 +148,24 @@ export default function UpdateRemoteStepped() {
 
   function openShallowCloneInfoUrl() {
     // To be implemented with proper openExternal link
+  }
+
+  function playBigAnimation() {
+    if (bigAnimation !== null) {
+      bigAnimation.play();
+      bigAnimation.addEventListener('complete', () => {
+        setBigAnimShown(true);
+      });
+    }
+  }
+
+  function playSetupSuccessAnimation() {
+    if (setupSuccessAnimation !== null) {
+      setupSuccessAnimation.play();
+      setTimeout(() => {
+        setRecycleConfetti(false);
+      }, 2000);
+    }
   }
   // Render functions
 
@@ -245,33 +293,54 @@ export default function UpdateRemoteStepped() {
 
   return (
     <div className="bg-gray-300">
-      <h2 className="mx-16 mt-8 text-2xl text-center text-gray-900">
-        All Setup ✅
-      </h2>
-      <h3 className="text-center text-xl text-gray-700">
-        You can now clone your repo or update remote url of existing repo using
-        the SSH key.
-      </h3>
-      <div className="text-center mt-16">
-        <Modal
-          {...cloneRepoModalProps}
-          buttonRef={cloneRepoButtonRef}
-          onModalClose={onCloneRepoModalClose}>
-          {renderCloneRepoDialog()}
-        </Modal>
-        <p className="text-gray-700 mt-2">
-          (Use this if your cloning this repository first time on your system)
+      <RevealGlobalStyles />
+      {!bigAnimShown && (
+        <div className="flex flex-col items-center mt-40">
+          <div className="w-48 h-48" ref={bigAnimRef}>
+            {playBigAnimation()}
+          </div>
+        </div>
+      )}
+      <div
+        className={
+          bigAnimShown
+            ? 'block text-center w-96 h-auto px-8 pb-16 mx-auto bg-gray-100 rounded shadow-lg'
+            : 'hidden'
+        }>
+        <div className="mt-12 ml-12 flex justify-center items-center">
+          <Reveal onShowDone={() => playSetupSuccessAnimation()}>
+            <h2 className="text-3xl text-gray-900">All Setup</h2>
+          </Reveal>
+          <div className="w-24 h-24 -ml-6" ref={setupSuccessAnimRef} />
+        </div>
+
+        {/* <Reveal animation={Animation.FadeIn} mode={RevealMode.Clone}></Reveal> */}
+        <p className="text-center text-sm text-gray-700">
+          You can now clone your repo or update remote url of existing repo
+          using the SSH key.
         </p>
-        <p className="my-4 text-xl">OR</p>
-        <Modal
-          {...updateRepoModalProps}
-          buttonRef={updateRemoteUrlButtonRef}
-          onModalClose={onUpdateRemoteUrlModalClose}>
-          {renderUpdateRemoteUrlDialog()}
-        </Modal>
-        <p className="text-gray-700 mt-2">
-          (Use this if your already have repository on your system)
-        </p>
+        <div className="text-center mt-8">
+          <Modal
+            {...cloneRepoModalProps}
+            buttonRef={cloneRepoButtonRef}
+            onModalClose={onCloneRepoModalClose}>
+            {renderCloneRepoDialog()}
+          </Modal>
+          <p className="text-gray-700 text-xs mt-2">
+            (Use this if your cloning this repository first time on your system)
+          </p>
+          <p className="my-4 text-xl">OR</p>
+          <Modal
+            {...updateRepoModalProps}
+            buttonRef={updateRemoteUrlButtonRef}
+            onModalClose={onUpdateRemoteUrlModalClose}>
+            {renderUpdateRemoteUrlDialog()}
+          </Modal>
+          <p className="text-gray-700 text-xs mt-2">
+            (Use this if your already have repository on your system)
+          </p>
+        </div>
+        <Confetti width={width} height={height} recycle={recycleConfetti} />
       </div>
     </div>
   );
