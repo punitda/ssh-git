@@ -331,21 +331,21 @@ export default function UpdateRemoteDirect() {
   return (
     <div className="bg-gray-300 h-screen">
       <Toolbar onBackPressed={navigateToHomeScreen} title="Update Remote" />
-      <h2 className="mx-16 mt-8 text-2xl text-center text-gray-900">
-        Clone Repo or Update Remote Url
-      </h2>
-      <p className="text-sm text-gray-700 text-center">
-        (Note : You will be only be able to clone repo or update remote url if
-        you have setup SSH keys using this App.)
-      </p>
-      <div className="text-center mt-16">
+      <div className="w-128 h-auto mt-20 py-8 px-8 mx-auto text-center bg-gray-100 rounded shadow-lg">
+        <h2 className="text-2xl text-center text-gray-900">
+          Clone Repo or Update Remote Url
+        </h2>
+        <p className="text-sm text-gray-700 text-center mt-2">
+          (Note : You will be only be able to clone repo or update remote url if
+          you have setup SSH keys using this App.)
+        </p>
         <Modal
           {...cloneRepoModalProps}
           buttonRef={cloneRepoButtonRef}
           onModalClose={onCloneRepoModalClose}>
           {renderCloneRepoDialog()}
         </Modal>
-        <p className="text-gray-700 mt-2">
+        <p className="text-gray-700 text-xs mt-2">
           (Use this if your cloning this repository first time on your system)
         </p>
         <p className="my-4">OR</p>
@@ -355,7 +355,7 @@ export default function UpdateRemoteDirect() {
           onModalClose={onUpdateRemoteUrlModalClose}>
           {renderUpdateRemoteUrlDialog()}
         </Modal>
-        <p className="text-gray-700 mt-2">
+        <p className="text-gray-700 text-xs mt-2">
           (Use this if your already have repository on your system)
         </p>
       </div>
@@ -365,7 +365,7 @@ export default function UpdateRemoteDirect() {
 
 const cloneRepoModalProps = {
   triggerText: 'Clone Repo',
-  buttonClassName: 'primary-btn w-56',
+  buttonClassName: 'primary-btn w-56 mt-8',
   role: 'dialog',
   ariaLabel: 'Dialog to ask for details for cloning a repo',
 };
