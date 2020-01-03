@@ -14,7 +14,8 @@ import fetchReducer from '../../reducers/fetchReducer';
 import useDropdown from '../../hooks/useDropdown';
 
 // Internal libs
-import { openFolder } from '../../../lib/app-shell';
+import { openFolder, openExternal } from '../../../lib/app-shell';
+import { web_base_url } from '../../../lib/config';
 
 export default function UpdateRemoteDirect() {
   const cloneRepoButtonRef = useRef(null); //Used in modal for focusing reason
@@ -179,10 +180,6 @@ export default function UpdateRemoteDirect() {
     history.navigate('oauth/');
   }
 
-  function openShallowCloneInfoUrl() {
-    // To be implemented.
-  }
-
   // Render functions
 
   function renderNoKeysSetupError() {
@@ -243,7 +240,9 @@ export default function UpdateRemoteDirect() {
           <span className="flex-1 ml-2 text-gray-600">Shallow Clone</span>
           <span
             className="flex-0 text-gray-600 hover:text-gray-700 text-sm underline cursor-pointer"
-            onClick={openShallowCloneInfoUrl}>
+            onClick={() =>
+              openExternal(`${web_base_url}/questions/what-is-shallow-clone`)
+            }>
             What is shallow clone?
           </span>
         </div>

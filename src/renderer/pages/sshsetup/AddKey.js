@@ -288,7 +288,7 @@ function AddKey({ onNext }) {
             className="mt-8 mb-4 text-center underline text-gray-600 hover:text-gray-700 text-sm cursor-pointer"
             onClick={() =>
               openExternal(
-                `${web_base_url}/#why_app_doesn't_adds_key_automatically?`
+                `${web_base_url}/questions/why-app-doesnt-add-keys-automatically`
               )
             }>
             Why app doesn't adds key automatically?
