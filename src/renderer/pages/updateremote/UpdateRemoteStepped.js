@@ -9,7 +9,8 @@ import React, {
 import Modal from '../../components/Modal';
 import Switch from '../../components/Switch';
 
-import { openFolder } from '../../../lib/app-shell';
+import { openFolder, openExternal } from '../../../lib/app-shell';
+import { web_base_url } from '../../../lib/config';
 
 import fetchReducer from '../../reducers/fetchReducer';
 import { AuthStateContext } from '../../Context';
@@ -146,10 +147,6 @@ export default function UpdateRemoteStepped() {
     dispatch({ type: 'FETCH_RESET' });
   }
 
-  function openShallowCloneInfoUrl() {
-    // To be implemented with proper openExternal link
-  }
-
   function playBigAnimation() {
     if (bigAnimation !== null) {
       bigAnimation.play();
@@ -211,7 +208,9 @@ export default function UpdateRemoteStepped() {
           <span className="flex-1 ml-2 text-gray-600">Shallow Clone</span>
           <span
             className="flex-0 text-gray-600 hover:text-gray-700 text-sm underline cursor-pointer"
-            onClick={openShallowCloneInfoUrl}>
+            onClick={() =>
+              openExternal(`${web_base_url}/questions/what-is-shallow-clone`)
+            }>
             What is shallow clone?
           </span>
         </div>
