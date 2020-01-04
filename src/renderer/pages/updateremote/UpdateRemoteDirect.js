@@ -177,7 +177,7 @@ export default function UpdateRemoteDirect() {
   }
 
   function navigateToSshSetupScreen() {
-    history.navigate('oauth/');
+    history.navigate('oauth/connect');
   }
 
   // Render functions

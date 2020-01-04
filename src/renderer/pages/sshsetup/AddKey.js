@@ -97,7 +97,7 @@ function AddKey({ onNext }) {
 
   // Open next screen using url link
   function openNextPage() {
-    onNext('oauth/updateRemote');
+    onNext('oauth/clone');
   }
 
   // Click listeners

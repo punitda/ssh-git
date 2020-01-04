@@ -9,7 +9,7 @@ import StepsNavBar from '../../components/StepsNavBar';
 //Pages
 import ConnectAccount from './ConnectAccount';
 import GenerateKey from './GenerateKey';
-import AddKeys from './AddKey';
+import AddKey from './AddKey';
 import UpdateRemoteStepped from '../updateremote/UpdateRemoteStepped';
 
 //Internal
@@ -20,21 +20,22 @@ const steps = ['Connect', 'Generate', 'Add', 'Clone'];
 export default function SSHSetup() {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   function goBackToHomeScreen() {
-    history.navigate('');
+    history.navigate('/');
   }
 
   function onNext(path) {
     switch (path) {
       case 'oauth/success':
+      case 'oauth/connect':
         setActiveStepIndex(0);
         break;
       case 'oauth/generate':
         setActiveStepIndex(1);
         break;
-      case 'oauth/addKeys':
+      case 'oauth/add':
         setActiveStepIndex(2);
         break;
-      case 'oauth/updateRemote':
+      case 'oauth/clone':
         setActiveStepIndex(3);
         break;
       default:
@@ -48,10 +49,10 @@ export default function SSHSetup() {
       <Toolbar onBackPressed={goBackToHomeScreen} title="Setup SSH" />
       <StepsNavBar steps={steps} activeIndex={activeStepIndex} />
       <Router>
-        <ConnectAccount path="/" onNext={onNext} />
+        <ConnectAccount path="/connect" onNext={onNext} />
         <GenerateKey path="/generate" onNext={onNext} />
-        <AddKeys path="/addKeys" onNext={onNext} />
-        <UpdateRemoteStepped path="/updateRemote" />
+        <AddKey path="/add" onNext={onNext} />
+        <UpdateRemoteStepped path="/clone" />
       </Router>
     </div>
   );

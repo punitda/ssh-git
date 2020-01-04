@@ -1,9 +1,16 @@
 const Store = require('electron-store');
+const uuid = require('uuid/v4');
 
-const store = new Store({
+const VersionStore = new Store({
   defaults: {
     skipVersions: [],
   },
 });
 
-module.exports = store;
+const TrackingIdStore = new Store({
+  defaults: {
+    userId: uuid(),
+  },
+});
+
+module.exports = { VersionStore, TrackingIdStore };

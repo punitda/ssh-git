@@ -134,7 +134,7 @@ const GenerateKey = ({ onNext }) => {
 
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { keyGenerated: true } });
-      setTimeout(() => onNext('oauth/addKeys'), 1500);
+      setTimeout(() => onNext('oauth/add'), 1500);
     } else if (error) {
       dispatch({ type: 'FETCH_ERROR' });
     }

@@ -8,6 +8,8 @@ const updater = require('./updater');
 const { initSentry, catchGlobalErrors } = require('../lib/crash-reporter');
 const isDev = require('../lib/electron-is-dev');
 
+const { initAnalytics } = require('./analytics');
+
 function init() {
   app.setName('ssh-git');
 
@@ -60,6 +62,8 @@ function init() {
   if (!isDev) {
     setTimeout(() => updater.init(), 10 * 1000);
   }
+
+  initAnalytics();
 }
 
 init(); // this is where it all starts

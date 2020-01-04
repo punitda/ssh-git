@@ -3,6 +3,8 @@ const os = require('os');
 const { shell } = require('electron');
 const { ipcMain: ipc } = require('electron-better-ipc');
 
+const { trackScreen, trackEvent } = require('./analytics');
+
 // core methods
 const {
   generateKey,
@@ -26,6 +28,7 @@ function register() {
   registerIpcForGenerateKeyScreen();
   registerIpcForAddKeyScreen();
   registerIpcForUpdateRemoteScreen();
+  registerIpcForAnalytics();
 }
 
 function registerGeneralIpcs() {
@@ -225,6 +228,19 @@ function registerIpcForUpdateRemoteScreen() {
         success: false,
       };
     }
+  });
+}
+
+function registerIpcForAnalytics() {
+  ipc.answerRenderer(
+    'track-screen',
+    async ({ screenName, appName, appVersion }) => {
+      trackScreen(screenName, appName, appVersion);
+    }
+  );
+
+  ipc.answerRenderer('track-event', async ({ category, action }) => {
+    trackEvent(category, action);
   });
 }
 
