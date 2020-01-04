@@ -9,6 +9,8 @@ import fetchReducer from '../../reducers/fetchReducer';
 // Images and Loaders
 import SquareLoader from 'react-spinners/SquareLoader';
 
+import { trackEvent } from '../../analytics';
+
 const GenerateKey = ({ onNext }) => {
   const [authState, setAuthState] = useContext(AuthStateContext);
   const { token = null, selectedProvider = null } = authState;
@@ -93,7 +95,12 @@ const GenerateKey = ({ onNext }) => {
         selectedProvider,
         username,
       });
-      if (!overrideKeys) return;
+      if (!overrideKeys) {
+        trackEvent('setup-flow', 'override-key-false');
+        return;
+      } else {
+        trackEvent('setup-flow', 'override-key-true');
+      }
     }
 
     // All good, please generate key now.
@@ -105,6 +112,7 @@ const GenerateKey = ({ onNext }) => {
       overrideKeys,
     };
     generateKey(config);
+    trackEvent('setup-flow', 'generate-key');
   }
 
   // Email change handlder - required in cases we don't receive email address for user from apis.

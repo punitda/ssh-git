@@ -27,6 +27,8 @@ import useWindowSize from '../../hooks/useWindowSize';
 // Reveal animation
 import { Reveal, RevealGlobalStyles } from 'react-genie';
 
+import { trackEvent } from '../../analytics';
+
 export default function UpdateRemoteStepped() {
   const [authState] = useContext(AuthStateContext);
   const { username = null, selectedProvider = null } = authState;
@@ -107,8 +109,10 @@ export default function UpdateRemoteStepped() {
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
       setTimeout(() => openFolder(repoFolder), 1000);
+      trackEvent('setup-flow', 'clone-repo-success');
     } else {
       dispatch({ type: 'FETCH_ERROR' });
+      trackEvent('setup-flow', 'clone-repo-error');
     }
   }
 
@@ -126,9 +130,16 @@ export default function UpdateRemoteStepped() {
 
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
+      trackEvent('setup-flow', 'update-remote-success');
     } else {
       dispatch({ type: 'FETCH_ERROR' });
+      trackEvent('setup-flow', 'update-remote-error');
     }
+  }
+
+  // Listen to onOpen event of Modal component for tracking event
+  function onCloneRepoModalOpen() {
+    trackEvent('setup-flow', 'clone-repo-dialog-opened');
   }
 
   // Listen to onClose event of Modal component to reset local state for "Clone Repo" Modal.
@@ -138,6 +149,12 @@ export default function UpdateRemoteStepped() {
     setRepoFolder('');
     setShallowClone(false);
     dispatch({ type: 'FETCH_RESET' });
+    trackEvent('setup-flow', 'clone-repo-dialog-closed');
+  }
+
+  // Listen to onOpen event of Modal component for tracking event
+  function onUpdateRemoteUrlModalOpen() {
+    trackEvent('setup-flow', 'update-remote-dialog-opened');
   }
 
   // Listen to onClose event of Modal component to reset local state for "Update Remote Url" Modal.
@@ -145,6 +162,7 @@ export default function UpdateRemoteStepped() {
     setRepoFolder('');
     setSelectedFolder('');
     dispatch({ type: 'FETCH_RESET' });
+    trackEvent('setup-flow', 'update-remote-dialog-closed');
   }
 
   function playBigAnimation() {
@@ -321,7 +339,8 @@ export default function UpdateRemoteStepped() {
           <Modal
             {...cloneRepoModalProps}
             buttonRef={cloneRepoButtonRef}
-            onModalClose={onCloneRepoModalClose}>
+            onModalClose={onCloneRepoModalClose}
+            onModalOpen={onCloneRepoModalOpen}>
             {renderCloneRepoDialog()}
           </Modal>
           <p className="text-gray-700 text-xs mt-2">
@@ -331,7 +350,8 @@ export default function UpdateRemoteStepped() {
           <Modal
             {...updateRepoModalProps}
             buttonRef={updateRemoteUrlButtonRef}
-            onModalClose={onUpdateRemoteUrlModalClose}>
+            onModalClose={onUpdateRemoteUrlModalClose}
+            onModalOpen={onUpdateRemoteUrlModalOpen}>
             {renderUpdateRemoteUrlDialog()}
           </Modal>
           <p className="text-gray-700 text-xs mt-2">

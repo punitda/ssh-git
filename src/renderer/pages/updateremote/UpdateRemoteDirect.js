@@ -16,6 +16,7 @@ import useDropdown from '../../hooks/useDropdown';
 // Internal libs
 import { openFolder, openExternal } from '../../../lib/app-shell';
 import { web_base_url } from '../../../lib/config';
+import { trackEvent } from '../../analytics';
 
 export default function UpdateRemoteDirect() {
   const cloneRepoButtonRef = useRef(null); //Used in modal for focusing reason
@@ -126,8 +127,10 @@ export default function UpdateRemoteDirect() {
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
       setTimeout(() => openFolder(repoFolder), 1000);
+      trackEvent('clone-update-direct', 'clone-repo-success');
     } else {
       dispatch({ type: 'FETCH_ERROR' });
+      trackEvent('clone-update-direct', 'clone-repo-error');
     }
   }
 
@@ -144,9 +147,16 @@ export default function UpdateRemoteDirect() {
 
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
+      trackEvent('clone-update-direct', 'update-remote-success');
     } else {
       dispatch({ type: 'FETCH_ERROR' });
+      trackEvent('clone-update-direct', 'update-remote-error');
     }
+  }
+
+  // Listen to onOpen event of Modal component for tracking event
+  function onCloneRepoModalOpen() {
+    trackEvent('clone-update-direct', 'clone-repo-dialog-opened');
   }
 
   // Listen to onClose events of Modal component to reset local state.
@@ -158,6 +168,12 @@ export default function UpdateRemoteDirect() {
     setUsername('');
     setShallowClone(false);
     dispatch({ type: 'FETCH_RESET' });
+    trackEvent('clone-update-direct', 'clone-repo-dialog-closed');
+  }
+
+  // Listen to onOpen event of Modal component for tracking event
+  function onUpdateRemoteUrlModalOpen() {
+    trackEvent('clone-update-direct', 'update-remote-dialog-opened');
   }
 
   // Listen to onClose event of Update Remote Url Modal component
@@ -168,6 +184,7 @@ export default function UpdateRemoteDirect() {
     setAccount('');
     setUsername('');
     dispatch({ type: 'FETCH_RESET' });
+    trackEvent('clone-update-direct', 'update-remote-dialog-closed');
   }
 
   // Navigation methods
@@ -341,7 +358,8 @@ export default function UpdateRemoteDirect() {
         <Modal
           {...cloneRepoModalProps}
           buttonRef={cloneRepoButtonRef}
-          onModalClose={onCloneRepoModalClose}>
+          onModalClose={onCloneRepoModalClose}
+          onModalOpen={onCloneRepoModalOpen}>
           {renderCloneRepoDialog()}
         </Modal>
         <p className="text-gray-700 text-xs mt-2">
@@ -351,7 +369,8 @@ export default function UpdateRemoteDirect() {
         <Modal
           {...updateRepoModalProps}
           buttonRef={updateRemoteUrlButtonRef}
-          onModalClose={onUpdateRemoteUrlModalClose}>
+          onModalClose={onUpdateRemoteUrlModalClose}
+          onModalOpen={onUpdateRemoteUrlModalOpen}>
           {renderUpdateRemoteUrlDialog()}
         </Modal>
         <p className="text-gray-700 text-xs mt-2">

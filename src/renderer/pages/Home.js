@@ -4,11 +4,11 @@ import AlphaBadge from '../../assets/img/alpha_badge.svg';
 import logo from '../../assets/logo/icon.png';
 
 import { Reveal, RevealGlobalStyles, Animation } from 'react-genie';
-import { trackScreen } from '../analytics';
+import { trackScreen, trackEvent } from '../analytics';
 
 function renderLandingPage(navigateTo) {
   React.useEffect(() => {
-    trackScreen('landing');
+    trackScreen('landing-screen');
   }, []);
 
   return (
@@ -51,7 +51,10 @@ function renderLandingPage(navigateTo) {
         <Reveal delay={1000} animation={Animation.SlideInRight}>
           <button
             className="w-48 px-4 py-2 mt-12 text-white text-xl font-semibold bg-blue-500 hover:bg-blue-700 rounded focus:outline-none"
-            onClick={_e => navigateTo('/oauth/connect')}>
+            onClick={_e => {
+              navigateTo('/oauth/connect');
+              trackEvent('splash', 'setup-ssh');
+            }}>
             Get Started
           </button>
         </Reveal>
@@ -73,13 +76,17 @@ function renderHomePage(navigateTo) {
         </h1>
         <button
           className="primary-btn w-56 mt-16"
-          onClick={_e => navigateTo('/oauth/connect')}>
+          onClick={_e => {
+            navigateTo('/oauth/connect');
+            trackEvent('splash', 'setup-ssh');
+          }}>
           Setup SSH
         </button>
         <button
           className="secondary-btn text-gray-300 w-56 mt-8"
           onClick={_e => {
             navigateTo('/updateRemoteDirect');
+            trackEvent('splash', 'clone-or-update');
           }}>
           Clone or Update
         </button>

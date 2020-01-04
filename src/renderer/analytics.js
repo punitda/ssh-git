@@ -4,13 +4,21 @@ const appName = 'app.ssh-git';
 const appVersion = package.version;
 
 export async function trackScreen(screenName) {
-  await window.ipc.callMain('track-screen', {
-    screenName,
-    appName,
-    appVersion,
-  });
+  try {
+    await window.ipc.callMain('track-screen', {
+      screenName,
+      appName,
+      appVersion,
+    });
+  } catch (error) {
+    console.error('error tracking screen view');
+  }
 }
 
 export async function trackEvent(category, action) {
-  await window.ipc.callMain('track-event', { category, action });
+  try {
+    await window.ipc.callMain('track-event', { category, action });
+  } catch (error) {
+    console.error('error tracking event');
+  }
 }

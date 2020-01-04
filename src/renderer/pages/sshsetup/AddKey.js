@@ -14,6 +14,7 @@ import ConfirmationModal from '../../components/ConfirmationModal';
 
 import checkMarkAnimationData from '../../../assets/lottie/checkmark.json';
 import useLottieAnimation from '../../hooks/useLottieAnimation';
+import { trackEvent } from '../../analytics';
 
 function AddKey({ onNext }) {
   const [authState] = useContext(AuthStateContext);
@@ -117,6 +118,7 @@ function AddKey({ onNext }) {
     if (keyCopied && linkOpened) {
       setError(null);
       openNextPage();
+      trackEvent('setup-flow', 'key-added');
     }
   }
 
@@ -150,6 +152,8 @@ function AddKey({ onNext }) {
         keyCopyAnimation.play();
       }
     }, 1500);
+
+    trackEvent('setup-flow', 'key-copied');
   }
 
   function onLinkOpened(event) {
@@ -162,6 +166,8 @@ function AddKey({ onNext }) {
     if (linkOpenAnimation !== null) {
       linkOpenAnimation.play();
     }
+
+    trackEvent('setup-flow', 'link-opened');
   }
 
   // Add listener for textarea change event which we don't allow to change to keep
