@@ -15,6 +15,8 @@ import githublogo from '../../../assets/img/github_logo.png';
 import bitbucketlogo from '../../../assets/img/bitbucket_logo.png';
 import gitlablogo from '../../../assets/img/gitlab_logo.png';
 
+import { trackEvent } from '../../analytics';
+
 function ConnectAccount({ onNext }) {
   // Using context to access Auth store
   const [authState, setAuthState] = useContext(AuthStateContext);
@@ -46,10 +48,12 @@ function ConnectAccount({ onNext }) {
             payload: { accountConnected: true },
           });
           setTimeout(() => onNext('oauth/generate'), 1500);
+          trackEvent('setup-flow', `${selectedProvider}-connect-success`);
 
           return true;
         } else {
           dispatch({ type: 'FETCH_ERROR' });
+          trackEvent('setup-flow', `${selectedProvider}-connect-error`);
           return false;
         }
       });
@@ -72,6 +76,7 @@ function ConnectAccount({ onNext }) {
       selectedProvider,
     }));
     openExternal(url);
+    trackEvent('setup-flow', `${selectedProvider}-connect`);
   }
 
   return (

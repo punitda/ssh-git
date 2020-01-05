@@ -9,6 +9,7 @@ function Modal({
   ariaLabel,
   children,
   onModalClose,
+  onModalOpen,
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -24,6 +25,7 @@ function Modal({
 
   function onOpen() {
     setIsOpen(true);
+    onModalOpen();
   }
 
   function onClose() {

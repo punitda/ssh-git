@@ -2,7 +2,7 @@ const { autoUpdater, shell } = require('electron');
 
 const { web_base_url } = require('../lib/config');
 
-const store = require('./store');
+const { VersionStore: store } = require('./store');
 const { createNotification } = require('./notification');
 const dialog = require('./dialog');
 
