@@ -29,18 +29,7 @@ function renderLandingPage(navigateTo) {
         </Reveal>
         <Reveal delay={500}>
           <Typical
-            steps={[
-              'Github',
-              2000,
-              'Bitbucket',
-              1000,
-              'Gitlab',
-              1000,
-              '',
-              1000,
-              'Github, Bitbucket and Gitlab accounts',
-              1000,
-            ]}
+            steps={TypicalSteps}
             loop={1}
             wrapper="span"
             className="font-semibold text-4xl mx-auto text-center text-gray-200"
@@ -143,4 +132,17 @@ const steps = [
     title: 'Clone',
     content: 'You can now clone, push, pull your repo',
   },
+];
+
+const TypicalSteps = [
+  'Github',
+  2000,
+  'Bitbucket',
+  1000,
+  'Gitlab',
+  1000,
+  '',
+  1000,
+  'Github, Bitbucket and Gitlab accounts',
+  1000,
 ];
