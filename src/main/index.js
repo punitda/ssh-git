@@ -61,9 +61,8 @@ function init() {
   // Check if app update is available after 10 secs
   if (!isDev) {
     setTimeout(() => updater.init(), 10 * 1000);
+    initAnalytics(); // initialize analytics only in prod
   }
-
-  initAnalytics();
 }
 
 init(); // this is where it all starts
