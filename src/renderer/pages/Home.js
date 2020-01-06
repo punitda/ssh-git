@@ -144,5 +144,4 @@ const TypicalSteps = [
   '',
   1000,
   'Github, Bitbucket and Gitlab accounts',
-  1000,
 ];
