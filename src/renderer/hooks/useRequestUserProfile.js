@@ -69,7 +69,7 @@ export default function useRequestUserProfile(selectedProvider, token) {
         }
       } catch (error) {
         if (!didCancel) {
-          dispatch({ type: 'FETCH_FAILURE' });
+          dispatch({ type: 'FETCH_ERROR' });
         }
       }
     }
