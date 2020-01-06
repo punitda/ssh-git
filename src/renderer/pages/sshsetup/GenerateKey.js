@@ -10,6 +10,7 @@ import fetchReducer from '../../reducers/fetchReducer';
 import SquareLoader from 'react-spinners/SquareLoader';
 
 import { trackEvent } from '../../analytics';
+import toaster, { Position } from 'toasted-notes';
 
 const GenerateKey = ({ onNext }) => {
   const [authState, setAuthState] = useContext(AuthStateContext);
@@ -31,6 +32,9 @@ const GenerateKey = ({ onNext }) => {
   // State used to store whether key already exists or not for current selectedProvider and username.
   const [keyAlreadyExists, setKeyAlreadyExists] = useState(false);
   const [isLinux, setIsLinux] = useState(false);
+
+  // Used to keep check whether notification was shown to user or not and to avoid showing it again.
+  const [linuxNotificationShown, setLinuxNotificationShown] = useState(false);
 
   // Use to store several states of UI for generateKey process
   const [
@@ -74,6 +78,7 @@ const GenerateKey = ({ onNext }) => {
     }
   }, [selectedProvider, username]);
 
+  // Get platform value from main process on mount(runs once)
   useEffect(() => {
     async function isLinuxOS() {
       const isLinux = await window.ipc.callMain('check-if-linux');
@@ -82,6 +87,62 @@ const GenerateKey = ({ onNext }) => {
     isLinuxOS();
   }, []);
 
+  // Close all notifications on unmount.
+  // Using unmount method of useEffect() to remove all notifications displayed.
+  useEffect(() => {
+    return () => {
+      toaster.closeAll();
+    };
+  }, []);
+
+  // Effect which shows notification as soon as user enters passphrase.
+  // After passphrase is entered and user is shown notification and then we set `linuxNotificationShown` to "true" indicating
+  // that notification is already shown to user and use it to not show notification again
+  useEffect(() => {
+    if (isLinux) {
+      showPassphraseNotification();
+    }
+  }, [passphrase, linuxNotificationShown]);
+
+  function showPassphraseNotification() {
+    if (!linuxNotificationShown && passphrase && passphrase.length > 0) {
+      setLinuxNotificationShown(true);
+
+      toaster.notify(
+        ({ onClose }) => {
+          return (
+            <div className="mt-24 mr-8 w-64">
+              <div className="w-full h-auto py-2 px-4 rounded-lg shadow-xl bg-red-500 text-white text-sm">
+                <p>
+                  <span className="font-semibold">Note :</span> You need to
+                  remember ssh key passphrase you enter because you will be
+                  asked to enter it once across every system restarts whenever
+                  you do any git operation using this SSH key.
+                </p>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 absolute right-0 top-0 mt-24 mr-2"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f56565"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                onClick={() => onClose()}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </div>
+          );
+        },
+        { duration: null, position: Position['top-right'] }
+      );
+    }
+  }
   // Generate Key click listener
   async function onGenerateKeyClick(_event) {
     // Check if passphrase is valid before proceeding
@@ -218,12 +279,6 @@ const GenerateKey = ({ onNext }) => {
               your{' '}
               <span className="font-bold text-gray-800">{`${selectedProvider}'s `}</span>
               password for additional security.
-              {isLinux ? (
-                <span className="font-semibold text-gray-700">
-                  You also need to remember this passphrase because you will be
-                  asked to enter it once across system restarts.
-                </span>
-              ) : null}
             </p>
           </div>
         </>
