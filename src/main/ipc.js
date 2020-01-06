@@ -19,6 +19,8 @@ const {
 const dialog = require('./dialog');
 const notification = require('./notification');
 
+const isDev = require('../lib/electron-is-dev');
+
 let githubConfig = null; //workaround to store github config because electron-builder doesn't works with .env files.
 
 // Register for all ipc channel in the app over here once.
@@ -28,7 +30,7 @@ function register() {
   registerIpcForGenerateKeyScreen();
   registerIpcForAddKeyScreen();
   registerIpcForUpdateRemoteScreen();
-  registerIpcForAnalytics();
+  if (!isDev) registerIpcForAnalytics();
 }
 
 function registerGeneralIpcs() {
