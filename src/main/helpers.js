@@ -19,46 +19,64 @@ function showWindow(window) {
   window.show();
 }
 
-async function handleAppURL(callbackUrl, mainWindow, githubConfig = null) {
-  const authState = parseAppURL(callbackUrl);
-  let { code = null, state = null, token = null } = authState;
-
+async function handleAppURL(callbackUrl, mainWindow) {
   showWindow(mainWindow);
 
-  if (authState) {
-    try {
-      if (code) {
-        // This means it is github callbackUrl and we need to first obtain "access_token" value.
-        token = await requestGithubAccessToken(code, githubConfig);
-        if (!token) {
-          dialog.showErrorDialog(`Something went wrong. Please try again`);
-          return;
-        }
-      }
+  const authState = parseAppURL(callbackUrl);
+  if (!authState) {
+    showError(
+      "Invalid redirect uri received. We couldn't verify the validity of the request. Please try again"
+    );
+    return;
+  }
 
-      if (callbackUrl.includes('basic')) {
-        const result = await ipc.callRenderer(mainWindow, 'connect-account', {
-          state,
-          token,
-        });
-        if (!result) {
-          dialog.showErrorDialog(
-            "We couldn't verify the validity of the request. Please try again."
-          );
-        }
-      } else {
-        throw new Error('Invalid callback url received');
-      }
-    } catch (error) {
+  const { code = null, state: client_state = null, token = null } = authState;
+
+  // Bitbucket and Gitlab will give back token directly
+  if (token) {
+    const result = await ipc.callFocusedRenderer('connect-account', {
+      state: client_state,
+      token,
+    });
+
+    if (!result) {
       dialog.showErrorDialog(
-        `Something went wrong. Please try again. ${error}`
+        "We couldn't verify the validity of the request. Please try again."
       );
     }
-  } else {
-    dialog.showErrorDialog(
-      `Something went wrong. We couldn't verify the validity of the request. Please try again.`
-    );
   }
+  // Github Route : Using code to get back "access_token" in exchange from our serverless function.
+  else if (code) {
+    try {
+      const {
+        access_token: token = null,
+        state = null,
+      } = await requestGithubAccessToken(code, client_state);
+
+      if (!(token && state)) {
+        showError('We could verify the validity of request. Please try again');
+        return;
+      }
+
+      const result = await ipc.callFocusedRenderer('connect-account', {
+        state,
+        token,
+      });
+
+      if (!result) {
+        dialog.showErrorDialog(
+          "We couldn't verify the validity of the request. Please try again."
+        );
+      }
+    } catch (error) {
+      showError(error.message);
+    }
+  }
+}
+
+async function showError(error_message) {
+  dialog.showErrorDialog(error_message);
+  await ipc.callFocusedRenderer('connect-account', { state: null });
 }
 
 module.exports = { registerAppSchema, showWindow, handleAppURL };
