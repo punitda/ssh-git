@@ -36,7 +36,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
           BITBUCKET_CLIENT_ID: ${{ secrets.BITBUCKET_CLIENT_ID }}
           GITLAB_CLIENT_ID: ${{ secrets.GITLAB_CLIENT_ID }}
 
@@ -68,7 +67,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
           BITBUCKET_CLIENT_ID: ${{ secrets.BITBUCKET_CLIENT_ID }}
           GITLAB_CLIENT_ID: ${{ secrets.GITLAB_CLIENT_ID }}
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}

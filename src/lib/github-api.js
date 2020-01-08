@@ -1,28 +1,31 @@
-const { oauth_base_urls, providers } = require('./config');
+const { web_base_url } = require('./config');
 const request = require('./http');
 
-async function requestGithubAccessToken(code, githubConfig) {
+async function requestGithubAccessToken(code, client_state) {
   try {
-    const baseUrl = oauth_base_urls.GITHUB;
     const response = await request(
-      baseUrl,
-      '/access_token',
+      web_base_url,
+      '/api/github-callback',
       'POST',
-      providers.GITHUB,
+      null,
       null,
       {
-        client_id: githubConfig.client_id,
-        client_secret: githubConfig.client_secret,
+        state: client_state,
         code,
       }
     );
-    const { access_token } = response.data;
-    return access_token;
+    const { access_token, state } = response.data;
+    return { access_token, state };
   } catch (error) {
-    console.error(
-      `Error fetching access_token for user : ${error.response.data}`
-    );
-    return null;
+    console.error(`Error fetching access_token : ${error.response.data}`);
+
+    if (error.response.data && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    } else {
+      throw new Error(
+        'Something went wrong when authenticating your github account'
+      );
+    }
   }
 }
 

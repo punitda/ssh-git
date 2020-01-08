@@ -1,9 +1,8 @@
 const oauth = {
   github: {
     client_id: process.env.GITHUB_CLIENT_ID,
-    client_secret: process.env.GITHUB_CLIENT_SECRET,
     scopes: {
-      basic: 'user',
+      basic: 'read:user,user:email',
     },
   },
   bitbucket: {

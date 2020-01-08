@@ -21,8 +21,6 @@ const notification = require('./notification');
 
 const isDev = require('../lib/electron-is-dev');
 
-let githubConfig = null; //workaround to store github config because electron-builder doesn't works with .env files.
-
 // Register for all ipc channel in the app over here once.
 function register() {
   registerGeneralIpcs();
@@ -43,13 +41,6 @@ function registerGeneralIpcs() {
   // Listen to request from renderer process to open folder
   ipc.answerRenderer('open-folder', async folderPath => {
     shell.openItem(folderPath);
-    return;
-  });
-
-  // Workaround to store github config coming in from our renderer process :(
-  // We can get rid of this workaround once we use Parcel for bundling electron process as well.
-  ipc.answerRenderer('github-config', async config => {
-    githubConfig = config;
     return;
   });
 }
@@ -246,8 +237,4 @@ function registerIpcForAnalytics() {
   });
 }
 
-function getGithubConfig() {
-  return githubConfig;
-}
-
-module.exports = { register, getGithubConfig };
+module.exports = { register };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Router,
   createMemorySource,
@@ -34,13 +34,6 @@ function App() {
   const state = useState({
     authState: { state: '', token: '', selectedProvider: '' },
   });
-
-  useEffect(() => {
-    async function sendGithubConfig() {
-      const _result = await window.ipc.callMain('github-config', oauth.github);
-    }
-    sendGithubConfig();
-  }, []);
 
   function navigateTo(path) {
     history.navigate(path);
