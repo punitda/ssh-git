@@ -235,7 +235,7 @@ export default function UpdateRemoteStepped() {
         <button
           className={
             isLoading
-              ? `primary-btn px-16 text-2xl generateKey`
+              ? `primary-btn pr-12 generateKey`
               : isError
               ? `primary-btn-error`
               : success
@@ -245,7 +245,7 @@ export default function UpdateRemoteStepped() {
           disabled={!(repoUrl && selectedFolder) || isLoading}
           onClick={onCloneRepoClicked}>
           {isLoading
-            ? 'Cloning Repo...'
+            ? 'Cloning Repo'
             : isError
             ? 'Retry'
             : success
@@ -287,7 +287,7 @@ export default function UpdateRemoteStepped() {
         <button
           className={
             isLoading
-              ? `primary-btn px-16 text-2xl generateKey`
+              ? `primary-btn pr-12 generateKey`
               : isError
               ? `primary-btn-error`
               : success
@@ -297,7 +297,7 @@ export default function UpdateRemoteStepped() {
           disabled={!repoFolder || isLoading}
           onClick={onUpdateRemoteUrlClicked}>
           {isLoading
-            ? 'Upating Remote Url...'
+            ? 'Upating Remote Url'
             : isError
             ? 'Retry'
             : success

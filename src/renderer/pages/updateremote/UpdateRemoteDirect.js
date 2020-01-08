@@ -266,7 +266,7 @@ export default function UpdateRemoteDirect() {
         <button
           className={
             isLoading
-              ? `primary-btn px-16 text-2xl generateKey`
+              ? `primary-btn pr-12 generateKey`
               : isError
               ? `primary-btn-error`
               : success
@@ -278,7 +278,7 @@ export default function UpdateRemoteDirect() {
           }
           onClick={onCloneRepoClicked}>
           {isLoading
-            ? 'Cloning Repo...'
+            ? 'Cloning Repo'
             : isError
             ? 'Retry'
             : success
@@ -323,7 +323,7 @@ export default function UpdateRemoteDirect() {
         <button
           className={
             isLoading
-              ? `primary-btn px-16 text-2xl generateKey`
+              ? `primary-btn pr-12 generateKey`
               : isError
               ? `primary-btn-error`
               : success
@@ -333,7 +333,7 @@ export default function UpdateRemoteDirect() {
           disabled={!(repoFolder && account && username) || isLoading}
           onClick={onUpdateRemoteUrlClicked}>
           {isLoading
-            ? 'Upating Remote Url...'
+            ? 'Upating Remote Url'
             : isError
             ? 'Retry'
             : success
