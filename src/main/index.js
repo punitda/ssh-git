@@ -52,7 +52,7 @@ function init() {
   // MacOS only(for handling deeplinks)
   app.on('open-url', (event, url) => {
     event.preventDefault();
-    helpers.handleAppURL(url, window.getMainWindow(), ipc.getGithubConfig());
+    helpers.handleAppURL(url, window.getMainWindow());
   });
 
   initSentry();
