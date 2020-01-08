@@ -109,7 +109,7 @@ function ConnectAccount({ onNext }) {
           onClick={connectToProvider}
           className={
             isConnecting
-              ? `primary-btn px-16 text-2xl generateKey`
+              ? `primary-btn pr-12 generateKey`
               : isError
               ? `primary-btn-error`
               : data
@@ -118,7 +118,7 @@ function ConnectAccount({ onNext }) {
           }
           disabled={selectedProvider === '' || isConnecting || data}>
           {isConnecting
-            ? 'Connecting...'
+            ? 'Connecting'
             : isError
             ? 'Retry'
             : data

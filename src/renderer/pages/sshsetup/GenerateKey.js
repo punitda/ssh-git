@@ -289,7 +289,7 @@ const GenerateKey = ({ onNext }) => {
           isLoading
             ? `hidden`
             : isGeneratingKey
-            ? `primary-btn px-16 text-2xl generateKey`
+            ? `primary-btn pr-12 generateKey`
             : isGenerateKeyError
             ? `primary-btn-error`
             : generateKeySuccess
@@ -303,7 +303,7 @@ const GenerateKey = ({ onNext }) => {
           generateKeySuccess
         }>
         {isGeneratingKey
-          ? 'Generating Keys...'
+          ? 'Generating Keys'
           : isGenerateKeyError
           ? 'Retry'
           : generateKeySuccess
