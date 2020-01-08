@@ -378,7 +378,7 @@ If you have setup SSH keys using this App, we suggest you use clone feature and 
 
     const {
       newRemoteUrlAliasName,
-      newRemoteUrl,
+      updatedRemoteUrl: newRemoteUrl,
     } = await getNewRemoteUrlAndAliasName(fetchUrl, selectedProvider, username);
 
     if (newRemoteUrl && newRemoteUrlAliasName) {
