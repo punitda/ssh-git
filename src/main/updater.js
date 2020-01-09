@@ -15,6 +15,8 @@ const APP_NAME = packageJSON.name;
 const UPDATE_BASE_URL = `${web_base_url}/api`;
 const AUTO_UPDATE_URL = `${UPDATE_BASE_URL}/check-updates?version=${APP_VERSION}&platform=${process.platform}`;
 
+const { trackEvent } = require('./analytics');
+
 function init() {
   if (process.platform === 'linux') {
     initLinux();
@@ -41,17 +43,25 @@ async function initLinux() {
         const result = await dialog.showUpdateDialog(APP_NAME, version);
         if (result === 1) {
           store.set('skipVersions', [...skippedVersions, version]);
+          trackEvent('update-linux', `skip-${version}`);
         } else {
           shell.openExternal(url); // Open download url
+          trackEvent('update-linux', 'download-url-opened');
         }
       }
     } else if (response.status === 204) {
       console.log(`No new update available`);
+      trackEvent('update-linux', 'no-update-available');
     } else {
       console.log(`Unexpected status code received : ${response.statusCode}`);
+      trackEvent(
+        'update-linux',
+        `incorrect-status-code-${response.statusCode}`
+      );
     }
   } catch (error) {
     console.log(`check-updates api failed: ${error.message}`);
+    trackEvent('update-linux-error', error.message);
   }
 }
 
@@ -60,25 +70,30 @@ async function initLinux() {
 function initMac() {
   autoUpdater.on('error', err => {
     console.log(`Update error: ${err.message}`);
+    trackEvent('auto-update-error', err.message);
   });
 
   autoUpdater.on('checking-for-update', () => {
     console.log(`checking for update`);
+    trackEvent('auto-update-checking', 'checking...');
   });
 
   autoUpdater.on('update-available', () => {
     console.log('Update available');
+    trackEvent('auto-update-available', 'yes');
   });
 
   autoUpdater.on('update-not-available', () => {
     console.log('No update available');
+    trackEvent('auto-update-not-available', 'yes');
   });
 
   autoUpdater.on(
     'update-downloaded',
     (_e, _releaseNotes, releaseName, _releaseDate, updateUrl) => {
       console.log(`Update downloaded : ${releaseName} : ${updateUrl}`);
-      setTimeout(() => showRestartNotification(), 10 * 1000); // Wait for 10 sec before showing update notification
+      trackEvent('auto-update-downloaded', releaseName);
+      setTimeout(() => showRestartNotification(releaseName), 10 * 1000); // Wait for 10 sec before showing update notification
     }
   );
 
@@ -86,7 +101,7 @@ function initMac() {
   autoUpdater.checkForUpdates();
 }
 
-function showRestartNotification() {
+function showRestartNotification(releaseName) {
   let actions = [
     {
       type: 'button',
