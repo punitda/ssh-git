@@ -43,17 +43,25 @@ async function initLinux() {
         const result = await dialog.showUpdateDialog(APP_NAME, version);
         if (result === 1) {
           store.set('skipVersions', [...skippedVersions, version]);
+          trackEvent('update-linux', `skip-${version}`);
         } else {
           shell.openExternal(url); // Open download url
+          trackEvent('update-linux', 'download-url-opened');
         }
       }
     } else if (response.status === 204) {
       console.log(`No new update available`);
+      trackEvent('update-linux', 'no-update-available');
     } else {
       console.log(`Unexpected status code received : ${response.statusCode}`);
+      trackEvent(
+        'update-linux',
+        `incorrect-status-code-${response.statusCode}`
+      );
     }
   } catch (error) {
     console.log(`check-updates api failed: ${error.message}`);
+    trackEvent('update-linux-error', error.message);
   }
 }
 
