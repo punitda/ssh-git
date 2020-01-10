@@ -395,8 +395,8 @@ export default function UpdateRemoteStepped() {
         </div>
 
         <p className="text-center text-sm text-gray-700">
-          Clone your repo or Update Remote url of existing repo to start using
-          the SSH key.
+          Clone your repo or Update remote url of an existing repo to start
+          using the SSH key.
         </p>
         <div className="text-center mt-8">
           <Modal
