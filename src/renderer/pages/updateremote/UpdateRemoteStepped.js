@@ -26,6 +26,7 @@ import useWindowSize from '../../hooks/useWindowSize';
 
 // Reveal animation
 import { Reveal, RevealGlobalStyles } from 'react-genie';
+import toaster, { Position } from 'toasted-notes';
 
 import { trackEvent } from '../../analytics';
 
@@ -83,6 +84,14 @@ export default function UpdateRemoteStepped() {
       getSystemDesktopFolderPath();
     }
   }, [selectedFolder]);
+
+  // Close all notifications on unmount.
+  // Using unmount method of useEffect() to remove all notifications displayed.
+  useEffect(() => {
+    return () => {
+      toaster.closeAll();
+    };
+  }, []);
 
   // Click listener for "Select Folder" action
   async function onChangeDefaultFolderClicked() {
@@ -179,9 +188,63 @@ export default function UpdateRemoteStepped() {
       setupSuccessAnimation.play();
       setTimeout(() => {
         setRecycleConfetti(false);
-      }, 2000);
+        showNotification();
+      }, 1500);
     }
   }
+
+  function showNotification() {
+    setTimeout(() => {
+      toaster.notify(
+        ({ onClose }) => {
+          return (
+            <div className="mt-24 mr-8 w-64">
+              <div className="w-full h-auto py-2 px-4 rounded-l-lg rounded-tr-none rounded-br-lg shadow-xl bg-gray-700 text-white text-sm">
+                <p className="font-semibold text-lg">Important!</p>
+                <p>
+                  To start using the SSH key for doing Git operations(push,
+                  pull, fetch, etc.) using your existing tool of choice, you
+                  have to do either of the following two things else keys setup
+                  just now wouldn't work with your tool in that case :(
+                </p>
+                <ul className="my-4 text-left">
+                  <li>
+                    <div className="font-bold text-base">
+                      1. Update Remote Url
+                    </div>
+                    Use this if the repo is already cloned on your machine.
+                  </li>
+                  <li className="mt-2">
+                    <div className="font-bold text-base">2. Clone Repo </div>
+                    Use this if the repo doesn't exists on your machine yet and
+                    we will take care of rest. :)
+                  </li>
+                </ul>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 absolute right-0 top-0 mt-24 mr-2"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#4a5568"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                onClick={() => onClose()}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </div>
+          );
+        },
+        { duration: null, position: Position['top-right'] }
+      );
+    }, 2500);
+  }
+
   // Render functions
 
   function renderCloneRepoDialog() {
@@ -332,7 +395,7 @@ export default function UpdateRemoteStepped() {
         </div>
 
         <p className="text-center text-sm text-gray-700">
-          You can now clone your repo or update remote url of existing repo
+          Clone your repo or Update remote url of an existing repo to start
           using the SSH key.
         </p>
         <div className="text-center mt-8">
