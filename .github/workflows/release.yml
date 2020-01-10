@@ -1,13 +1,10 @@
-name: Build and Release App
+name: Release App
 
-on: 
+on:
   push:
     branches:
       - develop
-  pull_request:
-    branches:
-      - develop
-  
+
 jobs:
   Ubuntu-Release:
     name: Release Ubuntu App
@@ -42,7 +39,6 @@ jobs:
       - name: See dist dir
         run: ls ./dist
 
-
   MacOS-Release:
     name: Release MacOS App
     runs-on: macOS-latest
@@ -76,4 +72,3 @@ jobs:
 
       - name: See dist dir
         run: ls ./dist
-
