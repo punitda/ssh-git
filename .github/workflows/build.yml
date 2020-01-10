@@ -1,0 +1,72 @@
+name: Build App
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  Ubuntu-Build:
+    name: Build Ubuntu App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v1
+
+      - name: Use Node.js 10
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.15
+
+      - name: Install node-pty deps
+        run: sudo apt install -y make python build-essential
+
+      - name: Install yarn package manager
+        run: npm install -g yarn
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+
+      - name: Build App
+        run: yarn build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
+          BITBUCKET_CLIENT_ID: ${{ secrets.BITBUCKET_CLIENT_ID }}
+          GITLAB_CLIENT_ID: ${{ secrets.GITLAB_CLIENT_ID }}
+
+      - name: See dist dir
+        run: ls ./dist
+
+  MacOS-Build:
+    name: Build MacOS App
+    runs-on: macOS-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v1
+
+      - name: Use Node.js 10
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.15
+
+      - name: Install yarn package manager
+        run: npm install -g yarn
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+
+      - name: Build App
+        run: yarn build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
+          BITBUCKET_CLIENT_ID: ${{ secrets.BITBUCKET_CLIENT_ID }}
+          GITLAB_CLIENT_ID: ${{ secrets.GITLAB_CLIENT_ID }}
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+
+      - name: See dist dir
+        run: ls ./dist
