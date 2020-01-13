@@ -1,10 +1,13 @@
 # ssh-git
 
 [![Github Actions](https://github.com/punitda/ssh-git/workflows/Release%20App/badge.svg)](https://github.com/punitda/ssh-git/actions)
-[![License](https://img.shields.io/badge/MIT-LICENSE-blue)](https://github.com/punitda/ssh-git/blob/develop/LICENSE)
+[![License](https://img.shields.io/badge/MIT-LICENSE-blue)](LICENSE)
 
 **ssh-git** is a desktop app to manage SSH keys for Github, Bitbucket and Gitlab accounts. [More info](https://ssh-git.app)
+
 <br/>
+
+![Screenshot](screenshots/promo.png)
 
 ## Download
 
