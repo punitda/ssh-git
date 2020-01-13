@@ -37,7 +37,7 @@ function renderLandingPage(navigateTo) {
         </Reveal>
         <Reveal delay={300}>
           <h2 className="text-gray-200 text-lg mt-2 text-center">
-            Setup SSH keys in matter of secs 🚀
+            Setup SSH keys in seconds 🚀
           </h2>
         </Reveal>
         <div className="mt-12 flex flex-row justify-between items-center ">
