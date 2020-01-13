@@ -51,7 +51,7 @@ To run this project locally you will need following things installed on your mac
 - NodeJS(min v10.15.+)
 - Yarn
 
-To run this project locally run following commands:
+To run this project locally run following:
 
 ```
 yarn start
@@ -65,6 +65,8 @@ yarn build
 
 > Note : To both run and build this project you will need to create `.env` file with following properties.
 
+_.env.sample_
+
 ```
 GITHUB_CLIENT_ID=<YOUR_GITHUB_CLIENT_ID>
 GITLAB_CLIENT_ID=<YOUR_GITLAB_CLIENT_ID>
@@ -73,7 +75,7 @@ BITBUCKET_CLIENT_ID=<YOUR_BITBUCKET_CLIENT_ID>
 
 ## Donation:
 
-This project is free to download and use but it has fix upfront cost to keep it running. So, if you use "ssh-git" frequently to setup SSH keys please consider donating 🙏
+This project is free to download and use but it has fix upfront cost to keep it running. So, if you use this app frequently to setup SSH keys for your accounts please consider donating 🙏
 
 <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;"></a>
 
