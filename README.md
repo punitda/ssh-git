@@ -3,12 +3,12 @@
 [![Github Actions](https://github.com/punitda/ssh-git/workflows/Release%20App/badge.svg)](https://github.com/punitda/ssh-git/actions)
 [![License](https://img.shields.io/badge/MIT-LICENSE-blue)](https://github.com/punitda/ssh-git/blob/develop/LICENSE)
 
-**ssh-git** is a desktop app to manage SSH keys for Github, Bitbucket and Gitlab accounts.
+**ssh-git** is a desktop app to manage SSH keys for Github, Bitbucket and Gitlab accounts. [More info](https://ssh-git.app)
 <br/>
 
 ## Download
 
-ssh-git is available for Mac and Ubuntu and can be downloaded from website.
+App is available for Mac and Ubuntu and can be downloaded from website.
 
 [Download App](https://ssh-git.app/download)
 
@@ -33,14 +33,14 @@ ssh-git is available for Mac and Ubuntu and can be downloaded from website.
 - [Parcel](https://parceljs.org/)
 - [Electron-Builder](https://www.electron.build/)
 
-## Bugs and Feature Requests:
+## Bug and Feature Requests:
 
 Have a bug or feature request?
 The app has public Trello board where anyone can submit feature request and bugs using your Trello account.
 
 👉 [Trello board link](https://trello.com/b/iJR6Xqhj/bug-feature-tracker-for-ssh-git)
 
-If you don't prefer to use Trello board, you can file an Github issue as well [here](/issues)
+If you don't prefer to use Trello board, you can file a Github issue as well.
 
 ## Developing:
 
@@ -51,13 +51,13 @@ To run this project locally you will need following things installed on your mac
 - NodeJS(min v10.15.+)
 - Yarn
 
-To run this project locally run following:
+To run this project locally run following command:
 
 ```
 yarn start
 ```
 
-To build this project locally run following :
+To build this project locally run following command:
 
 ```
 yarn build
