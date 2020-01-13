@@ -12,16 +12,12 @@ ssh-git is available for Mac and Ubuntu and can be downloaded from website.
 
 [Download App](https://ssh-git.app/download)
 
----
-
 ## Features
 
 - Setup SSH keys in seconds 🚀
 - No need to use terminal or dealing with SSH config files 😅
 - Clone repo and Update remote url from UI 🤟
 - Setup unlimited different Github, Bitbucket and Gitlab accounts on same machine ∞
-
----
 
 ## Tech
 
@@ -38,8 +34,6 @@ ssh-git is available for Mac and Ubuntu and can be downloaded from website.
 - [Parcel](https://parceljs.org/)
 - [Electron-Builder](https://www.electron.build/)
 
----
-
 ## Bugs and Feature Requests:
 
 Have a bug or feature request?
@@ -48,8 +42,6 @@ The app has public Trello board where anyone can submit feature request and bugs
 👉 [Trello board link](https://trello.com/b/iJR6Xqhj/bug-feature-tracker-for-ssh-git)
 
 If you don't prefer to use Trello board, you can file an Github issue as well [here](/issues)
-
----
 
 ## Developing:
 
@@ -80,15 +72,11 @@ GITLAB_CLIENT_ID=<YOUR_GITLAB_CLIENT_ID>
 BITBUCKET_CLIENT_ID=<YOUR_BITBUCKET_CLIENT_ID>
 ```
 
----
-
 ## Donation:
 
 This project is free to download and use but it has fix upfront cost to keep it running. So, if you use "ssh-git" frequently to setup SSH keys please consider donating 🙏
 
 <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;"></a>
-
----
 
 ## License:
 
