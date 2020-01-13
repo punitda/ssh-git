@@ -51,21 +51,21 @@ To run this project locally you will need following things installed on your mac
 - NodeJS(min v10.15.+)
 - Yarn
 
-To run this project locally run following command:
+To run app locally run following command:
 
 ```
 yarn start
 ```
 
-To build this project locally run following command:
+To build app locally run following command:
 
 ```
-yarn build
+yarn build -c.mac.identity=null // disables mac code signing
 ```
 
-> Note : To both run and build this project you will need to create `.env` file with following properties.
+> Note : To both run and build this project you will need to create `.env` file at the root of the project with following properties.
 
-_.env.sample_
+**Sample .env file**
 
 ```
 GITHUB_CLIENT_ID=<YOUR_GITHUB_CLIENT_ID>
