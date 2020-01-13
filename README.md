@@ -10,7 +10,7 @@
 
 ## Download
 
-App is available for Mac and Ubuntu and can be downloaded from website.
+App is available for Mac and Linux and can be downloaded from website.
 
 [Download App](https://ssh-git.app/download)
 
