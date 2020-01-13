@@ -24,7 +24,6 @@ ssh-git is available for Mac and Ubuntu and can be downloaded from website.
 ### Core:
 
 - [Electron](https://electronjs.org/)
-
 - [ReactJS](https://reactjs.org/)
 - [TailwindCss](https://tailwindcss.com/)
 - [node-pty](https://github.com/microsoft/node-pty)
