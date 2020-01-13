@@ -5,9 +5,8 @@
 
 **ssh-git** is a desktop app to manage SSH keys for Github, Bitbucket and Gitlab accounts. [More info](https://ssh-git.app)
 
-<br/>
-
 ![Screenshot](screenshots/promo.png)
+<br/>
 
 ## Download
 
@@ -24,14 +23,14 @@ App is available for Mac and Ubuntu and can be downloaded from website.
 
 ## Tech
 
-### Core:
+#### Core:
 
 - [Electron](https://electronjs.org/)
 - [ReactJS](https://reactjs.org/)
 - [TailwindCss](https://tailwindcss.com/)
 - [node-pty](https://github.com/microsoft/node-pty)
 
-### Tooling:
+#### Tooling:
 
 - [Parcel](https://parceljs.org/)
 - [Electron-Builder](https://www.electron.build/)
