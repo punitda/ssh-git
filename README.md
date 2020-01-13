@@ -77,7 +77,7 @@ BITBUCKET_CLIENT_ID=<YOUR_BITBUCKET_CLIENT_ID>
 
 This project is free to download and use but it has fix upfront cost to keep it running. So, if you use this app frequently to setup SSH keys for your accounts please consider donating 🙏
 
-<img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;"></a>
+<a href="https://www.buymeacoffee.com/X3fCyWh" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
 ## License:
 
