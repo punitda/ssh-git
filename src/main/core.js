@@ -20,9 +20,6 @@ const {
   chunksToLinesAsync,
 } = require('@rauschma/stringio');
 
-// dialog wrapper
-const dialog = require('./dialog');
-
 // utils
 const {
   getCommands,
