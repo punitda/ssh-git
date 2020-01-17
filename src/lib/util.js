@@ -1,9 +1,14 @@
 const { providers } = require('../lib/config');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
 
 function getCommands(config) {
-  const rsaFilePath = path.join(os.homedir(), '.ssh', config.rsaFileName);
+  const sshDir = path.join(os.homedir(), '.ssh');
+  const rsaFilePath = path.join(sshDir, config.rsaFileName);
+
+  if (!fs.existsSync(sshDir)) fs.mkdirSync(sshDir); // Making sure we create ".ssh" directory if doesn't exists before proceeding to generate keys
+
   if (process.platform === 'darwin') {
     return [
       `ssh-keygen -t rsa -b 4096 -C "${config.email}" -f ${config.rsaFileName} -P ${config.passphrase}`,
