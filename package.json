@@ -1,7 +1,7 @@
 {
   "name": "ssh-git",
   "productName": "ssh-git",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "App used to manage ssh keys for Github, Bitbucket and Gitlab accounts",
   "repository": "https://github.com/punitda/ssh-git.git",
   "author": "punitdama <punitdama@gmail.com>",
