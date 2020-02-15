@@ -452,11 +452,81 @@ async function parseSSHConfigFile() {
   }
 }
 
+async function getSshConfig() {
+  // When ssh config file doesn't exists do early return with empty array
+  if (!fs.existsSync(sshConfigFileLocation)) {
+    return [];
+  }
+
+  const sshConfigFileContents = await readFileAsync(sshConfigFileLocation, {
+    encoding: 'utf8',
+  });
+  const configs = SSHConfig.parse(sshConfigFileContents);
+
+  // Running reduce on configs and obtaining following values:
+  // 1. Host(check for '-' and get username from it)
+  // 2. Get HostName(provider)
+  // 3. IdentityFile(path),
+  // 4. Mode(if it contains '-' in host value then it is MULTI mode)
+  const userConfig = configs.reduce((acc, config) => {
+    const sshConfig = {};
+
+    const { param: key, value: host } = config;
+    sshConfig.username = findUsername({ key, host });
+
+    const { config: providerConfig } = config;
+    providerConfig.forEach(key => {
+      switch (key.param) {
+        case 'HostName':
+          sshConfig.provider = key.value;
+          break;
+        case 'IdentityFile':
+          sshConfig.path = key.value;
+          break;
+        default:
+          break;
+      }
+    });
+
+    sshConfig.username
+      ? (sshConfig.mode = 'MULTI')
+      : (sshConfig.mode = 'SINGLE');
+
+    acc.push(sshConfig);
+    return acc;
+  }, []);
+
+  return userConfig.filter(
+    config =>
+      config.provider.includes('github.com') ||
+      config.provider.includes('bitbucket.org') ||
+      config.provider.includes('gitlab.com')
+  );
+}
+
+function findUsername({ key, host }) {
+  let username = '';
+  if (key === 'Host') {
+    if (!host.includes('-')) {
+      return username;
+    } else if (
+      host.includes('github.com-') ||
+      host.includes('gitlab.com-') ||
+      host.includes('bitbucket.org-')
+    ) {
+      const startIndex = host.indexOf('-');
+      username = host.substring(startIndex + 1, host.length);
+    }
+  }
+  return username;
+}
+
 module.exports = {
   generateKey,
   getPublicKey,
   cloneRepo,
   updateRemoteUrl,
   parseSSHConfigFile,
+  getSshConfig,
   doKeyAlreadyExists,
 };

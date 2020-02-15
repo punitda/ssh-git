@@ -20,15 +20,30 @@ const dialog = require('./dialog');
 const notification = require('./notification');
 
 const isDev = require('../lib/electron-is-dev');
+const { importStore, exportStore } = require('./import-export-store');
 
 // Register for all ipc channel in the app over here once.
 function register() {
+  registerIpcForStore();
   registerGeneralIpcs();
   registerIpcForConnectAccountScreen();
   registerIpcForGenerateKeyScreen();
   registerIpcForAddKeyScreen();
   registerIpcForUpdateRemoteScreen();
   if (!isDev) registerIpcForAnalytics();
+}
+
+function registerIpcForStore() {
+  ipc.answerRenderer('import-store', async () => {
+    const storeSnapshot = await importStore();
+    return storeSnapshot;
+  });
+
+  ipc.answerRenderer('export-store', ({ snapshot }) => {
+    if (snapshot.sshKeys && snapshot.sshKeys.length > 0) {
+      exportStore(snapshot.sshKeys);
+    }
+  });
 }
 
 function registerGeneralIpcs() {

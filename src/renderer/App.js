@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Router,
   createMemorySource,
@@ -15,6 +15,12 @@ import UpdateRemoteDirect from './pages/updateremote/UpdateRemoteDirect';
 import { AuthStateContext } from './Context';
 import { trackScreen } from './analytics';
 
+import { observer } from 'mobx-react-lite';
+import { useStore } from './StoreProvider';
+
+import { onSnapshot } from 'mobx-state-tree';
+import { toJS } from 'mobx';
+
 //In-Memory Router
 const source = createMemorySource('/');
 export const history = createHistory(source);
@@ -27,12 +33,32 @@ history.listen(({ location }) => {
   }
 });
 
-//Github token workaround.
-import { oauth } from '../lib/config';
+const App = observer(() => {
+  const { keyStore } = useStore();
+  console.log('keyStore:', toJS(keyStore));
 
-function App() {
-  const state = useState({
-    authState: { state: '', token: '', selectedProvider: '' },
+  React.useEffect(() => {
+    async function importStore() {
+      const storeSnapshot = await window.ipc.callMain('import-store');
+      keyStore.addKeys(storeSnapshot);
+    }
+
+    importStore();
+  }, []);
+
+  React.useEffect(() => {
+    return () =>
+      onSnapshot(keyStore, snapshot => {
+        window.ipc.callMain('export-store', { snapshot });
+      });
+  }, []);
+
+  const state = React.useState({
+    authState: {
+      state: '',
+      token: '',
+      selectedProvider: '',
+    },
   });
 
   function navigateTo(path) {
@@ -50,5 +76,6 @@ function App() {
       </LocationProvider>
     </AuthStateContext.Provider>
   );
-}
+});
+
 export default App;

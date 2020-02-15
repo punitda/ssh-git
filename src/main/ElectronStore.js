@@ -13,4 +13,10 @@ const TrackingIdStore = new Store({
   },
 });
 
-module.exports = { VersionStore, TrackingIdStore };
+const KeyStore = new Store({
+  defaults: {
+    keyStore: [],
+  },
+});
+
+module.exports = { VersionStore, TrackingIdStore, KeyStore };
