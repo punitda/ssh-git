@@ -31,6 +31,8 @@ const {
   getDefaultShell,
 } = require('../lib/util');
 
+const { providers } = require('../lib/config');
+
 // Paths to be used in core logic
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
@@ -91,15 +93,21 @@ async function overrideExistingKeys(fileName) {
   return [privateKeyDeleted, publickKeyDeleted];
 }
 
-function doKeyAlreadyExists(selectedProvider, username) {
-  const privateKeyFilePath = path.join(
-    sshDir,
-    `${selectedProvider}_${username}_id_rsa`
-  );
-  const publicKeyFilePath = path.join(
-    sshDir,
-    `${selectedProvider}_${username}_id_rsa.pub`
-  );
+function doKeyAlreadyExists(selectedProvider, mode, username) {
+  let privateKeyFilePath, publicKeyFilePath;
+  if (mode === 'MULTI') {
+    privateKeyFilePath = path.join(
+      sshDir,
+      `${selectedProvider}_${username}_id_rsa`
+    );
+    publicKeyFilePath = path.join(
+      sshDir,
+      `${selectedProvider}_${username}_id_rsa.pub`
+    );
+  } else {
+    privateKeyFilePath = path.join(sshDir, `${selectedProvider}_id_rsa`);
+    publicKeyFilePath = path.join(sshDir, `${selectedProvider}_id_rsa.pub`);
+  }
 
   return fs.existsSync(publicKeyFilePath) || fs.existsSync(privateKeyFilePath);
 }
@@ -477,9 +485,18 @@ async function getSshConfig() {
     const { config: providerConfig } = config;
     providerConfig.forEach(key => {
       switch (key.param) {
-        case 'HostName':
-          sshConfig.provider = key.value;
+        case 'HostName': {
+          if (key.value.includes('github.com')) {
+            sshConfig.provider = providers.GITHUB;
+          } else if (key.value.includes('bitbucket.org')) {
+            sshConfig.provider = providers.BITBUCKET;
+          } else if (key.value.includes('gitlab.com')) {
+            sshConfig.provider = providers.GITLAB;
+          } else {
+            sshConfig.provider = key.value;
+          }
           break;
+        }
         case 'IdentityFile':
           sshConfig.path = key.value;
           break;
@@ -498,9 +515,9 @@ async function getSshConfig() {
 
   return userConfig.filter(
     config =>
-      config.provider.includes('github.com') ||
-      config.provider.includes('bitbucket.org') ||
-      config.provider.includes('gitlab.com')
+      config.provider.includes(providers.GITHUB) ||
+      config.provider.includes(providers.BITBUCKET) ||
+      config.provider.includes(providers.GITLAB)
   );
 }
 
@@ -521,6 +538,24 @@ function findUsername({ key, host }) {
   return username;
 }
 
+function getRsaFilePath(config) {
+  let rsaFilePath;
+  if (config.mode === 'MULTI') {
+    rsaFilePath = path.join(
+      os.homedir(),
+      '.ssh',
+      `${config.selectedProvider}_${config.username}_id_rsa`
+    );
+  } else {
+    rsaFilePath = path.join(
+      os.homedir(),
+      '.ssh',
+      `${config.selectedProvider}_id_rsa`
+    );
+  }
+  return rsaFilePath;
+}
+
 module.exports = {
   generateKey,
   getPublicKey,
@@ -529,4 +564,5 @@ module.exports = {
   parseSSHConfigFile,
   getSshConfig,
   doKeyAlreadyExists,
+  getRsaFilePath,
 };

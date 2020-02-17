@@ -13,6 +13,7 @@ const {
   updateRemoteUrl,
   parseSSHConfigFile,
   doKeyAlreadyExists,
+  getRsaFilePath,
 } = require('./core');
 
 // dialog wrapper
@@ -21,6 +22,7 @@ const notification = require('./notification');
 
 const isDev = require('../lib/electron-is-dev');
 const { importStore, exportStore } = require('./import-export-store');
+const { KeyStore } = require('./ElectronStore');
 
 // Register for all ipc channel in the app over here once.
 function register() {
@@ -43,6 +45,10 @@ function registerIpcForStore() {
     if (snapshot.sshKeys && snapshot.sshKeys.length > 0) {
       exportStore(snapshot.sshKeys);
     }
+  });
+
+  ipc.answerRenderer('clear-store', () => {
+    KeyStore.delete('keyStore');
   });
 }
 
@@ -69,16 +75,25 @@ function registerIpcForConnectAccountScreen() {
 function registerIpcForGenerateKeyScreen() {
   ipc.answerRenderer(
     'check-key-already-exists',
-    async ({ selectedProvider, username }) => {
-      const keyAlreadyExists = doKeyAlreadyExists(selectedProvider, username);
+    async ({ selectedProvider, mode, username }) => {
+      const keyAlreadyExists = doKeyAlreadyExists(
+        selectedProvider,
+        mode,
+        username
+      );
       return keyAlreadyExists;
     }
   );
 
   ipc.answerRenderer(
     'ask-to-override-keys',
-    async ({ selectedProvider, username }) => {
-      const rsaFileName = `${selectedProvider}_${username}_id_rsa`;
+    async ({ selectedProvider, mode, username }) => {
+      let rsaFileName;
+      if (mode === 'MULTI') {
+        rsaFileName = `${selectedProvider}_${username}_id_rsa`;
+      } else {
+        rsaFileName = `${selectedProvider}_id_rsa`;
+      }
       const userResponse = await dialog.showOverrideKeysDialog(rsaFileName);
       return userResponse === 0 ? true : false;
     }
@@ -88,8 +103,10 @@ function registerIpcForGenerateKeyScreen() {
   ipc.answerRenderer('generate-key', async config => {
     try {
       const result = await generateKey(config);
+      const rsaFilePath = getRsaFilePath(config);
       if (result === 0) {
         return {
+          rsaFilePath,
           success: true,
           error: null,
         };

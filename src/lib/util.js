@@ -26,15 +26,30 @@ function getCommands(config) {
 
 function createSshConfig(config) {
   let sshConfig = {};
-  //Check for bitbucket because it is `.org`
-  if (config.selectedProvider === providers.BITBUCKET) {
-    sshConfig.host = `${config.selectedProvider}.org-${config.username}`;
-    sshConfig.hostName = `${config.selectedProvider}.org`;
-  } else {
-    sshConfig.host = `${config.selectedProvider}.com-${config.username}`;
-    sshConfig.hostName = `${config.selectedProvider}.com`;
+  switch (config.mode) {
+    case 'SINGLE':
+      if (config.selectedProvider === providers.BITBUCKET) {
+        sshConfig.host = `${config.selectedProvider}.org`;
+        sshConfig.hostName = `${config.selectedProvider}.org`;
+      } else {
+        sshConfig.host = `${config.selectedProvider}.com`;
+        sshConfig.hostName = `${config.selectedProvider}.com`;
+      }
+      sshConfig.rsaFileName = `${config.selectedProvider}_id_rsa`;
+      break;
+    case 'MULTI':
+      if (config.selectedProvider === providers.BITBUCKET) {
+        sshConfig.host = `${config.selectedProvider}.org-${config.username}`;
+        sshConfig.hostName = `${config.selectedProvider}.org`;
+      } else {
+        sshConfig.host = `${config.selectedProvider}.com-${config.username}`;
+        sshConfig.hostName = `${config.selectedProvider}.com`;
+      }
+      sshConfig.rsaFileName = `${config.selectedProvider}_${config.username}_id_rsa`;
+      break;
+    default:
+      break;
   }
-  sshConfig.rsaFileName = `${config.selectedProvider}_${config.username}_id_rsa`;
 
   return { ...sshConfig, ...config };
 }

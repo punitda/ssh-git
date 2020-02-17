@@ -95,6 +95,11 @@ function renderHomePage(keyStore, navigateTo) {
       <h1 className="text-2xl text-gray-900 text-center mt-8">
         Manage SSH keys
       </h1>
+      <button
+        onClick={() => window.ipc.callMain('clear-store')}
+        className="absolute right-0 top-0 bg-red-500 text-red-100 rounded mt-20 mr-2 p-2">
+        Clear KeyStore
+      </button>
       <div className="mt-12 flex flex-row justify-center flex-wrap items-center max-w-2xl mx-auto">
         {keyStore.sshKeys.map(key => {
           const image = images[key.provider];
@@ -186,15 +191,15 @@ const steps = [
 ];
 
 const images = {
-  'github.com': {
+  github: {
     displayName: 'GitHub',
     icon: githublogo,
   },
-  'bitbucket.org': {
+  bitbucket: {
     displayName: 'Bitbucket',
     icon: bitbucketlogo,
   },
-  'gitlab.com': {
+  gitlab: {
     displayName: 'GitLab',
     icon: gitlablogo,
   },

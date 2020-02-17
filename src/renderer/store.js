@@ -2,11 +2,7 @@ import { types } from 'mobx-state-tree';
 
 const SshKey = types
   .model('sshkey', {
-    provider: types.enumeration('provider', [
-      'github.com',
-      'bitbucket.org',
-      'gitlab.com',
-    ]),
+    provider: types.enumeration('provider', ['github', 'bitbucket', 'gitlab']),
     mode: types.enumeration('mode', ['SINGLE', 'MULTI']),
     path: types.string,
     username: types.string,
@@ -19,7 +15,7 @@ const SshKey = types
   })
   .actions(self => ({
     resetKey() {
-      self.provider = 'github.com';
+      self.provider = 'github';
       self.email = '';
       self.username = '';
       self.avatar_url = '';
@@ -74,7 +70,7 @@ const KeyStore = types
         email = '',
         avatar_url = '',
         bitbucket_uuid = '',
-        label = ''
+        label = '',
       } = key;
 
       self.sshKeys.push({
@@ -85,7 +81,7 @@ const KeyStore = types
         email,
         avatar_url,
         bitbucket_uuid,
-        label
+        label,
       });
     },
     addKeys(keys) {
@@ -98,7 +94,7 @@ const KeyStore = types
           email = '',
           avatar_url = '',
           bitbucket_uuid = '',
-          label = ''
+          label = '',
         } = key;
 
         self.sshKeys.push({
@@ -109,7 +105,7 @@ const KeyStore = types
           email,
           avatar_url,
           bitbucket_uuid,
-          label
+          label,
         });
       });
     },
@@ -126,7 +122,7 @@ const KeyStore = types
 const RootStore = types.model('RootStore', {
   keyStore: types.optional(KeyStore, {}),
   sessionStore: types.optional(SshKey, {
-    provider: 'github.com',
+    provider: 'github',
     username: '',
     path: '',
     mode: 'SINGLE',

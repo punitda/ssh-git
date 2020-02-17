@@ -16,8 +16,15 @@ import checkMarkAnimationData from '../../../assets/lottie/checkmark.json';
 import useLottieAnimation from '../../hooks/useLottieAnimation';
 import { trackEvent } from '../../analytics';
 
-function AddKey({ onNext }) {
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../../StoreProvider';
+import { toJS } from 'mobx';
+
+const AddKey = observer(({ onNext }) => {
   const [authState] = useContext(AuthStateContext);
+  const { sessionStore } = useStore();
+  console.log('sessionStore AddKey:', toJS(sessionStore));
+
   const {
     selectedProvider = null,
     bitbucket_uuid = null,
@@ -303,7 +310,7 @@ function AddKey({ onNext }) {
       </div>
     </div>
   );
-}
+});
 
 const nextPageConfirmationModalProps = {
   triggerText: 'Done',

@@ -1,8 +1,7 @@
 // External libs
-import React, { useContext, useState, useEffect, useReducer } from 'react';
+import React from 'react';
 
 // Internal React
-import { AuthStateContext } from '../../Context';
 import useRequestUserProfile from '../../hooks/useRequestUserProfile';
 import fetchReducer from '../../reducers/fetchReducer';
 
@@ -12,29 +11,35 @@ import SquareLoader from 'react-spinners/SquareLoader';
 import { trackEvent } from '../../analytics';
 import toaster, { Position } from 'toasted-notes';
 
-const GenerateKey = ({ onNext }) => {
-  const [authState, setAuthState] = useContext(AuthStateContext);
-  const { token = null, selectedProvider = null } = authState;
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../../StoreProvider';
+import { toJS } from 'mobx';
+
+const GenerateKey = observer(({ onNext }) => {
+  const { sessionStore } = useStore();
+  console.log('sessionStore: GenerateKey', toJS(sessionStore));
 
   const [{ data, isLoading, isError }] = useRequestUserProfile(
-    selectedProvider,
-    token
+    sessionStore.provider,
+    sessionStore.token
   );
 
   const { email = '', username = '', avatar_url = '', bitbucket_uuid = '' } =
     data || {};
 
   // State used to store user input
-  const [passphrase, setPassPhrase] = useState('');
-  const [passphraseError, setPassPhraseError] = useState('');
-  const [userProvidedEmail, setUserProvidedEmail] = useState('');
+  const [passphrase, setPassPhrase] = React.useState('');
+  const [passphraseError, setPassPhraseError] = React.useState('');
+  const [userProvidedEmail, setUserProvidedEmail] = React.useState('');
 
   // State used to store whether key already exists or not for current selectedProvider and username.
-  const [keyAlreadyExists, setKeyAlreadyExists] = useState(false);
-  const [isLinux, setIsLinux] = useState(false);
+  const [keyAlreadyExists, setKeyAlreadyExists] = React.useState(false);
+  const [isLinux, setIsLinux] = React.useState(false);
 
   // Used to keep check whether notification was shown to user or not and to avoid showing it again.
-  const [linuxNotificationShown, setLinuxNotificationShown] = useState(false);
+  const [linuxNotificationShown, setLinuxNotificationShown] = React.useState(
+    false
+  );
 
   // Use to store several states of UI for generateKey process
   const [
@@ -44,42 +49,46 @@ const GenerateKey = ({ onNext }) => {
       data: generateKeySuccess,
     },
     dispatch,
-  ] = useReducer(fetchReducer, {
+  ] = React.useReducer(fetchReducer, {
     isLoading: false,
     isError: false,
     data: null,
   });
 
   // Effect to save user details like username , email and bitbucket_uuid in our auth store.
-  useEffect(() => {
-    setAuthState(prevState => ({
-      ...prevState,
-      username,
-      email,
-      bitbucket_uuid,
-    }));
-  }, [username, email, bitbucket_uuid]);
+  React.useEffect(() => {
+    if (username) sessionStore.addUserName(username);
+    if (email) sessionStore.addEmail(email);
+    if (userProvidedEmail) sessionStore.addEmail(userProvidedEmail);
+    if (bitbucket_uuid) sessionStore.addBitbucketUUID(bitbucket_uuid);
+    if (avatar_url) sessionStore.addAvatarUrl(avatar_url);
+  }, [username, email, bitbucket_uuid, userProvidedEmail, avatar_url]);
 
   // Effect run to check if key for "selectedProvider" and "username" exists in ssh/config folder
-  useEffect(() => {
-    async function checkIfKeyAlreadyExists(selectedProvider, username) {
+  React.useEffect(() => {
+    async function checkIfKeyAlreadyExists(selectedProvider, mode, username) {
       const keyAlreadyExists = await window.ipc.callMain(
         'check-key-already-exists',
         {
           selectedProvider,
+          mode,
           username,
         }
       );
       setKeyAlreadyExists(keyAlreadyExists);
     }
 
-    if (selectedProvider && username) {
-      checkIfKeyAlreadyExists(selectedProvider, username);
+    if (sessionStore.provider && username) {
+      checkIfKeyAlreadyExists(
+        sessionStore.provider,
+        sessionStore.mode,
+        username
+      );
     }
-  }, [selectedProvider, username]);
+  }, [sessionStore.provider, username]);
 
   // Get platform value from main process on mount(runs once)
-  useEffect(() => {
+  React.useEffect(() => {
     async function isLinuxOS() {
       const isLinux = await window.ipc.callMain('check-if-linux');
       setIsLinux(isLinux);
@@ -89,7 +98,7 @@ const GenerateKey = ({ onNext }) => {
 
   // Close all notifications on unmount.
   // Using unmount method of useEffect() to remove all notifications displayed.
-  useEffect(() => {
+  React.useEffect(() => {
     return () => {
       toaster.closeAll();
     };
@@ -98,7 +107,7 @@ const GenerateKey = ({ onNext }) => {
   // Effect which shows notification as soon as user enters passphrase.
   // After passphrase is entered and user is shown notification and then we set `linuxNotificationShown` to "true" indicating
   // that notification is already shown to user and use it to not show notification again
-  useEffect(() => {
+  React.useEffect(() => {
     if (isLinux) {
       showPassphraseNotification();
     }
@@ -153,7 +162,8 @@ const GenerateKey = ({ onNext }) => {
     let overrideKeys = false;
     if (keyAlreadyExists) {
       overrideKeys = await window.ipc.callMain('ask-to-override-keys', {
-        selectedProvider,
+        selectedProvider: sessionStore.provider,
+        mode: sessionStore.mode,
         username,
       });
       if (!overrideKeys) {
@@ -166,11 +176,12 @@ const GenerateKey = ({ onNext }) => {
 
     // All good, please generate key now.
     const config = {
-      selectedProvider,
+      selectedProvider: sessionStore.provider,
       username,
       email: email ? email : userProvidedEmail,
       passphrase,
       overrideKeys,
+      mode: sessionStore.mode,
     };
     generateKey(config);
     trackEvent('setup-flow', 'generate-key');
@@ -199,9 +210,10 @@ const GenerateKey = ({ onNext }) => {
   async function generateKey(config) {
     dispatch({ type: 'FETCH_INIT' }); // Triggers loading state
     const result = await window.ipc.callMain('generate-key', config);
-    const { error, success } = result;
+    const { error, success, rsaFilePath } = result;
 
     if (success) {
+      sessionStore.addKeyPath(rsaFilePath);
       dispatch({ type: 'FETCH_SUCCESS', payload: { keyGenerated: true } });
       setTimeout(() => onNext('oauth/add'), 1500);
     } else if (error) {
@@ -277,7 +289,7 @@ const GenerateKey = ({ onNext }) => {
               The above passphrase that you will enter will be used to password
               protect the SSH keys that would be generated. Please do not use
               your{' '}
-              <span className="font-bold text-gray-800">{`${selectedProvider}'s `}</span>
+              <span className="font-bold text-gray-800">{`${sessionStore.provider}'s `}</span>
               password for additional security.
             </p>
           </div>
@@ -312,7 +324,7 @@ const GenerateKey = ({ onNext }) => {
       </button>
     </div>
   );
-};
+});
 
 const styles = {
   emailExists: `text-gray-600 text-lg bg-gray-200 px-4 py-2 mt-2 rounded border-2 w-full`,

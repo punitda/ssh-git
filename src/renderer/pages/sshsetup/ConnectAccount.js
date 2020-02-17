@@ -1,8 +1,6 @@
 // external libs
-import React, { useContext, useEffect, useState, useReducer } from 'react';
+import React from 'react';
 
-// internal React
-import { AuthStateContext } from '../../Context';
 import { getOauthUrlsForBasicInfo } from '../../service/api';
 import fetchReducer from '../../reducers/fetchReducer';
 
@@ -17,43 +15,53 @@ import gitlablogo from '../../../assets/img/gitlab_logo.png';
 
 import { trackEvent } from '../../analytics';
 
-function ConnectAccount({ onNext }) {
-  // Using context to access Auth store
-  const [authState, setAuthState] = useContext(AuthStateContext);
-  const { state } = authState;
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../../StoreProvider';
+import { toJS } from 'mobx';
 
-  // Store currently selected provider by user.
-  const [selectedProvider, setSelectedProvider] = useState('');
+const ConnectAccount = observer(({ onNext }) => {
+  // Using context to access Auth store
+  const { sessionStore, keyStore } = useStore();
+  console.log('sessionStore: ConnectAccount', toJS(sessionStore));
 
   // Used to manage button state based on whether connect-account was successfull or not.
-  const [{ isLoading: isConnecting, isError, data }, dispatch] = useReducer(
-    fetchReducer,
-    {
-      isLoading: false,
-      isError: false,
-      data: null,
-    }
-  );
+  const [
+    { isLoading: isConnecting, isError, data },
+    dispatch,
+  ] = React.useReducer(fetchReducer, {
+    isLoading: false,
+    isError: false,
+    data: null,
+  });
 
-  useEffect(() => {
+  React.useEffect(() => {
+    sessionStore.resetKey();
+  }, []);
+
+  React.useEffect(() => {
+    sessionStore.addMode(keyStore.getMode(sessionStore.provider));
+  }, [sessionStore.provider]);
+
+  React.useEffect(() => {
     let dispose;
 
     async function startListeningForRedirectUri() {
       dispose = window.ipc.answerMain('connect-account', async result => {
-        if (state === result.state) {
-          setAuthState(prevState => ({ ...prevState, ...result }));
+        if (sessionStore.state === result.state) {
+          sessionStore.addToken(result.token);
+          sessionStore.addState(result.state);
 
           dispatch({
             type: 'FETCH_SUCCESS',
             payload: { accountConnected: true },
           });
           setTimeout(() => onNext('oauth/generate'), 1500);
-          trackEvent('setup-flow', `${selectedProvider}-connect-success`);
+          trackEvent('setup-flow', `${sessionStore.provider}-connect-success`);
 
           return true;
         } else {
           dispatch({ type: 'FETCH_ERROR' });
-          trackEvent('setup-flow', `${selectedProvider}-connect-error`);
+          trackEvent('setup-flow', `${sessionStore.provider}-connect-error`);
           return false;
         }
       });
@@ -63,20 +71,17 @@ function ConnectAccount({ onNext }) {
     return () => {
       if (dispose) dispose();
     };
-  }, [state]);
+  }, [sessionStore.state]);
 
   // Click listener for button `Connect`.
   function connectToProvider() {
     dispatch({ type: 'FETCH_INIT' });
-    const { url, state } = getOauthUrlsForBasicInfo(selectedProvider);
+    const { url, state } = getOauthUrlsForBasicInfo(sessionStore.provider);
 
-    setAuthState(prevState => ({
-      ...prevState,
-      state,
-      selectedProvider,
-    }));
+    sessionStore.addState(state);
+
     openExternal(url);
-    trackEvent('setup-flow', `${selectedProvider}-connect`);
+    trackEvent('setup-flow', `${sessionStore.provider}-connect`);
   }
 
   return (
@@ -89,11 +94,11 @@ function ConnectAccount({ onNext }) {
           <button
             key={provider.name}
             className={
-              selectedProvider === provider.name
+              sessionStore.provider === provider.name
                 ? styles.selectedProvider
                 : styles.unSelectedProvider
             }
-            onClick={_e => setSelectedProvider(provider.name)}>
+            onClick={_e => sessionStore.addProvider(provider.name)}>
             <img
               src={provider.icon}
               width={provider.iconWidth}
@@ -116,7 +121,7 @@ function ConnectAccount({ onNext }) {
               ? `primary-btn-success`
               : `primary-btn`
           }
-          disabled={selectedProvider === '' || isConnecting || data}>
+          disabled={isConnecting || data}>
           {isConnecting
             ? 'Connecting'
             : isError
@@ -128,7 +133,8 @@ function ConnectAccount({ onNext }) {
       </div>
     </>
   );
-}
+});
+
 export default ConnectAccount;
 
 const styles = {
