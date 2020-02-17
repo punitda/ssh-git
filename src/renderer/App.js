@@ -19,7 +19,6 @@ import { observer } from 'mobx-react-lite';
 import { useStore } from './StoreProvider';
 
 import { onSnapshot } from 'mobx-state-tree';
-import { toJS } from 'mobx';
 
 //In-Memory Router
 const source = createMemorySource('/');
@@ -35,7 +34,6 @@ history.listen(({ location }) => {
 
 const App = observer(() => {
   const { keyStore } = useStore();
-  console.log('keyStore:', toJS(keyStore));
 
   React.useEffect(() => {
     async function importStore() {
@@ -47,10 +45,10 @@ const App = observer(() => {
   }, []);
 
   React.useEffect(() => {
-    return () =>
-      onSnapshot(keyStore, snapshot => {
-        window.ipc.callMain('export-store', { snapshot });
-      });
+    const dispose = onSnapshot(keyStore, snapshot => {
+      window.ipc.callMain('export-store', { snapshot });
+    });
+    return () => dispose();
   }, []);
 
   const state = React.useState({

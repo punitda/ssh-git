@@ -74,6 +74,7 @@ const KeyStore = types
         email = '',
         avatar_url = '',
         bitbucket_uuid = '',
+        label = ''
       } = key;
 
       self.sshKeys.push({
@@ -84,6 +85,7 @@ const KeyStore = types
         email,
         avatar_url,
         bitbucket_uuid,
+        label
       });
     },
     addKeys(keys) {
@@ -96,6 +98,7 @@ const KeyStore = types
           email = '',
           avatar_url = '',
           bitbucket_uuid = '',
+          label = ''
         } = key;
 
         self.sshKeys.push({
@@ -106,6 +109,7 @@ const KeyStore = types
           email,
           avatar_url,
           bitbucket_uuid,
+          label
         });
       });
     },
