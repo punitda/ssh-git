@@ -18,7 +18,7 @@ import { useStore } from '../../StoreProvider';
 import { toJS } from 'mobx';
 
 const AddKey = observer(({ onNext }) => {
-  const { sessionStore } = useStore();
+  const { sessionStore, keyStore } = useStore();
   console.log('sessionStore AddKey:', toJS(sessionStore));
 
   const textareaRef = React.useRef(null); // need ref to get textarea's node to use `copy` command on it for copying to clipboard.
@@ -100,6 +100,7 @@ const AddKey = observer(({ onNext }) => {
 
   // Open next screen using url link
   function openNextPage() {
+    keyStore.addKey(sessionStore);
     onNext('oauth/clone');
   }
 
