@@ -16,7 +16,7 @@ import { useStore } from '../../StoreProvider';
 import { toJS } from 'mobx';
 
 const GenerateKey = observer(({ onNext }) => {
-  const { sessionStore } = useStore();
+  const { sessionStore, keyStore } = useStore();
   console.log('sessionStore: GenerateKey', toJS(sessionStore));
 
   const [{ data, isLoading, isError }] = useRequestUserProfile(
@@ -79,6 +79,19 @@ const GenerateKey = observer(({ onNext }) => {
     }
 
     if (sessionStore.provider && username) {
+      // Check if we have already have a key in our "keystore"
+      // with same provider and username combination.
+      const keyAlreadyExistsInStore = keyStore.checkIfKeyAlreadyExists(
+        sessionStore.provider,
+        username
+      );
+      if (keyAlreadyExistsInStore) {
+        showKeyAlreadyExistsNotification(sessionStore.provider, username);
+        return;
+      }
+
+      // If we don't find anything matching in "keyStore" we go ahead
+      // and check if keys based on provider, mode and username exists in file system
       checkIfKeyAlreadyExists(
         sessionStore.provider,
         sessionStore.mode,
@@ -151,6 +164,44 @@ const GenerateKey = observer(({ onNext }) => {
         { duration: null, position: Position['top-right'] }
       );
     }
+  }
+
+  function showKeyAlreadyExistsNotification(provider, username) {
+    toaster.notify(
+      ({ onClose }) => {
+        return (
+          <div className="mt-24 mr-8 w-64">
+            <div className="w-full h-auto py-2 px-4 rounded-lg shadow-xl bg-red-500 text-white text-sm">
+              <p>
+                We found out that for{' '}
+                <span className="font-bold">{`${provider}`}</span> account with
+                username <span className="font-bold">{`"${username}"`}</span>{' '}
+                you've already created the SSH key. Do you want to regenerate
+                the key? If yes, you can now regenerate it from the Home screen
+                in few simple steps. :)
+              </p>
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 absolute right-0 top-0 mt-24 mr-2"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#f56565"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              onClick={() => onClose()}>
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+        );
+      },
+      { duration: null, position: Position['top-right'] }
+    );
   }
   // Generate Key click listener
   async function onGenerateKeyClick(_event) {

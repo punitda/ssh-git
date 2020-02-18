@@ -117,6 +117,14 @@ const KeyStore = types
       );
       return matchingProviders.length > 0 ? 'MULTI' : 'SINGLE';
     },
+    checkIfKeyAlreadyExists(provider, username) {
+      if (!username) return false;
+
+      const matches = self.sshKeys.filter(
+        sshKey => sshKey.provider === provider && sshKey.username === username
+      );
+      return matches.length > 0;
+    },
   }));
 
 const RootStore = types.model('RootStore', {
