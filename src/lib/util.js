@@ -54,8 +54,12 @@ function createSshConfig(config) {
   return { ...sshConfig, ...config };
 }
 
-function getPublicKeyFileName(selectedProvider, username) {
-  return `${selectedProvider}_${username}_id_rsa.pub`;
+function getPublicKeyFileName(selectedProvider, mode, username) {
+  if (mode === 'MULTI') {
+    return `${selectedProvider}_${username}_id_rsa.pub`;
+  } else {
+    return `${selectedProvider}_id_rsa.pub`;
+  }
 }
 
 function getConfigFileContents(config) {

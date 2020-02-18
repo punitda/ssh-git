@@ -178,9 +178,13 @@ async function writePassPhraseToStdIn(writable, passphrase) {
   await streamEnd(writable);
 }
 
-// get contents of public key based on username and selectedProvider.
-async function getPublicKey(selectedProvider, username) {
-  const publicKeyFileName = getPublicKeyFileName(selectedProvider, username);
+// get contents of public key based on username, mode and selectedProvider.
+async function getPublicKey(selectedProvider, mode, username) {
+  const publicKeyFileName = getPublicKeyFileName(
+    selectedProvider,
+    mode,
+    username
+  );
   const publicKeyFilePath = path.join(os.homedir(), '.ssh', publicKeyFileName);
 
   try {

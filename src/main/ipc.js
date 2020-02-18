@@ -126,8 +126,8 @@ function registerIpcForAddKeyScreen() {
   // Listen to renderer process and send content of public key based on config passed
   ipc.answerRenderer('get-public-key', async data => {
     try {
-      const { selectedProvider, username } = data;
-      const publicKey = await getPublicKey(selectedProvider, username);
+      const { selectedProvider, mode, username } = data;
+      const publicKey = await getPublicKey(selectedProvider, mode, username);
       return publicKey.toString();
     } catch (error) {
       return null;
