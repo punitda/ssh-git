@@ -84,6 +84,12 @@ const KeyStore = types
         label,
       });
     },
+    removeKey(provider, username) {
+      const keyIndex = self.sshKeys.findIndex(
+        sshKey => sshKey.provider === provider && sshKey.username === username
+      );
+      self.sshKeys.splice(keyIndex, 1);
+    },
     addKeys(keys) {
       keys.forEach(key => {
         const {

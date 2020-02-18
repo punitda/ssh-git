@@ -32,8 +32,20 @@ const GenerateKey = observer(({ onNext }) => {
   const [passphraseError, setPassPhraseError] = React.useState('');
   const [userProvidedEmail, setUserProvidedEmail] = React.useState('');
 
-  // State used to store whether key already exists or not for current selectedProvider and username.
-  const [keyAlreadyExists, setKeyAlreadyExists] = React.useState(false);
+  // State used to store whether key already exists or not
+  // for current selected provider, mode and username in "file system".
+  const [
+    keyAlreadyExistsInFileSystem,
+    setKeyAlreadyExistsInFileSystem,
+  ] = React.useState(false);
+
+  // State used to store whether key already exists or not
+  // for current selected provider and username in "KeyStore"
+  const [
+    keyAlreadyExistsInKeyStore,
+    setKeyAlreadyExistsInStore,
+  ] = React.useState(false);
+
   const [isLinux, setIsLinux] = React.useState(false);
 
   // Used to keep check whether notification was shown to user or not and to avoid showing it again.
@@ -67,7 +79,7 @@ const GenerateKey = observer(({ onNext }) => {
   // Effect run to check if key for "selectedProvider" and "username" exists in ssh/config folder
   React.useEffect(() => {
     async function checkIfKeyAlreadyExists(selectedProvider, mode, username) {
-      const keyAlreadyExists = await window.ipc.callMain(
+      const keyAlreadyExistsInFileSystem = await window.ipc.callMain(
         'check-key-already-exists',
         {
           selectedProvider,
@@ -75,7 +87,7 @@ const GenerateKey = observer(({ onNext }) => {
           username,
         }
       );
-      setKeyAlreadyExists(keyAlreadyExists);
+      setKeyAlreadyExistsInFileSystem(keyAlreadyExistsInFileSystem);
     }
 
     if (sessionStore.provider && username) {
@@ -85,9 +97,9 @@ const GenerateKey = observer(({ onNext }) => {
         sessionStore.provider,
         username
       );
+      setKeyAlreadyExistsInStore(keyAlreadyExistsInStore);
       if (keyAlreadyExistsInStore) {
         showKeyAlreadyExistsNotification(sessionStore.provider, username);
-        return;
       }
 
       // If we don't find anything matching in "keyStore" we go ahead
@@ -177,8 +189,7 @@ const GenerateKey = observer(({ onNext }) => {
                 <span className="font-bold">{`${provider}`}</span> account with
                 username <span className="font-bold">{`"${username}"`}</span>{' '}
                 you've already created the SSH key. Do you want to regenerate
-                the key? If yes, you can now regenerate it from the Home screen
-                in few simple steps. :)
+                the key?
               </p>
             </div>
             <svg
@@ -211,7 +222,7 @@ const GenerateKey = observer(({ onNext }) => {
 
     // Check if we key already exists with same name as `selectedProvider-username` before proceeding
     let overrideKeys = false;
-    if (keyAlreadyExists) {
+    if (keyAlreadyExistsInFileSystem) {
       overrideKeys = await window.ipc.callMain('ask-to-override-keys', {
         selectedProvider: sessionStore.provider,
         mode: sessionStore.mode,
@@ -265,6 +276,9 @@ const GenerateKey = observer(({ onNext }) => {
 
     if (success) {
       sessionStore.addKeyPath(rsaFilePath);
+      if (keyAlreadyExistsInKeyStore) {
+        keyStore.removeKey(sessionStore.provider, sessionStore.username);
+      }
       dispatch({ type: 'FETCH_SUCCESS', payload: { keyGenerated: true } });
       setTimeout(() => onNext('oauth/add'), 1500);
     } else if (error) {
