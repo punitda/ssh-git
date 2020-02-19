@@ -27,7 +27,7 @@ import { useStore } from '../../StoreProvider';
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-const UpdateRemoteStepped = observer(() => {
+const CloneRepo = observer(() => {
   const { sessionStore } = useStore();
   console.log('sessionStore:', toJS(sessionStore));
 
@@ -186,7 +186,9 @@ const UpdateRemoteStepped = observer(() => {
       setupSuccessAnimation.play();
       setTimeout(() => {
         setRecycleConfetti(false);
-        showNotification();
+        if (sessionStore.mode === 'MULTI') {
+          showNotification();
+        }
       }, 1500);
     }
   }
@@ -438,7 +440,7 @@ const UpdateRemoteStepped = observer(() => {
   );
 });
 
-export default UpdateRemoteStepped;
+export default CloneRepo;
 
 const cloneRepoModalProps = {
   triggerText: 'Clone Repo',

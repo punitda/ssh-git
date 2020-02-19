@@ -10,7 +10,7 @@ import StepsNavBar from '../../components/StepsNavBar';
 import ConnectAccount from './ConnectAccount';
 import GenerateKey from './GenerateKey';
 import AddKey from './AddKey';
-import UpdateRemoteStepped from '../updateremote/UpdateRemoteStepped';
+import CloneRepo from './CloneRepo';
 
 //Internal
 import { history } from '../../App';
@@ -52,7 +52,7 @@ export default function SSHSetup() {
         <ConnectAccount path="/connect" onNext={onNext} />
         <GenerateKey path="/generate" onNext={onNext} />
         <AddKey path="/add" onNext={onNext} />
-        <UpdateRemoteStepped path="/clone" />
+        <CloneRepo path="/clone" />
       </Router>
     </div>
   );
