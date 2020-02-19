@@ -153,6 +153,7 @@ function registerIpcForUpdateRemoteScreen() {
     const {
       selectedProvider,
       username,
+      mode,
       repoUrl,
       selectedFolder,
       shallowClone,
@@ -162,6 +163,7 @@ function registerIpcForUpdateRemoteScreen() {
       const { code, repoFolder } = await cloneRepo(
         selectedProvider,
         username,
+        mode,
         repoUrl,
         selectedFolder,
         shallowClone

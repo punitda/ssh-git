@@ -97,22 +97,28 @@ Host ${config.host}
 function getCloneRepoCommand(
   selectedProvider,
   username,
+  mode,
   repoUrl,
   disableLogging = true,
   shallowClone = false
 ) {
   let modifiedRepoUrl;
-  if (selectedProvider === providers.BITBUCKET) {
-    modifiedRepoUrl = repoUrl.replace(
-      `${selectedProvider}.org`,
-      `${selectedProvider}.org-${username}`
-    );
-  } else {
-    modifiedRepoUrl = repoUrl.replace(
-      `${selectedProvider}.com`,
-      `${selectedProvider}.com-${username}`
-    );
+  // we only need to change repo url in case of multi mode ssh key.
+  if (mode === 'MULTI') {
+    if (selectedProvider === providers.BITBUCKET) {
+      modifiedRepoUrl = repoUrl.replace(
+        `${selectedProvider}.org`,
+        `${selectedProvider}.org-${username}`
+      );
+    } else {
+      modifiedRepoUrl = repoUrl.replace(
+        `${selectedProvider}.com`,
+        `${selectedProvider}.com-${username}`
+      );
+    }
   }
+
+  modifiedRepoUrl = repoUrl;
 
   return `git clone ${modifiedRepoUrl} ${shallowClone ? '--depth=1' : ''} ${
     disableLogging ? `--quiet` : ''
