@@ -11,14 +11,13 @@ import Home from './pages/Home';
 import SSHSetup from './pages/sshsetup/SSHSetup';
 import UpdateRemoteDirect from './pages/updateremote/UpdateRemoteDirect';
 
-//Global app wide context to store user state.
-import { AuthStateContext } from './Context';
-import { trackScreen } from './analytics';
-
+// MST
 import { observer } from 'mobx-react-lite';
 import { useStore } from './StoreProvider';
-
 import { onSnapshot } from 'mobx-state-tree';
+
+// Analytics
+import { trackScreen } from './analytics';
 
 //In-Memory Router
 const source = createMemorySource('/');
@@ -51,28 +50,18 @@ const App = observer(() => {
     return () => dispose();
   }, []);
 
-  const state = React.useState({
-    authState: {
-      state: '',
-      token: '',
-      selectedProvider: '',
-    },
-  });
-
   function navigateTo(path) {
     history.navigate(path);
   }
 
   return (
-    <AuthStateContext.Provider value={state}>
-      <LocationProvider history={history}>
-        <Router>
-          <Home path="/" navigateTo={navigateTo} />
-          <SSHSetup path="/oauth/*" />
-          <UpdateRemoteDirect path="/updateRemoteDirect" />
-        </Router>
-      </LocationProvider>
-    </AuthStateContext.Provider>
+    <LocationProvider history={history}>
+      <Router>
+        <Home path="/" navigateTo={navigateTo} />
+        <SSHSetup path="/oauth/*" />
+        <UpdateRemoteDirect path="/updateRemoteDirect" />
+      </Router>
+    </LocationProvider>
   );
 });
 
