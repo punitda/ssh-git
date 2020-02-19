@@ -229,9 +229,9 @@ const CloneRepo = observer(() => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#4a5568"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 onClick={() => onClose()}>
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
