@@ -24,12 +24,10 @@ import toaster, { Position } from 'toasted-notes';
 import { trackEvent } from '../../analytics';
 
 import { useStore } from '../../StoreProvider';
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 const CloneRepo = observer(() => {
   const { sessionStore } = useStore();
-  console.log('sessionStore:', toJS(sessionStore));
 
   const cloneRepoButtonRef = React.useRef(null); //Used in clone repo modal for focusing reason
   const updateRemoteUrlButtonRef = React.useRef(null); // Used in update remote modal for focusing reason

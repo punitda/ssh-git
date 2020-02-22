@@ -15,11 +15,9 @@ import { trackEvent } from '../../analytics';
 
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../StoreProvider';
-import { toJS } from 'mobx';
 
 const AddKey = observer(({ onNext }) => {
   const { sessionStore, keyStore } = useStore();
-  console.log('sessionStore AddKey:', toJS(sessionStore));
 
   const textareaRef = React.useRef(null); // need ref to get textarea's node to use `copy` command on it for copying to clipboard.
   const nextPageButtonRef = React.useRef(null); // need ref for confirmation dialog button

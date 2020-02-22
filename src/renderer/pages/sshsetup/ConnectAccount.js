@@ -17,12 +17,10 @@ import { trackEvent } from '../../analytics';
 
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../StoreProvider';
-import { toJS } from 'mobx';
 
 const ConnectAccount = observer(({ onNext }) => {
   // Using context to access Auth store
   const { sessionStore, keyStore } = useStore();
-  console.log('sessionStore: ConnectAccount', toJS(sessionStore));
 
   // Used to manage button state based on whether connect-account was successfull or not.
   const [

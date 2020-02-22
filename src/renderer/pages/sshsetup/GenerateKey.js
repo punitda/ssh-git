@@ -13,11 +13,9 @@ import toaster, { Position } from 'toasted-notes';
 
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../StoreProvider';
-import { toJS } from 'mobx';
 
 const GenerateKey = observer(({ onNext }) => {
   const { sessionStore, keyStore } = useStore();
-  console.log('sessionStore: GenerateKey', toJS(sessionStore));
 
   const [{ data, isLoading, isError }] = useRequestUserProfile(
     sessionStore.provider,
