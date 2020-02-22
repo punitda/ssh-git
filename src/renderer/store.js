@@ -131,6 +131,16 @@ const KeyStore = types
       );
       return matches.length > 0;
     },
+    get keysGroupByProvider() {
+      return groupBy(self.sshKeys, 'provider', {
+        github: [],
+        bitbucket: [],
+        gitlab: [],
+      });
+    },
+    get totalNoOfKeys() {
+      return self.sshKeys.length;
+    },
   }));
 
 const RootStore = types.model('RootStore', {
@@ -144,5 +154,16 @@ const RootStore = types.model('RootStore', {
 });
 
 const store = RootStore.create({});
+
+function groupBy(objectArray, property, initialValue = {}) {
+  return objectArray.reduce((acc, obj) => {
+    const key = obj[property];
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(obj);
+    return acc;
+  }, initialValue);
+}
 
 export default store;

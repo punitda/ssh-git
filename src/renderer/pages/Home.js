@@ -10,14 +10,10 @@ import Typical from 'react-typical';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../StoreProvider';
 
+import PlusIcon from '../../assets/icons/plus_icon.svg';
 import ActionToolbar from '../components/ActionToolbar';
 
-import githublogo from '../../assets/img/github_logo.png';
-import bitbucketlogo from '../../assets/img/bitbucket_logo.png';
-import gitlablogo from '../../assets/img/gitlab_logo.png';
-
-import PlusIcon from '../../assets/icons/plus_icon.svg';
-import OverflowMenuIcon from '../../assets/icons/overflow_menu.svg';
+import ProviderAccordian from '../components/ProviderAccordian';
 
 function renderLandingPage(navigateTo) {
   React.useEffect(() => {
@@ -92,65 +88,33 @@ function renderHomePage(keyStore, navigateTo) {
         logo={logo}
         onPrimaryAction={() => navigateTo('/oauth/connect')}
       />
-      <h1 className="text-2xl text-gray-900 text-center mt-8">
-        Manage SSH keys
-      </h1>
-      <button
-        onClick={() => window.ipc.callMain('clear-store')}
-        className="absolute right-0 top-0 bg-red-500 text-red-100 rounded mt-20 mr-2 p-2">
-        Clear KeyStore
-      </button>
-      <div className="mt-12 flex flex-row justify-center flex-wrap items-center max-w-2xl mx-auto">
-        {keyStore.sshKeys.map(key => {
-          const image = images[key.provider];
-          return (
+      <div className="my-12 flex flex-col justify-start flex-wrap max-w-2xl mx-auto">
+        {keyStore.totalNoOfKeys > 0 ? (
+          <div>
+            <h1 className="text-lg text-gray-700 text-right mb-12">
+              Total 🔑 :{' '}
+              <span className="font-extrabold">{keyStore.totalNoOfKeys}</span>
+            </h1>
+            <ProviderAccordian
+              keys={keyStore.keysGroupByProvider}
+              onNewSshKeyClicked={_provider => {
+                navigateTo('/oauth/connect');
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col justify-center items-center">
+            <h1 className="text-2xl text-gray-700 font-semibold">
+              No SSH keys found 😲
+            </h1>
             <div
-              className="w-48 h-48 relative rounded-lg shadow-lg bg-gray-200 text-center mx-4 my-8"
-              key={`${key.provider}-${key.path}`}>
-              <img
-                src={key.avatar_url ? key.avatar_url : image.icon}
-                alt={`${image.name} avatar`}
-                className="h-16 w-16 mx-auto object-cover rounded-full border-2 border-gray-200 shadow-lg -mt-8 bg-gray-200"
-              />
-              <OverflowMenuIcon className="w-6 h-6 text-gray-600 hover:text-gray-800 absolute right-0 top-0 mt-2" />
-              {key.username ? (
-                <h1 className="text-xl text-gray-800 font-semibold mt-4">
-                  {key.username}
-                </h1>
-              ) : (
-                <button
-                  className="bg-blue-200 hover:bg-blue-300 text-blue-800 hover:text-blue-900 text-xs w-32 rounded-lg p-2 mt-4"
-                  onClick={() => key.addUserName('punitda')}>
-                  Add username
-                </button>
-              )}
-
-              <button
-                className="bg-red-200 hover:bg-red-300 text-red-800 hover:text-red-900 text-xs w-20 rounded-lg p-1 mt-4"
-                onClick={() => key.addLabel('Home')}>
-                {key.label ? key.label : 'Add label'}
-              </button>
-
-              <div className="absolute bottom-0 w-full">
-                {key.mode === 'MULTI' ? (
-                  <button className="bg-gray-300 hover:bg-gray-400 w-full h-12 text-gray-700 hover:text-gray-800 text-sm rounded-b-lg rounded-t-none">
-                    Update Remote
-                  </button>
-                ) : (
-                  <button className="bg-gray-300 hover:bg-gray-400 w-full h-12 text-gray-700 hover:text-gray-800 text-sm rounded-b-lg rounded-t-none">
-                    Clone Repo
-                  </button>
-                )}
-              </div>
+              className="mt-12 w-56 h-56 mx-4 flex flex-row justify-center items-center rounded-lg border-gray-500 border-2 border-dashed hover:border-blue-500 hover:bg-gray-200 cursor-pointer"
+              onClick={() => navigateTo('/oauth/connect')}>
+              <PlusIcon className="text-gray-700 w-8 h-8 font-semibold" />
+              <h1 className="ml-2 text-xl text-gray-700">Setup SSH key</h1>
             </div>
-          );
-        })}
-        <div
-          className="w-48 h-48 m-4 flex flex-row justify-center items-center rounded-lg border-gray-500 border-2 border-dashed hover:border-blue-500 hover:bg-gray-200 cursor-pointer"
-          onClick={() => navigateTo('/oauth/connect')}>
-          <PlusIcon className="text-gray-700 w-8 h-8 font-semibold" />
-          <h1 className="ml-2 text-xl text-gray-700">New SSH key</h1>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -189,21 +153,6 @@ const steps = [
     content: 'You can now clone, push, pull your repo',
   },
 ];
-
-const images = {
-  github: {
-    displayName: 'GitHub',
-    icon: githublogo,
-  },
-  bitbucket: {
-    displayName: 'Bitbucket',
-    icon: bitbucketlogo,
-  },
-  gitlab: {
-    displayName: 'GitLab',
-    icon: gitlablogo,
-  },
-};
 
 const TypicalSteps = [
   'Github',
