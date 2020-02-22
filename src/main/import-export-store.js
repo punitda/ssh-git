@@ -7,6 +7,7 @@ const importStore = async () => {
     if (keyStore.length === 0) {
       const sshConfig = await getSshConfig();
       store.set('keyStore', sshConfig);
+      return store.get('keyStore');
     }
     return keyStore;
   } catch (error) {
