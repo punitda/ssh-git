@@ -26,21 +26,40 @@ function getCommands(config) {
 
 function createSshConfig(config) {
   let sshConfig = {};
-  //Check for bitbucket because it is `.org`
-  if (config.selectedProvider === providers.BITBUCKET) {
-    sshConfig.host = `${config.selectedProvider}.org-${config.username}`;
-    sshConfig.hostName = `${config.selectedProvider}.org`;
-  } else {
-    sshConfig.host = `${config.selectedProvider}.com-${config.username}`;
-    sshConfig.hostName = `${config.selectedProvider}.com`;
+  switch (config.mode) {
+    case 'SINGLE':
+      if (config.selectedProvider === providers.BITBUCKET) {
+        sshConfig.host = `${config.selectedProvider}.org`;
+        sshConfig.hostName = `${config.selectedProvider}.org`;
+      } else {
+        sshConfig.host = `${config.selectedProvider}.com`;
+        sshConfig.hostName = `${config.selectedProvider}.com`;
+      }
+      sshConfig.rsaFileName = `${config.selectedProvider}_id_rsa`;
+      break;
+    case 'MULTI':
+      if (config.selectedProvider === providers.BITBUCKET) {
+        sshConfig.host = `${config.selectedProvider}.org-${config.username}`;
+        sshConfig.hostName = `${config.selectedProvider}.org`;
+      } else {
+        sshConfig.host = `${config.selectedProvider}.com-${config.username}`;
+        sshConfig.hostName = `${config.selectedProvider}.com`;
+      }
+      sshConfig.rsaFileName = `${config.selectedProvider}_${config.username}_id_rsa`;
+      break;
+    default:
+      break;
   }
-  sshConfig.rsaFileName = `${config.selectedProvider}_${config.username}_id_rsa`;
 
   return { ...sshConfig, ...config };
 }
 
-function getPublicKeyFileName(selectedProvider, username) {
-  return `${selectedProvider}_${username}_id_rsa.pub`;
+function getPublicKeyFileName(selectedProvider, mode, username) {
+  if (mode === 'MULTI') {
+    return `${selectedProvider}_${username}_id_rsa.pub`;
+  } else {
+    return `${selectedProvider}_id_rsa.pub`;
+  }
 }
 
 function getConfigFileContents(config) {
@@ -78,22 +97,28 @@ Host ${config.host}
 function getCloneRepoCommand(
   selectedProvider,
   username,
+  mode,
   repoUrl,
   disableLogging = true,
   shallowClone = false
 ) {
   let modifiedRepoUrl;
-  if (selectedProvider === providers.BITBUCKET) {
-    modifiedRepoUrl = repoUrl.replace(
-      `${selectedProvider}.org`,
-      `${selectedProvider}.org-${username}`
-    );
-  } else {
-    modifiedRepoUrl = repoUrl.replace(
-      `${selectedProvider}.com`,
-      `${selectedProvider}.com-${username}`
-    );
+  // we only need to change repo url in case of multi mode ssh key.
+  if (mode === 'MULTI') {
+    if (selectedProvider === providers.BITBUCKET) {
+      modifiedRepoUrl = repoUrl.replace(
+        `${selectedProvider}.org`,
+        `${selectedProvider}.org-${username}`
+      );
+    } else {
+      modifiedRepoUrl = repoUrl.replace(
+        `${selectedProvider}.com`,
+        `${selectedProvider}.com-${username}`
+      );
+    }
   }
+
+  modifiedRepoUrl = repoUrl;
 
   return `git clone ${modifiedRepoUrl} ${shallowClone ? '--depth=1' : ''} ${
     disableLogging ? `--quiet` : ''

@@ -7,6 +7,14 @@ import { Reveal, RevealGlobalStyles, Animation } from 'react-genie';
 import { trackScreen, trackEvent } from '../analytics';
 import Typical from 'react-typical';
 
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../StoreProvider';
+
+import PlusIcon from '../../assets/icons/plus_icon.svg';
+import ActionToolbar from '../components/ActionToolbar';
+
+import ProviderAccordion from '../components/ProviderAccordion';
+
 function renderLandingPage(navigateTo) {
   React.useEffect(() => {
     trackScreen('landing-screen');
@@ -72,38 +80,48 @@ function renderLandingPage(navigateTo) {
   );
 }
 
-function renderHomePage(navigateTo) {
+function renderHomePage(keyStore, navigateTo) {
   return (
-    <div className="app">
-      <div className="flex justify-between">
-        <AlphaBadge className="z-10" />
-      </div>
-      <div className="flex flex-col items-center pb-8">
-        <img src={logo} className="w-20 h-20" />
-        <h1 className="mt-2 font-semibold text-4xl text-gray-200 tracking-wide">
-          ssh-git
-        </h1>
-        <button
-          className="primary-btn w-56 mt-16"
-          onClick={_e => {
-            navigateTo('/oauth/connect');
-            trackEvent('splash', 'setup-ssh');
-          }}>
-          Setup SSH
-        </button>
-        <button
-          className="secondary-btn text-gray-300 w-56 mt-8"
-          onClick={_e => {
-            navigateTo('/updateRemoteDirect');
-            trackEvent('splash', 'clone-or-update');
-          }}>
-          Clone or Update
-        </button>
+    <div className="app bg-gray-300 min-h-screen ">
+      <ActionToolbar
+        title="ssh-git"
+        logo={logo}
+        onPrimaryAction={() => navigateTo('/oauth/connect')}
+      />
+      <div className="my-12 flex flex-col justify-start flex-wrap max-w-2xl mx-auto">
+        {keyStore.totalNoOfKeys > 0 ? (
+          <div>
+            <h1 className="text-lg text-gray-700 text-right mb-12">
+              Total 🔑 :{' '}
+              <span className="font-extrabold">{keyStore.totalNoOfKeys}</span>
+            </h1>
+            <ProviderAccordion
+              keys={keyStore.keysGroupByProvider}
+              onNewSshKeyClicked={_provider => {
+                navigateTo('/oauth/connect');
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col justify-center items-center">
+            <h1 className="text-2xl text-gray-700 font-semibold">
+              No SSH keys found 😲
+            </h1>
+            <div
+              className="mt-12 w-56 h-56 mx-4 flex flex-row justify-center items-center rounded-lg border-gray-500 border-2 border-dashed hover:border-blue-500 hover:bg-gray-200 cursor-pointer"
+              onClick={() => navigateTo('/oauth/connect')}>
+              <PlusIcon className="text-gray-700 w-8 h-8 font-semibold" />
+              <h1 className="ml-2 text-xl text-gray-700">Setup SSH key</h1>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-export default function Home({ navigateTo }) {
+
+const Home = observer(({ navigateTo }) => {
+  const { keyStore } = useStore();
   if (
     window.localStorage &&
     !window.localStorage.getItem('isLandingPageShown')
@@ -111,9 +129,11 @@ export default function Home({ navigateTo }) {
     window.localStorage.setItem('isLandingPageShown', 'true');
     return renderLandingPage(navigateTo);
   } else {
-    return renderHomePage(navigateTo);
+    return renderHomePage(keyStore, navigateTo);
   }
-}
+});
+
+export default Home;
 
 const steps = [
   {

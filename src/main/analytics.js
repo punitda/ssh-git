@@ -1,6 +1,6 @@
 const ua = require('universal-analytics');
 const uuid = require('uuid/v4');
-const { TrackingIdStore: store } = require('./store');
+const { TrackingIdStore: store } = require('./ElectronStore');
 
 const packageVersion = require('../../package.json');
 

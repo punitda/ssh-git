@@ -1,10 +1,4 @@
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  useReducer,
-  useContext,
-} from 'react';
+import React from 'react';
 
 import Modal from '../../components/Modal';
 import Switch from '../../components/Switch';
@@ -13,7 +7,6 @@ import { openFolder, openExternal } from '../../../lib/app-shell';
 import { web_base_url } from '../../../lib/config';
 
 import fetchReducer from '../../reducers/fetchReducer';
-import { AuthStateContext } from '../../Context';
 
 // Lottie files and hook
 import bigLoaderAnimData from '../../../assets/lottie/blue_big_checkmark.json';
@@ -30,20 +23,22 @@ import toaster, { Position } from 'toasted-notes';
 
 import { trackEvent } from '../../analytics';
 
-export default function UpdateRemoteStepped() {
-  const [authState] = useContext(AuthStateContext);
-  const { username = null, selectedProvider = null } = authState;
+import { useStore } from '../../StoreProvider';
+import { observer } from 'mobx-react-lite';
 
-  const cloneRepoButtonRef = useRef(null); //Used in clone repo modal for focusing reason
-  const updateRemoteUrlButtonRef = useRef(null); // Used in update remote modal for focusing reason
+const CloneRepo = observer(() => {
+  const { sessionStore } = useStore();
 
-  const [repoUrl, setRepoUrl] = useState(''); // Stores repourl entered by user
-  const [selectedFolder, setSelectedFolder] = useState(''); // Stores parent folder that user selects where to "clone repo"
-  const [repoFolder, setRepoFolder] = useState(''); // Stores repoFolder user selects for which they are updating "remote url"
+  const cloneRepoButtonRef = React.useRef(null); //Used in clone repo modal for focusing reason
+  const updateRemoteUrlButtonRef = React.useRef(null); // Used in update remote modal for focusing reason
 
-  const [shallowClone, setShallowClone] = useState(false); // Stores state whether to shallow clone based on user input
+  const [repoUrl, setRepoUrl] = React.useState(''); // Stores repourl entered by user
+  const [selectedFolder, setSelectedFolder] = React.useState(''); // Stores parent folder that user selects where to "clone repo"
+  const [repoFolder, setRepoFolder] = React.useState(''); // Stores repoFolder user selects for which they are updating "remote url"
 
-  const [{ isLoading, isError, data: success }, dispatch] = useReducer(
+  const [shallowClone, setShallowClone] = React.useState(false); // Stores state whether to shallow clone based on user input
+
+  const [{ isLoading, isError, data: success }, dispatch] = React.useReducer(
     fetchReducer,
     {
       isLoading: false,
@@ -55,12 +50,12 @@ export default function UpdateRemoteStepped() {
   // Animation stuff
 
   // For big loader shown on page load
-  const [bigAnimShown, setBigAnimShown] = useState(false);
-  const bigAnimRef = useRef(null);
+  const [bigAnimShown, setBigAnimShown] = React.useState(false);
+  const bigAnimRef = React.useRef(null);
   const bigAnimation = useLottieAnimation(bigLoaderAnimData, bigAnimRef);
 
   // For success animtation shown next to All Setup text.
-  const setupSuccessAnimRef = useRef(null);
+  const setupSuccessAnimRef = React.useRef(null);
   const setupSuccessAnimation = useLottieAnimation(
     setupSuccessAnimData,
     setupSuccessAnimRef
@@ -68,9 +63,9 @@ export default function UpdateRemoteStepped() {
 
   // Used by React Confetti
   const { width, height } = useWindowSize();
-  const [recycleConfetti, setRecycleConfetti] = useState(true);
+  const [recycleConfetti, setRecycleConfetti] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Making sure that we ask for desktop folder path only
     // when `selectedFolder` is empty('') which would happen
     // in case "clone repo" dialog is closed and re-opened again and during 1st time when selectedFolder isn't set yet.
@@ -87,7 +82,7 @@ export default function UpdateRemoteStepped() {
 
   // Close all notifications on unmount.
   // Using unmount method of useEffect() to remove all notifications displayed.
-  useEffect(() => {
+  React.useEffect(() => {
     return () => {
       toaster.closeAll();
     };
@@ -107,13 +102,14 @@ export default function UpdateRemoteStepped() {
     dispatch({ type: 'FETCH_INIT' });
 
     const result = await window.ipc.callMain('clone-repo', {
-      selectedProvider,
-      username,
+      selectedProvider: sessionStore.provider,
+      username: sessionStore.username,
+      mode: sessionStore.mode,
       repoUrl,
       selectedFolder,
       shallowClone,
     });
-    const { success, error, repoFolder } = result;
+    const { success, repoFolder } = result;
 
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
@@ -130,12 +126,12 @@ export default function UpdateRemoteStepped() {
     dispatch({ type: 'FETCH_INIT' });
 
     const result = await window.ipc.callMain('update-remote-url', {
-      selectedProvider,
-      username,
+      selectedProvider: sessionStore.provider,
+      username: sessionStore.username,
       repoFolder,
     });
 
-    const { success, error } = result;
+    const { success } = result;
 
     if (success) {
       dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
@@ -188,7 +184,9 @@ export default function UpdateRemoteStepped() {
       setupSuccessAnimation.play();
       setTimeout(() => {
         setRecycleConfetti(false);
-        showNotification();
+        if (sessionStore.mode === 'MULTI') {
+          showNotification();
+        }
       }, 1500);
     }
   }
@@ -229,9 +227,9 @@ export default function UpdateRemoteStepped() {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#4a5568"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 onClick={() => onClose()}>
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
@@ -394,10 +392,17 @@ export default function UpdateRemoteStepped() {
           <div className="w-24 h-24 -ml-6" ref={setupSuccessAnimRef} />
         </div>
 
-        <p className="text-center text-sm text-gray-700">
-          Clone your repo or Update remote url of an existing repo to start
-          using the SSH key.
-        </p>
+        {sessionStore.mode === 'MULTI' ? (
+          <p className="text-center text-sm text-gray-700">
+            Clone your repo or Update remote url of an existing repo to start
+            using the SSH key.
+          </p>
+        ) : (
+          <p className="text-center text-sm text-gray-700">
+            You can now clone your repo using the SSH key.
+          </p>
+        )}
+
         <div className="text-center mt-8">
           <Modal
             {...cloneRepoModalProps}
@@ -406,26 +411,34 @@ export default function UpdateRemoteStepped() {
             onModalOpen={onCloneRepoModalOpen}>
             {renderCloneRepoDialog()}
           </Modal>
-          <p className="text-gray-700 text-xs mt-2">
-            (Use this if your cloning this repository first time on your system)
-          </p>
-          <p className="my-4 text-xl">OR</p>
-          <Modal
-            {...updateRepoModalProps}
-            buttonRef={updateRemoteUrlButtonRef}
-            onModalClose={onUpdateRemoteUrlModalClose}
-            onModalOpen={onUpdateRemoteUrlModalOpen}>
-            {renderUpdateRemoteUrlDialog()}
-          </Modal>
-          <p className="text-gray-700 text-xs mt-2">
-            (Use this if your already have repository on your system)
-          </p>
+
+          {sessionStore.mode === 'MULTI' ? (
+            <>
+              <p className="text-gray-700 text-xs mt-2">
+                (Use this if your cloning this repository first time on your
+                system)
+              </p>
+              <p className="my-4 text-xl">OR</p>
+              <Modal
+                {...updateRepoModalProps}
+                buttonRef={updateRemoteUrlButtonRef}
+                onModalClose={onUpdateRemoteUrlModalClose}
+                onModalOpen={onUpdateRemoteUrlModalOpen}>
+                {renderUpdateRemoteUrlDialog()}
+              </Modal>
+              <p className="text-gray-700 text-xs mt-2">
+                (Use this if your already have repository on your system)
+              </p>
+            </>
+          ) : null}
         </div>
         <Confetti width={width} height={height} recycle={recycleConfetti} />
       </div>
     </div>
   );
-}
+});
+
+export default CloneRepo;
 
 const cloneRepoModalProps = {
   triggerText: 'Clone Repo',

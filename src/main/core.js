@@ -31,6 +31,8 @@ const {
   getDefaultShell,
 } = require('../lib/util');
 
+const { providers } = require('../lib/config');
+
 // Paths to be used in core logic
 const sshDir = path.join(os.homedir(), '.ssh'); // used to change cwd when running our commands using `spawn`.
 const sshConfigFileLocation = path.join(os.homedir(), '.ssh', 'config'); // ssh config file location
@@ -91,15 +93,21 @@ async function overrideExistingKeys(fileName) {
   return [privateKeyDeleted, publickKeyDeleted];
 }
 
-function doKeyAlreadyExists(selectedProvider, username) {
-  const privateKeyFilePath = path.join(
-    sshDir,
-    `${selectedProvider}_${username}_id_rsa`
-  );
-  const publicKeyFilePath = path.join(
-    sshDir,
-    `${selectedProvider}_${username}_id_rsa.pub`
-  );
+function doKeyAlreadyExists(selectedProvider, mode, username) {
+  let privateKeyFilePath, publicKeyFilePath;
+  if (mode === 'MULTI') {
+    privateKeyFilePath = path.join(
+      sshDir,
+      `${selectedProvider}_${username}_id_rsa`
+    );
+    publicKeyFilePath = path.join(
+      sshDir,
+      `${selectedProvider}_${username}_id_rsa.pub`
+    );
+  } else {
+    privateKeyFilePath = path.join(sshDir, `${selectedProvider}_id_rsa`);
+    publicKeyFilePath = path.join(sshDir, `${selectedProvider}_id_rsa.pub`);
+  }
 
   return fs.existsSync(publicKeyFilePath) || fs.existsSync(privateKeyFilePath);
 }
@@ -170,9 +178,13 @@ async function writePassPhraseToStdIn(writable, passphrase) {
   await streamEnd(writable);
 }
 
-// get contents of public key based on username and selectedProvider.
-async function getPublicKey(selectedProvider, username) {
-  const publicKeyFileName = getPublicKeyFileName(selectedProvider, username);
+// get contents of public key based on username, mode and selectedProvider.
+async function getPublicKey(selectedProvider, mode, username) {
+  const publicKeyFileName = getPublicKeyFileName(
+    selectedProvider,
+    mode,
+    username
+  );
   const publicKeyFilePath = path.join(os.homedir(), '.ssh', publicKeyFileName);
 
   try {
@@ -193,20 +205,11 @@ async function getPublicKey(selectedProvider, username) {
 async function cloneRepo(
   selectedProvider,
   username,
+  mode,
   repoUrl,
   selectedFolder,
   shallowClone
 ) {
-  // Check if user has entered correct repo url based on currently selected provider
-  if (
-    repoUrl.startsWith('git@') &&
-    repoUrl.endsWith('.git') &&
-    !repoUrl.includes(selectedProvider)
-  ) {
-    throw new Error(
-      `Looks like you've entered the wrong repo url. It doesn't belongs to ${selectedProvider} account. Please check.`
-    );
-  }
   // Check if the repoUrl entered by user is a valid SSH url
   if (
     !(
@@ -217,6 +220,17 @@ async function cloneRepo(
   ) {
     throw new Error(
       'The SSH url you just entered is not correct one. Please enter correct SSH url'
+    );
+  }
+
+  // Check if user has entered correct repo url based on currently selected provider
+  if (
+    repoUrl.startsWith('git@') &&
+    repoUrl.endsWith('.git') &&
+    !repoUrl.includes(selectedProvider)
+  ) {
+    throw new Error(
+      `Looks like you've entered the wrong repo url. It doesn't belongs to ${selectedProvider} account. Please check.`
     );
   }
 
@@ -241,6 +255,7 @@ async function cloneRepo(
   const cloneRepoCommand = getCloneRepoCommand(
     selectedProvider,
     username,
+    mode,
     repoUrl,
     disableLogging,
     shallowClone
@@ -452,11 +467,109 @@ async function parseSSHConfigFile() {
   }
 }
 
+async function getSshConfig() {
+  // When ssh config file doesn't exists do early return with empty array
+  if (!fs.existsSync(sshConfigFileLocation)) {
+    return [];
+  }
+
+  const sshConfigFileContents = await readFileAsync(sshConfigFileLocation, {
+    encoding: 'utf8',
+  });
+  const configs = SSHConfig.parse(sshConfigFileContents);
+
+  // Running reduce on configs and obtaining following values:
+  // 1. Host(check for '-' and get username from it)
+  // 2. Get HostName(provider)
+  // 3. IdentityFile(path),
+  // 4. Mode(if it contains '-' in host value then it is MULTI mode)
+  const userConfig = configs.reduce((acc, config) => {
+    const sshConfig = {};
+
+    const { param: key, value: host } = config;
+    sshConfig.username = findUsername({ key, host });
+
+    const { config: providerConfig } = config;
+    providerConfig.forEach(key => {
+      switch (key.param) {
+        case 'HostName': {
+          if (key.value.includes('github.com')) {
+            sshConfig.provider = providers.GITHUB;
+          } else if (key.value.includes('bitbucket.org')) {
+            sshConfig.provider = providers.BITBUCKET;
+          } else if (key.value.includes('gitlab.com')) {
+            sshConfig.provider = providers.GITLAB;
+          } else {
+            sshConfig.provider = key.value;
+          }
+          break;
+        }
+        case 'IdentityFile':
+          sshConfig.path = key.value;
+          break;
+        default:
+          break;
+      }
+    });
+
+    sshConfig.username
+      ? (sshConfig.mode = 'MULTI')
+      : (sshConfig.mode = 'SINGLE');
+
+    acc.push(sshConfig);
+    return acc;
+  }, []);
+
+  return userConfig.filter(
+    config =>
+      config.provider.includes(providers.GITHUB) ||
+      config.provider.includes(providers.BITBUCKET) ||
+      config.provider.includes(providers.GITLAB)
+  );
+}
+
+function findUsername({ key, host }) {
+  let username = '';
+  if (key === 'Host') {
+    if (!host.includes('-')) {
+      return username;
+    } else if (
+      host.includes('github.com-') ||
+      host.includes('gitlab.com-') ||
+      host.includes('bitbucket.org-')
+    ) {
+      const startIndex = host.indexOf('-');
+      username = host.substring(startIndex + 1, host.length);
+    }
+  }
+  return username;
+}
+
+function getRsaFilePath(config) {
+  let rsaFilePath;
+  if (config.mode === 'MULTI') {
+    rsaFilePath = path.join(
+      os.homedir(),
+      '.ssh',
+      `${config.selectedProvider}_${config.username}_id_rsa`
+    );
+  } else {
+    rsaFilePath = path.join(
+      os.homedir(),
+      '.ssh',
+      `${config.selectedProvider}_id_rsa`
+    );
+  }
+  return rsaFilePath;
+}
+
 module.exports = {
   generateKey,
   getPublicKey,
   cloneRepo,
   updateRemoteUrl,
   parseSSHConfigFile,
+  getSshConfig,
   doKeyAlreadyExists,
+  getRsaFilePath,
 };

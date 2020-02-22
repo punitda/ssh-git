@@ -1,8 +1,5 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React from 'react';
 import toaster, { Position } from 'toasted-notes';
-
-// built-in react imports
-import { AuthStateContext } from '../../Context';
 
 // libs import
 import { openExternal } from '../../../lib/app-shell';
@@ -16,44 +13,42 @@ import checkMarkAnimationData from '../../../assets/lottie/checkmark.json';
 import useLottieAnimation from '../../hooks/useLottieAnimation';
 import { trackEvent } from '../../analytics';
 
-function AddKey({ onNext }) {
-  const [authState] = useContext(AuthStateContext);
-  const {
-    selectedProvider = null,
-    bitbucket_uuid = null,
-    username = null,
-  } = authState;
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../../StoreProvider';
 
-  const textareaRef = useRef(null); // need ref to get textarea's node to use `copy` command on it for copying to clipboard.
-  const nextPageButtonRef = useRef(null); // need ref for confirmation dialog button
+const AddKey = observer(({ onNext }) => {
+  const { sessionStore, keyStore } = useStore();
+
+  const textareaRef = React.useRef(null); // need ref to get textarea's node to use `copy` command on it for copying to clipboard.
+  const nextPageButtonRef = React.useRef(null); // need ref for confirmation dialog button
 
   // Used for check mark animation when key is copied
-  const keyLottieRef = useRef(null);
+  const keyLottieRef = React.useRef(null);
   const keyCopyAnimation = useLottieAnimation(
     checkMarkAnimationData,
     keyLottieRef
   );
 
   // Used for check mark animation when link is opened
-  const linkLottieRef = useRef(null);
+  const linkLottieRef = React.useRef(null);
   const linkOpenAnimation = useLottieAnimation(
     checkMarkAnimationData,
     linkLottieRef
   );
 
-  const [publicKey, setPublicKey] = useState(' '); // set public key's content
+  const [publicKey, setPublicKey] = React.useState(' '); // set public key's content
 
   // Used to keep check of state whether key was copied and link was opened by the user and show errors accordingly
-  const [keyCopied, setKeyCopied] = useState(false);
-  const [linkOpened, setLinkOpened] = useState(false);
-  const [error, setError] = useState(null);
+  const [keyCopied, setKeyCopied] = React.useState(false);
+  const [linkOpened, setLinkOpened] = React.useState(false);
+  const [error, setError] = React.useState(null);
 
   //Used to keep check of state of user prefs about whether to remind again or not.
-  const [localDontRemindMe, setLocalDontRemindMe] = useState(false);
-  const [globalDontRemindMe, setGlobalDontRemindMe] = useState(false);
+  const [localDontRemindMe, setLocalDontRemindMe] = React.useState(false);
+  const [globalDontRemindMe, setGlobalDontRemindMe] = React.useState(false);
 
   // Used to get value of user pref from local storage for reminder related to all steps followed or not confirmation dialog
-  useEffect(() => {
+  React.useEffect(() => {
     if (window.localStorage.getItem('no-reminder-for-add-key')) {
       setLocalDontRemindMe(true);
       setGlobalDontRemindMe(true);
@@ -64,28 +59,33 @@ function AddKey({ onNext }) {
    * Communication between main and renderer process for :
    * - Getting Public Key content based on current `selectedProvider`and `username`.
    */
-  useEffect(() => {
-    async function getPublicKey(selectedProvider, username) {
+  React.useEffect(() => {
+    async function getPublicKey(selectedProvider, mode, username) {
       const publicKey = await window.ipc.callMain('get-public-key', {
         selectedProvider,
+        mode,
         username,
       });
 
       setPublicKey(publicKey);
     }
 
-    getPublicKey(selectedProvider, username);
-  }, [selectedProvider, username]);
+    getPublicKey(
+      sessionStore.provider,
+      sessionStore.mode,
+      sessionStore.username
+    );
+  }, [sessionStore.provider, sessionStore.mode, sessionStore.username]);
 
   //Open ssh-keys settings page of selected provider
   function openSettingsPage() {
-    switch (selectedProvider) {
+    switch (sessionStore.provider) {
       case providers.GITHUB:
         openExternal('https://github.com/settings/ssh/new');
         break;
       case providers.BITBUCKET:
         openExternal(
-          `https://bitbucket.org/account/user/${bitbucket_uuid}/ssh-keys/`
+          `https://bitbucket.org/account/user/${sessionStore.bitbucket_uuid}/ssh-keys/`
         );
         break;
       case providers.GITLAB:
@@ -98,6 +98,7 @@ function AddKey({ onNext }) {
 
   // Open next screen using url link
   function openNextPage() {
+    keyStore.addKey(sessionStore);
     onNext('oauth/clone');
   }
 
@@ -303,7 +304,7 @@ function AddKey({ onNext }) {
       </div>
     </div>
   );
-}
+});
 
 const nextPageConfirmationModalProps = {
   triggerText: 'Done',

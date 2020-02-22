@@ -13,6 +13,7 @@ const {
   updateRemoteUrl,
   parseSSHConfigFile,
   doKeyAlreadyExists,
+  getRsaFilePath,
 } = require('./core');
 
 // dialog wrapper
@@ -20,15 +21,35 @@ const dialog = require('./dialog');
 const notification = require('./notification');
 
 const isDev = require('../lib/electron-is-dev');
+const { importStore, exportStore } = require('./import-export-store');
+const { KeyStore } = require('./ElectronStore');
 
 // Register for all ipc channel in the app over here once.
 function register() {
+  registerIpcForStore();
   registerGeneralIpcs();
   registerIpcForConnectAccountScreen();
   registerIpcForGenerateKeyScreen();
   registerIpcForAddKeyScreen();
   registerIpcForUpdateRemoteScreen();
   if (!isDev) registerIpcForAnalytics();
+}
+
+function registerIpcForStore() {
+  ipc.answerRenderer('import-store', async () => {
+    const storeSnapshot = await importStore();
+    return storeSnapshot;
+  });
+
+  ipc.answerRenderer('export-store', ({ snapshot }) => {
+    if (snapshot.sshKeys && snapshot.sshKeys.length > 0) {
+      exportStore(snapshot.sshKeys);
+    }
+  });
+
+  ipc.answerRenderer('clear-store', () => {
+    KeyStore.delete('keyStore');
+  });
 }
 
 function registerGeneralIpcs() {
@@ -54,16 +75,25 @@ function registerIpcForConnectAccountScreen() {
 function registerIpcForGenerateKeyScreen() {
   ipc.answerRenderer(
     'check-key-already-exists',
-    async ({ selectedProvider, username }) => {
-      const keyAlreadyExists = doKeyAlreadyExists(selectedProvider, username);
+    async ({ selectedProvider, mode, username }) => {
+      const keyAlreadyExists = doKeyAlreadyExists(
+        selectedProvider,
+        mode,
+        username
+      );
       return keyAlreadyExists;
     }
   );
 
   ipc.answerRenderer(
     'ask-to-override-keys',
-    async ({ selectedProvider, username }) => {
-      const rsaFileName = `${selectedProvider}_${username}_id_rsa`;
+    async ({ selectedProvider, mode, username }) => {
+      let rsaFileName;
+      if (mode === 'MULTI') {
+        rsaFileName = `${selectedProvider}_${username}_id_rsa`;
+      } else {
+        rsaFileName = `${selectedProvider}_id_rsa`;
+      }
       const userResponse = await dialog.showOverrideKeysDialog(rsaFileName);
       return userResponse === 0 ? true : false;
     }
@@ -73,8 +103,10 @@ function registerIpcForGenerateKeyScreen() {
   ipc.answerRenderer('generate-key', async config => {
     try {
       const result = await generateKey(config);
+      const rsaFilePath = getRsaFilePath(config);
       if (result === 0) {
         return {
+          rsaFilePath,
           success: true,
           error: null,
         };
@@ -94,8 +126,8 @@ function registerIpcForAddKeyScreen() {
   // Listen to renderer process and send content of public key based on config passed
   ipc.answerRenderer('get-public-key', async data => {
     try {
-      const { selectedProvider, username } = data;
-      const publicKey = await getPublicKey(selectedProvider, username);
+      const { selectedProvider, mode, username } = data;
+      const publicKey = await getPublicKey(selectedProvider, mode, username);
       return publicKey.toString();
     } catch (error) {
       return null;
@@ -121,6 +153,7 @@ function registerIpcForUpdateRemoteScreen() {
     const {
       selectedProvider,
       username,
+      mode,
       repoUrl,
       selectedFolder,
       shallowClone,
@@ -130,6 +163,7 @@ function registerIpcForUpdateRemoteScreen() {
       const { code, repoFolder } = await cloneRepo(
         selectedProvider,
         username,
+        mode,
         repoUrl,
         selectedFolder,
         shallowClone
