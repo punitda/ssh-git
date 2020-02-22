@@ -272,7 +272,7 @@ const GenerateKey = observer(({ onNext }) => {
   async function generateKey(config) {
     dispatch({ type: 'FETCH_INIT' }); // Triggers loading state
     const result = await window.ipc.callMain('generate-key', config);
-    const { error, success, rsaFilePath } = result;
+    const { error, success, rsaFilePath = '' } = result;
 
     if (success) {
       sessionStore.addKeyPath(rsaFilePath);
