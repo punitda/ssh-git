@@ -13,7 +13,7 @@ import { useStore } from '../StoreProvider';
 import PlusIcon from '../../assets/icons/plus_icon.svg';
 import ActionToolbar from '../components/ActionToolbar';
 
-import ProviderAccordian from '../components/ProviderAccordian';
+import ProviderAccordion from '../components/ProviderAccordion';
 
 function renderLandingPage(navigateTo) {
   React.useEffect(() => {
@@ -95,7 +95,7 @@ function renderHomePage(keyStore, navigateTo) {
               Total 🔑 :{' '}
               <span className="font-extrabold">{keyStore.totalNoOfKeys}</span>
             </h1>
-            <ProviderAccordian
+            <ProviderAccordion
               keys={keyStore.keysGroupByProvider}
               onNewSshKeyClicked={_provider => {
                 navigateTo('/oauth/connect');

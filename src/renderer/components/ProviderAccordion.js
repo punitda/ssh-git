@@ -9,7 +9,7 @@ import OverflowMenuIcon from '../../assets/icons/overflow_menu.svg';
 import ChevronRight from '../../assets/icons/chevron_right.svg';
 import ChevronDown from '../../assets/icons/chevron_down.svg';
 
-const ProviderAccordian = ({ keys, onNewSshKeyClicked }) => {
+const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
   const [showProviders, setShowProviders] = React.useState({
     github: false,
     bitbucket: false,
@@ -111,7 +111,7 @@ const ProviderAccordian = ({ keys, onNewSshKeyClicked }) => {
   });
 };
 
-export default ProviderAccordian;
+export default ProviderAccordion;
 
 const images = {
   github: {
