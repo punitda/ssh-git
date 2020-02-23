@@ -10,39 +10,39 @@ import ChevronRight from '../../assets/icons/chevron_right.svg';
 import ChevronDown from '../../assets/icons/chevron_down.svg';
 
 const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
-  const [showProviders, setShowProviders] = React.useState({
+  const [showProviderKeys, setShowProviderKeys] = React.useState({
     github: false,
     bitbucket: false,
     gitlab: false,
   });
 
   function toggleShowProvider(key) {
-    showProviders[key] = !showProviders[key];
-    const updatedProviders = { ...showProviders };
-    setShowProviders(updatedProviders);
+    showProviderKeys[key] = !showProviderKeys[key];
+    const updatedProviders = { ...showProviderKeys };
+    setShowProviderKeys(updatedProviders);
   }
 
-  return Object.entries(keys).map(([key, value]) => {
-    const image = images[key];
+  return Object.entries(keys).map(([provider, keys]) => {
+    const image = images[provider];
     return (
-      <div key={`${key}`}>
+      <div key={`${provider}`}>
         <div
           className="flex flex-row justify-between items-center border-b-2 border-solid border-gray-400 pb-2 mt-2"
-          onClick={() => toggleShowProvider(key)}>
+          onClick={() => toggleShowProvider(provider)}>
           <div className="flex items-center justify-start">
             <img
               src={image.icon}
               className="inline w-8 h-8 object-cover rounded-full"
             />
             <h1 className="inline text-gray-900 text-xl font-semibold capitalize ml-2">
-              {key}
+              {provider}
             </h1>
           </div>
           <div className="flex justify-end items-center">
             <span className="rounded-full w-6 h-6 bg-gray-400 text-center text-sm">
-              {value.length}
+              {keys.length}
             </span>
-            {showProviders[key] ? (
+            {showProviderKeys[provider] ? (
               <ChevronDown className="w-6 h-6 text-gray-500" />
             ) : (
               <ChevronRight className="w-6 h-6 text-gray-500" />
@@ -50,10 +50,10 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
           </div>
         </div>
 
-        {showProviders[key] ? (
+        {showProviderKeys[provider] ? (
           <div className="grid grid-cols-3 xl:grid-cols-4 gap-5 my-8">
-            {value && value.length > 0 ? (
-              value.map(key => (
+            {keys && keys.length > 0 ? (
+              keys.map(key => (
                 <div
                   className={`w-48 h-48 relative rounded-lg shadow-lg bg-gray-200 text-center mt-4`}
                   key={`${key.provider}-${key.path}`}>
