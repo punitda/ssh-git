@@ -88,10 +88,10 @@ function renderHomePage(keyStore, navigateTo) {
         logo={logo}
         onPrimaryAction={() => navigateTo('/oauth/connect')}
       />
-      <div className="my-12 flex flex-col justify-start flex-wrap max-w-2xl mx-auto">
+      <div className="my-12 flex flex-col justify-start flex-wrap max-w-2xl xl:max-w-4xl mx-auto">
         {keyStore.totalNoOfKeys > 0 ? (
           <div>
-            <h1 className="text-lg text-gray-700 text-right mb-12">
+            <h1 className="text-lg text-gray-700 text-right mb-8">
               Total 🔑 :{' '}
               <span className="font-extrabold">{keyStore.totalNoOfKeys}</span>
             </h1>

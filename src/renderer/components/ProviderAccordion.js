@@ -27,7 +27,7 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
     return (
       <div key={`${key}`}>
         <div
-          className="flex flex-row justify-between items-center border-b-2 border-solid border-gray-400 pb-2 mt-8"
+          className="flex flex-row justify-between items-center border-b-2 border-solid border-gray-400 pb-2 mt-2"
           onClick={() => toggleShowProvider(key)}>
           <div className="flex items-center justify-start">
             <img
@@ -51,13 +51,11 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
         </div>
 
         {showProviders[key] ? (
-          <div className="mt-4 flex flex-row justify-start flex-wrap items-center max-w-2xl mx-auto py-4">
+          <div className="grid grid-cols-3 xl:grid-cols-4 gap-5 my-8">
             {value && value.length > 0 ? (
-              value.map((key, index) => (
+              value.map(key => (
                 <div
-                  className={`w-48 h-48 relative rounded-lg shadow-lg bg-gray-200 text-center ${
-                    index === 0 ? `mx-0` : 'mx-6'
-                  } my-4`}
+                  className={`w-48 h-48 relative rounded-lg shadow-lg bg-gray-200 text-center mt-4`}
                   key={`${key.provider}-${key.path}`}>
                   <img
                     src={key.avatar_url ? key.avatar_url : image.icon}
@@ -98,7 +96,7 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
               ))
             ) : (
               <div
-                className="w-48 h-48 flex flex-row justify-center items-center rounded-lg border-gray-500 border-2 border-dashed hover:border-blue-500 hover:bg-gray-200 cursor-pointer"
+                className="w-48 h-48 flex my-4 flex-row justify-center items-center rounded-lg border-gray-500 border-2 border-dashed hover:border-blue-500 hover:bg-gray-200 cursor-pointer"
                 onClick={() => onNewSshKeyClicked(key)}>
                 <PlusIcon className="text-gray-700 w-8 h-8 font-semibold" />
                 <h1 className="ml-2 text-xl text-gray-700">New SSH key</h1>
