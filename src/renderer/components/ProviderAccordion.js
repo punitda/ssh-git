@@ -55,7 +55,7 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
             {keys && keys.length > 0 ? (
               keys.map(key => (
                 <div
-                  className={`w-48 h-48 relative rounded-lg shadow-lg bg-gray-200 text-center mt-4`}
+                  className="w-48 h-48 relative rounded-lg shadow-lg bg-gray-200 text-center mt-4"
                   key={`${key.provider}-${key.path}`}>
                   <img
                     src={key.avatar_url ? key.avatar_url : image.icon}
@@ -107,6 +107,7 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
       </div>
     );
   });
+  g;
 };
 
 export default ProviderAccordion;
