@@ -40,7 +40,7 @@ function renderLandingPage(navigateTo) {
             steps={TypicalSteps}
             loop={1}
             wrapper="span"
-            className="font-semibold text-4xl mx-auto text-center text-gray-200"
+            className="block font-semibold text-4xl mx-auto text-center text-gray-200"
           />
         </Reveal>
         <Reveal delay={300}>
@@ -48,10 +48,10 @@ function renderLandingPage(navigateTo) {
             Setup SSH keys in seconds 🚀
           </h2>
         </Reveal>
-        <div className="mt-12 flex flex-row justify-between items-center ">
+        <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {steps.map((step, index) => (
             <Reveal delay={400 + (index + 1) * 100}>
-              <div className="w-48 h-48 mr-8 flex flex-col items-center border-blue-500 border-r-2 border-b-2 rounded-lg shadow-2xl bg-gray-900">
+              <div className="w-48 h-48 flex flex-col items-center border-blue-500 border-r-2 border-b-2 rounded-lg shadow-2xl bg-gray-900">
                 <div className="w-8 h-8 mt-4 text-gray-700 text-xl text-center font-semibold bg-gray-100 rounded-full shadow">
                   {index + 1}
                 </div>
