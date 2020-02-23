@@ -8,8 +8,8 @@ import {
 
 //Pages
 import Home from './pages/Home';
+import Landing from './pages/Landing';
 import SSHSetup from './pages/sshsetup/SSHSetup';
-import UpdateRemoteDirect from './pages/updateremote/UpdateRemoteDirect';
 
 // MST
 import { observer } from 'mobx-react-lite';
@@ -20,9 +20,24 @@ import { onSnapshot } from 'mobx-state-tree';
 import { trackScreen } from './analytics';
 
 //In-Memory Router
-const source = createMemorySource('/');
-export const history = createHistory(source);
+function createInMemoryRouter() {
+  let source;
+  if (
+    window.localStorage &&
+    !window.localStorage.getItem('isLandingPageShown')
+  ) {
+    window.localStorage.setItem('isLandingPageShown', 'true');
+    source = createMemorySource('/landing');
+  } else {
+    source = createMemorySource('/');
+  }
 
+  return createHistory(source);
+}
+
+const history = createInMemoryRouter();
+
+// Listen to location changes for logging tracking screens
 history.listen(({ location }) => {
   if (location.pathname === '' || location.pathname === '/') {
     trackScreen('main-screen');
@@ -50,16 +65,12 @@ const App = observer(() => {
     return () => dispose();
   }, []);
 
-  function navigateTo(path) {
-    history.navigate(path);
-  }
-
   return (
     <LocationProvider history={history}>
       <Router>
-        <Home path="/" navigateTo={navigateTo} />
+        <Landing path="/landing" />
+        <Home path="/" />
         <SSHSetup path="/oauth/*" />
-        <UpdateRemoteDirect path="/updateRemoteDirect" />
       </Router>
     </LocationProvider>
   );
