@@ -1,6 +1,6 @@
 //Libs
-import React, { useState } from 'react';
-import { Router } from '@reach/router';
+import React from 'react';
+import { Router, useNavigate } from '@reach/router';
 
 //Components
 import Toolbar from '../../components/Toolbar';
@@ -12,15 +12,14 @@ import GenerateKey from './GenerateKey';
 import AddKey from './AddKey';
 import CloneRepo from './CloneRepo';
 
-//Internal
-import { history } from '../../App';
-
 const steps = ['Connect', 'Generate', 'Add', 'Clone'];
 
 export default function SSHSetup() {
-  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [activeStepIndex, setActiveStepIndex] = React.useState(0);
+  const navigate = useNavigate();
+
   function goBackToHomeScreen() {
-    history.navigate('/');
+    navigate('/');
   }
 
   function onNext(path) {
@@ -41,7 +40,7 @@ export default function SSHSetup() {
       default:
         break;
     }
-    history.navigate(path);
+    navigate(path);
   }
 
   return (

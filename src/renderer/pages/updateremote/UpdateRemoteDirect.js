@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useReducer } from 'react';
 
-import { history } from '../../App';
+import { useNavigate } from '@reach/router';
 
 // Components
 import Modal from '../../components/Modal';
@@ -19,6 +19,7 @@ import { web_base_url } from '../../../lib/config';
 import { trackEvent } from '../../analytics';
 
 export default function UpdateRemoteDirect() {
+  const navigate = useNavigate();
   const cloneRepoButtonRef = useRef(null); //Used in modal for focusing reason
   const updateRemoteUrlButtonRef = useRef(null); // Used in modal for focusing reason
 
@@ -190,11 +191,11 @@ export default function UpdateRemoteDirect() {
   // Navigation methods
 
   function navigateToHomeScreen() {
-    history.navigate('');
+    navigate('/');
   }
 
   function navigateToSshSetupScreen() {
-    history.navigate('oauth/connect');
+    navigate('oauth/connect');
   }
 
   // Render functions

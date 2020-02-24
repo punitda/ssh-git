@@ -97,7 +97,7 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
             ) : (
               <div
                 className="w-48 h-48 flex my-4 flex-row justify-center items-center rounded-lg border-gray-500 border-2 border-dashed hover:border-blue-500 hover:bg-gray-200 cursor-pointer"
-                onClick={() => onNewSshKeyClicked(key)}>
+                onClick={() => onNewSshKeyClicked(provider)}>
                 <PlusIcon className="text-gray-700 w-8 h-8 font-semibold" />
                 <h1 className="ml-2 text-xl text-gray-700">New SSH key</h1>
               </div>
