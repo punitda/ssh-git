@@ -22,6 +22,41 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
     setShowProviderKeys(updatedProviders);
   }
 
+  function onActionClicked(actionType, key) {
+    switch (actionType) {
+      case 'CLONE_REPO':
+        console.group('--- Cloning Repo ---');
+        console.log('mode: ', key.mode);
+        console.log('username: ', key.username);
+        console.log('provider: ', key.provider);
+        console.groupEnd('--- Cloning Repo ---');
+        break;
+      case 'UPDATE_REMOTE':
+        console.group('--- Updating Remote Url ---');
+        console.log('mode: ', key.mode);
+        console.log('username: ', key.username);
+        console.log('provider: ', key.provider);
+        console.groupEnd('--- Updating Remote Url ---');
+        break;
+      case 'DELETE_KEY':
+        console.group('--- Deleting Key ---');
+        console.log('mode: ', key.mode);
+        console.log('username: ', key.username);
+        console.log('provider: ', key.provider);
+        console.groupEnd('--- Deleting Key ---');
+        break;
+      case 'OPEN_PROFILE':
+        console.group('--- Opening Profile ---');
+        console.log('mode: ', key.mode);
+        console.log('username: ', key.username);
+        console.log('provider: ', key.provider);
+        console.groupEnd('--- Opening   ---');
+        break;
+      default:
+        break;
+    }
+  }
+
   return Object.entries(keys).map(([provider, keys]) => {
     const image = images[provider];
     return (
@@ -62,7 +97,42 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
                     alt={`${image.name} avatar`}
                     className="h-12 w-12 mx-auto object-cover rounded-full border-2 border-gray-200 shadow-lg -mt-6 bg-gray-200"
                   />
-                  <OverflowMenuIcon className="w-6 h-6 text-gray-600 hover:text-gray-800 absolute right-0 top-0 mt-2" />
+                  <div className="absolute right-0 top-0 mt-2">
+                    <div className="group inline-block hover:block relative">
+                      <OverflowMenuIcon className="w-6 h-6 text-gray-600 hover:text-gray-800" />
+                      <ul className="hidden group-hover:block absolute right-0 top-0 text-gray-700 mr-1 mt-6 z-10 text-sm rounded-md bg-white shadow-xs">
+                        {key.mode === 'SINGLE'
+                          ? singleModeActions.map((action, index) => (
+                              <li
+                                className={`${index === 0 ? `rounded-t` : ``} ${
+                                  index === 2
+                                    ? `rounded-b`
+                                    : `border-b-2 border-gray-200`
+                                } bg-gray-100 hover:bg-gray-300 py-2 px-4 block whitespace-no-wrap`}
+                                key={action.name}
+                                onClick={_e =>
+                                  onActionClicked(action.type, key)
+                                }>
+                                {action.name}
+                              </li>
+                            ))
+                          : multiModeActions.map((action, index) => (
+                              <li
+                                className={`${index === 0 ? `rounded-t` : ``} ${
+                                  index === 3
+                                    ? `rounded-b`
+                                    : `border-b-2 border-gray-200`
+                                } bg-gray-100 hover:bg-gray-300 py-2 px-4 block whitespace-no-wrap`}
+                                key={action.name}
+                                onClick={_e =>
+                                  onActionClicked(action.type, key)
+                                }>
+                                {action.name}
+                              </li>
+                            ))}
+                      </ul>
+                    </div>
+                  </div>
                   {key.username ? (
                     <h1 className="text-xl text-gray-700 font-semibold mt-4">
                       {key.username}
@@ -126,3 +196,37 @@ const images = {
     icon: gitlablogo,
   },
 };
+
+const singleModeActions = [
+  {
+    name: 'Clone Repo',
+    type: 'CLONE_REPO',
+  },
+  {
+    name: 'Delete Key',
+    type: 'DELETE_KEY',
+  },
+  {
+    name: 'Open Profile',
+    type: 'OPEN_PROFILE',
+  },
+];
+
+const multiModeActions = [
+  {
+    name: 'Clone Repo',
+    type: 'CLONE_REPO',
+  },
+  {
+    name: 'Update Remote',
+    type: 'UPDATE_REMOTE',
+  },
+  {
+    name: 'Delete Key',
+    type: 'DELETE_KEY',
+  },
+  {
+    name: 'Open Profile',
+    type: 'OPEN_PROFILE',
+  },
+];
