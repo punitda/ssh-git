@@ -12,16 +12,17 @@ import PlusIcon from '../../assets/icons/plus_icon.svg';
 import ActionToolbar from '../components/ActionToolbar';
 
 import CloneRepoDialog from '../components/CloneRepoDialog';
+import UpdateRemoteDialog from '../components/UpdateRemoteDialog';
 
 const Home = observer(() => {
   const { keyStore } = useStore();
   const navigate = useNavigate();
+
   const [currentKey, setCurrentKey] = React.useState(null);
-
   const [showCloneDialog, setShowCloneRepoDialog] = React.useState(false);
-  const openCloneRepoDialog = () => setShowCloneRepoDialog(true);
-  const closeCloneRepoialog = () => setShowCloneRepoDialog(false);
-
+  const [showUpdateRemoteDialog, setShowUpdateRemoteDialog] = React.useState(
+    false
+  );
   const [desktopFolder, setDesktopFolder] = React.useState('');
 
   React.useEffect(() => {
@@ -39,14 +40,15 @@ const Home = observer(() => {
     }
   }, [desktopFolder]);
 
+  const openCloneRepoDialog = () => setShowCloneRepoDialog(true);
+  const closeCloneRepoDialog = () => setShowCloneRepoDialog(false);
+
+  const openUpdateRemoteDialog = () => setShowUpdateRemoteDialog(true);
+  const closeUpdateRemoteDialog = () => setShowUpdateRemoteDialog(false);
+
   function onActionClicked(actionType, key) {
     switch (actionType) {
       case 'CLONE_REPO':
-        console.group('--- Cloning Repo ---');
-        console.log('mode: ', key.mode);
-        console.log('username: ', key.username);
-        console.log('provider: ', key.provider);
-        console.groupEnd('--- Cloning Repo ---');
         setCurrentKey(key);
         openCloneRepoDialog();
         break;
@@ -56,6 +58,8 @@ const Home = observer(() => {
         console.log('username: ', key.username);
         console.log('provider: ', key.provider);
         console.groupEnd('--- Updating Remote Url ---');
+        setCurrentKey(key);
+        openUpdateRemoteDialog();
         break;
       case 'DELETE_KEY':
         console.group('--- Deleting Key ---');
@@ -114,7 +118,15 @@ const Home = observer(() => {
       </div>
       {showCloneDialog ? (
         <CloneRepoDialog
-          onDismiss={closeCloneRepoialog}
+          onDismiss={closeCloneRepoDialog}
+          defaultSelectedFolder={desktopFolder}
+          SshKey={currentKey}
+        />
+      ) : null}
+
+      {showUpdateRemoteDialog ? (
+        <UpdateRemoteDialog
+          onDismiss={closeUpdateRemoteDialog}
           defaultSelectedFolder={desktopFolder}
           SshKey={currentKey}
         />
