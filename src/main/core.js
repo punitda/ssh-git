@@ -210,6 +210,17 @@ async function cloneRepo(
   selectedFolder,
   shallowClone
 ) {
+  // Check if user has entered correct repo url based on currently selected provider
+  if (
+    repoUrl.startsWith('git@') &&
+    repoUrl.endsWith('.git') &&
+    !repoUrl.includes(selectedProvider)
+  ) {
+    throw new Error(
+      `Looks like you've entered the wrong repo url. It doesn't belongs to ${selectedProvider} account. Please check.`
+    );
+  }
+
   // Check if the repoUrl entered by user is a valid SSH url
   if (
     !(
@@ -220,17 +231,6 @@ async function cloneRepo(
   ) {
     throw new Error(
       'The SSH url you just entered is not correct one. Please enter correct SSH url'
-    );
-  }
-
-  // Check if user has entered correct repo url based on currently selected provider
-  if (
-    repoUrl.startsWith('git@') &&
-    repoUrl.endsWith('.git') &&
-    !repoUrl.includes(selectedProvider)
-  ) {
-    throw new Error(
-      `Looks like you've entered the wrong repo url. It doesn't belongs to ${selectedProvider} account. Please check.`
     );
   }
 
