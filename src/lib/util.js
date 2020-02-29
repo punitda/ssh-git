@@ -116,9 +116,9 @@ function getCloneRepoCommand(
         `${selectedProvider}.com-${username}`
       );
     }
+  } else {
+    modifiedRepoUrl = repoUrl;
   }
-
-  modifiedRepoUrl = repoUrl;
 
   return `git clone ${modifiedRepoUrl} ${shallowClone ? '--depth=1' : ''} ${
     disableLogging ? `--quiet` : ''

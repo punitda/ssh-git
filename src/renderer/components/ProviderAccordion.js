@@ -9,7 +9,7 @@ import OverflowMenuIcon from '../../assets/icons/overflow_menu.svg';
 import ChevronRight from '../../assets/icons/chevron_right.svg';
 import ChevronDown from '../../assets/icons/chevron_down.svg';
 
-const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
+const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
   const [showProviderKeys, setShowProviderKeys] = React.useState({
     github: false,
     bitbucket: false,
@@ -62,7 +62,42 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
                     alt={`${image.name} avatar`}
                     className="h-12 w-12 mx-auto object-cover rounded-full border-2 border-gray-200 shadow-lg -mt-6 bg-gray-200"
                   />
-                  <OverflowMenuIcon className="w-6 h-6 text-gray-600 hover:text-gray-800 absolute right-0 top-0 mt-2" />
+                  <div className="absolute right-0 top-0 mt-2">
+                    <div className="group inline-block relative">
+                      <OverflowMenuIcon className="w-6 h-6 text-gray-600 hover:text-gray-800" />
+                      <ul className="hidden group-hover:block absolute right-0 top-0 text-gray-700 mr-1 mt-6 z-10 text-sm rounded-md bg-white shadow-xs">
+                        {key.mode === 'SINGLE'
+                          ? singleModeActions.map((action, index) => (
+                              <li
+                                className={`${index === 0 ? `rounded-t` : ``} ${
+                                  index === 2
+                                    ? `rounded-b`
+                                    : `border-b-2 border-gray-200`
+                                } bg-gray-100 hover:bg-gray-300 py-2 px-4 block whitespace-no-wrap`}
+                                key={action.name}
+                                onClick={_e =>
+                                  onActionClicked(action.type, key)
+                                }>
+                                {action.name}
+                              </li>
+                            ))
+                          : multiModeActions.map((action, index) => (
+                              <li
+                                className={`${index === 0 ? `rounded-t` : ``} ${
+                                  index === 3
+                                    ? `rounded-b`
+                                    : `border-b-2 border-gray-200`
+                                } bg-gray-100 hover:bg-gray-300 py-2 px-4 block whitespace-no-wrap`}
+                                key={action.name}
+                                onClick={_e =>
+                                  onActionClicked(action.type, key)
+                                }>
+                                {action.name}
+                              </li>
+                            ))}
+                      </ul>
+                    </div>
+                  </div>
                   {key.username ? (
                     <h1 className="text-xl text-gray-700 font-semibold mt-4">
                       {key.username}
@@ -83,11 +118,15 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
 
                   <div className="absolute bottom-0 w-full">
                     {key.mode === 'MULTI' ? (
-                      <button className="bg-gray-300 hover:bg-gray-400 w-full h-12 text-gray-700 hover:text-gray-800 text-sm rounded-b-lg rounded-t-none">
+                      <button
+                        className="bg-gray-300 hover:bg-gray-400 w-full h-12 text-gray-700 hover:text-gray-800 text-sm rounded-b-lg rounded-t-none focus:outline-none"
+                        onClick={() => onActionClicked('UPDATE_REMOTE', key)}>
                         Update Remote
                       </button>
                     ) : (
-                      <button className="bg-gray-300 hover:bg-gray-400 w-full h-12 text-gray-700 hover:text-gray-800 text-sm rounded-b-lg rounded-t-none">
+                      <button
+                        className="bg-gray-300 hover:bg-gray-400 w-full h-12 text-gray-700 hover:text-gray-800 text-sm rounded-b-lg rounded-t-none focus:outline-none"
+                        onClick={() => onActionClicked('CLONE_REPO', key)}>
                         Clone Repo
                       </button>
                     )}
@@ -126,3 +165,37 @@ const images = {
     icon: gitlablogo,
   },
 };
+
+const singleModeActions = [
+  {
+    name: 'Clone Repo',
+    type: 'CLONE_REPO',
+  },
+  {
+    name: 'Delete Key',
+    type: 'DELETE_KEY',
+  },
+  {
+    name: 'Open Profile',
+    type: 'OPEN_PROFILE',
+  },
+];
+
+const multiModeActions = [
+  {
+    name: 'Clone Repo',
+    type: 'CLONE_REPO',
+  },
+  {
+    name: 'Update Remote',
+    type: 'UPDATE_REMOTE',
+  },
+  {
+    name: 'Delete Key',
+    type: 'DELETE_KEY',
+  },
+  {
+    name: 'Open Profile',
+    type: 'OPEN_PROFILE',
+  },
+];
