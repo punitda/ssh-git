@@ -66,7 +66,7 @@ const UpdateRemoteDialog = ({ onDismiss, defaultSelectedFolder, SshKey }) => {
       <DialogContent aria-labelledby="update-remote">
         <div className="c-modal">
           <button
-            className="c-modal__close"
+            className="c-modal__close focus:outline-none"
             aria-labelledby="close-modal"
             onClick={onDismiss}>
             <span className="u-hide-visually" id="close-modal">
