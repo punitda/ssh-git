@@ -118,7 +118,9 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
 
                   <div className="absolute bottom-0 w-full">
                     {key.mode === 'MULTI' ? (
-                      <button className="bg-gray-300 hover:bg-gray-400 w-full h-12 text-gray-700 hover:text-gray-800 text-sm rounded-b-lg rounded-t-none">
+                      <button
+                        className="bg-gray-300 hover:bg-gray-400 w-full h-12 text-gray-700 hover:text-gray-800 text-sm rounded-b-lg rounded-t-none"
+                        onClick={() => onActionClicked('UPDATE_REMOTE', key)}>
                         Update Remote
                       </button>
                     ) : (
