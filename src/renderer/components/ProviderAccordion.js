@@ -9,7 +9,7 @@ import OverflowMenuIcon from '../../assets/icons/overflow_menu.svg';
 import ChevronRight from '../../assets/icons/chevron_right.svg';
 import ChevronDown from '../../assets/icons/chevron_down.svg';
 
-const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
+const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
   const [showProviderKeys, setShowProviderKeys] = React.useState({
     github: false,
     bitbucket: false,
@@ -20,41 +20,6 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
     showProviderKeys[key] = !showProviderKeys[key];
     const updatedProviders = { ...showProviderKeys };
     setShowProviderKeys(updatedProviders);
-  }
-
-  function onActionClicked(actionType, key) {
-    switch (actionType) {
-      case 'CLONE_REPO':
-        console.group('--- Cloning Repo ---');
-        console.log('mode: ', key.mode);
-        console.log('username: ', key.username);
-        console.log('provider: ', key.provider);
-        console.groupEnd('--- Cloning Repo ---');
-        break;
-      case 'UPDATE_REMOTE':
-        console.group('--- Updating Remote Url ---');
-        console.log('mode: ', key.mode);
-        console.log('username: ', key.username);
-        console.log('provider: ', key.provider);
-        console.groupEnd('--- Updating Remote Url ---');
-        break;
-      case 'DELETE_KEY':
-        console.group('--- Deleting Key ---');
-        console.log('mode: ', key.mode);
-        console.log('username: ', key.username);
-        console.log('provider: ', key.provider);
-        console.groupEnd('--- Deleting Key ---');
-        break;
-      case 'OPEN_PROFILE':
-        console.group('--- Opening Profile ---');
-        console.log('mode: ', key.mode);
-        console.log('username: ', key.username);
-        console.log('provider: ', key.provider);
-        console.groupEnd('--- Opening   ---');
-        break;
-      default:
-        break;
-    }
   }
 
   return Object.entries(keys).map(([provider, keys]) => {
@@ -98,7 +63,7 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked }) => {
                     className="h-12 w-12 mx-auto object-cover rounded-full border-2 border-gray-200 shadow-lg -mt-6 bg-gray-200"
                   />
                   <div className="absolute right-0 top-0 mt-2">
-                    <div className="group inline-block hover:block relative">
+                    <div className="group inline-block relative">
                       <OverflowMenuIcon className="w-6 h-6 text-gray-600 hover:text-gray-800" />
                       <ul className="hidden group-hover:block absolute right-0 top-0 text-gray-700 mr-1 mt-6 z-10 text-sm rounded-md bg-white shadow-xs">
                         {key.mode === 'SINGLE'

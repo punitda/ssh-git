@@ -11,9 +11,70 @@ import logo from '../../assets/logo/icon.png';
 import PlusIcon from '../../assets/icons/plus_icon.svg';
 import ActionToolbar from '../components/ActionToolbar';
 
+import CloneRepoDialog from '../components/CloneRepoDialog';
+
 const Home = observer(() => {
   const { keyStore } = useStore();
   const navigate = useNavigate();
+  const [currentKey, setCurrentKey] = React.useState(null);
+
+  const [showCloneDialog, setShowCloneRepoDialog] = React.useState(false);
+  const openCloneRepoDialog = () => setShowCloneRepoDialog(true);
+  const closeCloneRepoialog = () => setShowCloneRepoDialog(false);
+
+  const [desktopFolder, setDesktopFolder] = React.useState('');
+
+  React.useEffect(() => {
+    // Making sure that we ask for desktop folder path only
+    // when `selectedFolder` is empty('') which would happen
+    // in case "clone repo" dialog is closed and re-opened again and during 1st time when selectedFolder isn't set yet.
+    async function getSystemDesktopFolderPath() {
+      const desktopFolderPath = await window.ipc.callMain(
+        'get-system-desktop-path'
+      );
+      setDesktopFolder(desktopFolderPath);
+    }
+    if (!desktopFolder) {
+      getSystemDesktopFolderPath();
+    }
+  }, [desktopFolder]);
+
+  function onActionClicked(actionType, key) {
+    switch (actionType) {
+      case 'CLONE_REPO':
+        console.group('--- Cloning Repo ---');
+        console.log('mode: ', key.mode);
+        console.log('username: ', key.username);
+        console.log('provider: ', key.provider);
+        console.groupEnd('--- Cloning Repo ---');
+        setCurrentKey(key);
+        openCloneRepoDialog();
+        break;
+      case 'UPDATE_REMOTE':
+        console.group('--- Updating Remote Url ---');
+        console.log('mode: ', key.mode);
+        console.log('username: ', key.username);
+        console.log('provider: ', key.provider);
+        console.groupEnd('--- Updating Remote Url ---');
+        break;
+      case 'DELETE_KEY':
+        console.group('--- Deleting Key ---');
+        console.log('mode: ', key.mode);
+        console.log('username: ', key.username);
+        console.log('provider: ', key.provider);
+        console.groupEnd('--- Deleting Key ---');
+        break;
+      case 'OPEN_PROFILE':
+        console.group('--- Opening Profile ---');
+        console.log('mode: ', key.mode);
+        console.log('username: ', key.username);
+        console.log('provider: ', key.provider);
+        console.groupEnd('--- Opening   ---');
+        break;
+      default:
+        break;
+    }
+  }
 
   return (
     <div className="app bg-gray-300 min-h-screen ">
@@ -34,6 +95,7 @@ const Home = observer(() => {
               onNewSshKeyClicked={_provider => {
                 navigate('/oauth/connect');
               }}
+              onActionClicked={onActionClicked}
             />
           </div>
         ) : (
@@ -50,6 +112,13 @@ const Home = observer(() => {
           </div>
         )}
       </div>
+      {showCloneDialog ? (
+        <CloneRepoDialog
+          onDismiss={closeCloneRepoialog}
+          defaultSelectedFolder={desktopFolder}
+          SshKey={currentKey}
+        />
+      ) : null}
     </div>
   );
 });
