@@ -1,13 +1,5 @@
 import React from 'react';
 
-import Modal from '../../components/Modal';
-import Switch from '../../components/Switch';
-
-import { openFolder, openExternal } from '../../../lib/app-shell';
-import { web_base_url } from '../../../lib/config';
-
-import fetchReducer from '../../reducers/fetchReducer';
-
 // Lottie files and hook
 import bigLoaderAnimData from '../../../assets/lottie/blue_big_checkmark.json';
 import setupSuccessAnimData from '../../../assets/lottie/success.json';
@@ -21,30 +13,18 @@ import useWindowSize from '../../hooks/useWindowSize';
 import { Reveal, RevealGlobalStyles } from 'react-genie';
 import toaster, { Position } from 'toasted-notes';
 
-import { trackEvent } from '../../analytics';
-
 import { useStore } from '../../StoreProvider';
 import { observer } from 'mobx-react-lite';
+
+import CloneRepoDialog from '../../components/CloneRepoDialog';
+import UpdateRemoteDialog from '../../components/UpdateRemoteDialog';
 
 const CloneRepo = observer(() => {
   const { sessionStore } = useStore();
 
-  const cloneRepoButtonRef = React.useRef(null); //Used in clone repo modal for focusing reason
-  const updateRemoteUrlButtonRef = React.useRef(null); // Used in update remote modal for focusing reason
-
-  const [repoUrl, setRepoUrl] = React.useState(''); // Stores repourl entered by user
-  const [selectedFolder, setSelectedFolder] = React.useState(''); // Stores parent folder that user selects where to "clone repo"
-  const [repoFolder, setRepoFolder] = React.useState(''); // Stores repoFolder user selects for which they are updating "remote url"
-
-  const [shallowClone, setShallowClone] = React.useState(false); // Stores state whether to shallow clone based on user input
-
-  const [{ isLoading, isError, data: success }, dispatch] = React.useReducer(
-    fetchReducer,
-    {
-      isLoading: false,
-      isError: false,
-      data: null,
-    }
+  const [showCloneRepoDialog, setShowCloneRepoDialog] = React.useState(false);
+  const [showUpdateRemoteDialog, setShowUpdateRemoteDialog] = React.useState(
+    false
   );
 
   // Animation stuff
@@ -65,6 +45,8 @@ const CloneRepo = observer(() => {
   const { width, height } = useWindowSize();
   const [recycleConfetti, setRecycleConfetti] = React.useState(true);
 
+  const [desktopFolder, setDesktopFolder] = React.useState('');
+
   React.useEffect(() => {
     // Making sure that we ask for desktop folder path only
     // when `selectedFolder` is empty('') which would happen
@@ -73,12 +55,12 @@ const CloneRepo = observer(() => {
       const desktopFolderPath = await window.ipc.callMain(
         'get-system-desktop-path'
       );
-      setSelectedFolder(desktopFolderPath);
+      setDesktopFolder(desktopFolderPath);
     }
-    if (!selectedFolder) {
+    if (!desktopFolder) {
       getSystemDesktopFolderPath();
     }
-  }, [selectedFolder]);
+  }, [desktopFolder]);
 
   // Close all notifications on unmount.
   // Using unmount method of useEffect() to remove all notifications displayed.
@@ -88,87 +70,11 @@ const CloneRepo = observer(() => {
     };
   }, []);
 
-  // Click listener for "Select Folder" action
-  async function onChangeDefaultFolderClicked() {
-    const selectedFolder = await window.ipc.callMain('select-git-folder');
-    if (selectedFolder) {
-      setSelectedFolder(selectedFolder);
-      setRepoFolder(selectedFolder);
-    }
-  }
+  const openCloneRepoDialog = () => setShowCloneRepoDialog(true);
+  const closeCloneRepoDialog = () => setShowCloneRepoDialog(false);
 
-  // Click listener for "Clone Repo" button
-  async function onCloneRepoClicked() {
-    dispatch({ type: 'FETCH_INIT' });
-
-    const result = await window.ipc.callMain('clone-repo', {
-      selectedProvider: sessionStore.provider,
-      username: sessionStore.username,
-      mode: sessionStore.mode,
-      repoUrl,
-      selectedFolder,
-      shallowClone,
-    });
-    const { success, repoFolder } = result;
-
-    if (success) {
-      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
-      setTimeout(() => openFolder(repoFolder), 1000);
-      trackEvent('setup-flow', 'clone-repo-success');
-    } else {
-      dispatch({ type: 'FETCH_ERROR' });
-      trackEvent('setup-flow', 'clone-repo-error');
-    }
-  }
-
-  // Click listener for "Update Remote Url" button
-  async function onUpdateRemoteUrlClicked() {
-    dispatch({ type: 'FETCH_INIT' });
-
-    const result = await window.ipc.callMain('update-remote-url', {
-      selectedProvider: sessionStore.provider,
-      username: sessionStore.username,
-      repoFolder,
-    });
-
-    const { success } = result;
-
-    if (success) {
-      dispatch({ type: 'FETCH_SUCCESS', payload: { success: true } });
-      trackEvent('setup-flow', 'update-remote-success');
-    } else {
-      dispatch({ type: 'FETCH_ERROR' });
-      trackEvent('setup-flow', 'update-remote-error');
-    }
-  }
-
-  // Listen to onOpen event of Modal component for tracking event
-  function onCloneRepoModalOpen() {
-    trackEvent('setup-flow', 'clone-repo-dialog-opened');
-  }
-
-  // Listen to onClose event of Modal component to reset local state for "Clone Repo" Modal.
-  function onCloneRepoModalClose() {
-    setRepoUrl('');
-    setSelectedFolder('');
-    setRepoFolder('');
-    setShallowClone(false);
-    dispatch({ type: 'FETCH_RESET' });
-    trackEvent('setup-flow', 'clone-repo-dialog-closed');
-  }
-
-  // Listen to onOpen event of Modal component for tracking event
-  function onUpdateRemoteUrlModalOpen() {
-    trackEvent('setup-flow', 'update-remote-dialog-opened');
-  }
-
-  // Listen to onClose event of Modal component to reset local state for "Update Remote Url" Modal.
-  function onUpdateRemoteUrlModalClose() {
-    setRepoFolder('');
-    setSelectedFolder('');
-    dispatch({ type: 'FETCH_RESET' });
-    trackEvent('setup-flow', 'update-remote-dialog-closed');
-  }
+  const openUpdateRemoteDialog = () => setShowUpdateRemoteDialog(true);
+  const closeUpdateRemoteDialog = () => setShowUpdateRemoteDialog(false);
 
   function playBigAnimation() {
     if (bigAnimation !== null) {
@@ -243,132 +149,6 @@ const CloneRepo = observer(() => {
     }, 2500);
   }
 
-  // Render functions
-
-  function renderCloneRepoDialog() {
-    return (
-      <div>
-        <h1 className="text-2xl font-semibold">Clone Repo</h1>
-        <label className="text-gray-800 block text-left text-base mt-6 font-semibold">
-          Repo url
-        </label>
-        <input
-          type="text"
-          className="text-gray-800 text-base bg-gray-100 px-4 py-2 mt-2 rounded border-2 w-full"
-          placeholder="Enter your repository url."
-          value={repoUrl}
-          onChange={e => setRepoUrl(e.target.value)}
-        />
-        <p className="text-gray-600 text-sm mt-2">
-          [Example : git@github.com:nodejs/node.git]
-        </p>
-        <label className="text-gray-800 block text-left text-base mt-4 font-semibold">
-          Choose Folder
-        </label>
-        <div className="relative mt-2">
-          <input
-            type="text"
-            className="text-gray-800 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
-            value={selectedFolder}
-            readOnly
-          />
-          <button
-            className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none"
-            onClick={onChangeDefaultFolderClicked}>
-            Choose
-          </button>
-        </div>
-        <div className="my-6 flex items-center">
-          <Switch
-            className="flex-1"
-            isOn={shallowClone}
-            handleToggle={() => setShallowClone(!shallowClone)}
-          />
-          <span className="flex-1 ml-2 text-gray-600">Shallow Clone</span>
-          <span
-            className="flex-0 text-gray-600 hover:text-gray-700 text-sm underline cursor-pointer"
-            onClick={() =>
-              openExternal(`${web_base_url}/questions/what-is-shallow-clone`)
-            }>
-            What is shallow clone?
-          </span>
-        </div>
-        <button
-          className={
-            isLoading
-              ? `primary-btn pr-12 generateKey`
-              : isError
-              ? `primary-btn-error`
-              : success
-              ? `primary-btn-success w-full`
-              : `primary-btn`
-          }
-          disabled={!(repoUrl && selectedFolder) || isLoading}
-          onClick={onCloneRepoClicked}>
-          {isLoading
-            ? 'Cloning Repo'
-            : isError
-            ? 'Retry'
-            : success
-            ? 'Cloned Successfully!'
-            : 'Clone'}
-        </button>
-        {isLoading && (
-          <p className="text-xs text-gray-600 mt-2">
-            This might take few seconds to minutes...You will be notified once
-            the repo is cloned.
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  function renderUpdateRemoteUrlDialog() {
-    return (
-      <div>
-        <h1 className="text-2xl font-semibold">Update Remote Url</h1>
-        <label className="text-gray-800 block text-left text-base mt-4 font-semibold">
-          Select Repo Folder
-        </label>
-        <div className="relative mb-6 mt-2">
-          <input
-            type="text"
-            className="text-gray-800 text-base bg-gray-100 px-4 py-2 rounded border-2 w-full focus:outline-none"
-            value={repoFolder}
-            placeholder="Select Repo Folder"
-            readOnly
-            onClick={onChangeDefaultFolderClicked}
-          />
-          <button
-            className="bg-gray-300 hover:bg-gray-400 text-gray-700 hover:text-gray-800 px-4 text-center absolute right-0 top-0 bottom-0 rounded-r focus:outline-none "
-            onClick={onChangeDefaultFolderClicked}>
-            Select
-          </button>
-        </div>
-        <button
-          className={
-            isLoading
-              ? `primary-btn pr-12 generateKey`
-              : isError
-              ? `primary-btn-error`
-              : success
-              ? `primary-btn-success w-full`
-              : `primary-btn`
-          }
-          disabled={!repoFolder || isLoading}
-          onClick={onUpdateRemoteUrlClicked}>
-          {isLoading
-            ? 'Upating Remote Url'
-            : isError
-            ? 'Retry'
-            : success
-            ? 'Remote Url Updated!'
-            : 'Update Remote Url'}
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-gray-300">
       <RevealGlobalStyles />
@@ -404,13 +184,19 @@ const CloneRepo = observer(() => {
         )}
 
         <div className="text-center mt-8">
-          <Modal
-            {...cloneRepoModalProps}
-            buttonRef={cloneRepoButtonRef}
-            onModalClose={onCloneRepoModalClose}
-            onModalOpen={onCloneRepoModalOpen}>
-            {renderCloneRepoDialog()}
-          </Modal>
+          <button
+            className="primary-btn w-56 focus:outline-none"
+            onClick={openCloneRepoDialog}>
+            Clone Repo
+          </button>
+
+          {showCloneRepoDialog ? (
+            <CloneRepoDialog
+              onDismiss={closeCloneRepoDialog}
+              defaultSelectedFolder={desktopFolder}
+              SshKey={sessionStore}
+            />
+          ) : null}
 
           {sessionStore.mode === 'MULTI' ? (
             <>
@@ -418,14 +204,23 @@ const CloneRepo = observer(() => {
                 (Use this if your cloning this repository first time on your
                 system)
               </p>
+
               <p className="my-4 text-xl">OR</p>
-              <Modal
-                {...updateRepoModalProps}
-                buttonRef={updateRemoteUrlButtonRef}
-                onModalClose={onUpdateRemoteUrlModalClose}
-                onModalOpen={onUpdateRemoteUrlModalOpen}>
-                {renderUpdateRemoteUrlDialog()}
-              </Modal>
+
+              <button
+                className="secondary-btn w-56 focus:outline-none"
+                onClick={openUpdateRemoteDialog}>
+                Update Remote
+              </button>
+
+              {showUpdateRemoteDialog ? (
+                <UpdateRemoteDialog
+                  onDismiss={closeUpdateRemoteDialog}
+                  defaultSelectedFolder={desktopFolder}
+                  SshKey={sessionStore}
+                />
+              ) : null}
+
               <p className="text-gray-700 text-xs mt-2">
                 (Use this if your already have repository on your system)
               </p>
@@ -439,17 +234,3 @@ const CloneRepo = observer(() => {
 });
 
 export default CloneRepo;
-
-const cloneRepoModalProps = {
-  triggerText: 'Clone Repo',
-  buttonClassName: 'primary-btn w-56',
-  role: 'dialog',
-  ariaLabel: 'Dialog to ask for details for cloning a repo',
-};
-
-const updateRepoModalProps = {
-  triggerText: 'Update Remote',
-  buttonClassName: 'secondary-btn w-56',
-  role: 'dialog',
-  ariaLabel: 'Dialog to ask for details for updating remote url',
-};
