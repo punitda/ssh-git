@@ -54,7 +54,7 @@ const AddKey = observer(({ onNext }) => {
 
   // Used to get value of user pref from local storage for reminder related to all steps followed or not confirmation dialog
   React.useEffect(() => {
-    if (window.localStorage.getItem('no-reminder-for-add-key')) {
+    if (window.localStorage.getItem('no-reminder-for-add-key') === 'true') {
       setLocalDontRemindMe(true);
       setGlobalDontRemindMe(true);
     }
