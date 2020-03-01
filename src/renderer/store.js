@@ -131,6 +131,17 @@ const KeyStore = types
       );
       return matches.length > 0;
     },
+    getModeOfExistingKeyInStore(provider, username) {
+      const matches = self.sshKeys.filter(
+        sshKey => sshKey.provider === provider && sshKey.username === username
+      );
+
+      if (matches.length > 0) {
+        return matches[0].mode ? matches[0].mode : 'SINGLE';
+      } else {
+        return 'SINGLE';
+      }
+    },
     get keysGroupByProvider() {
       return groupBy(self.sshKeys, 'provider', {
         github: [],

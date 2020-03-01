@@ -7,7 +7,7 @@ import { providers, web_base_url } from '../../../lib/config';
 
 // component imports
 import Switch from '../../components/Switch';
-import ConfirmationModal from '../../components/ConfirmationModal';
+import { DialogOverlay, DialogContent } from '@reach/dialog';
 
 import checkMarkAnimationData from '../../../assets/lottie/checkmark.json';
 import useLottieAnimation from '../../hooks/useLottieAnimation';
@@ -18,9 +18,6 @@ import { useStore } from '../../StoreProvider';
 
 const AddKey = observer(({ onNext }) => {
   const { sessionStore, keyStore } = useStore();
-
-  const textareaRef = React.useRef(null); // need ref to get textarea's node to use `copy` command on it for copying to clipboard.
-  const nextPageButtonRef = React.useRef(null); // need ref for confirmation dialog button
 
   // Used for check mark animation when key is copied
   const keyLottieRef = React.useRef(null);
@@ -36,6 +33,7 @@ const AddKey = observer(({ onNext }) => {
     linkLottieRef
   );
 
+  const textareaRef = React.useRef(null); // need ref to get textarea's node to use `copy` command on it for copying to clipboard.
   const [publicKey, setPublicKey] = React.useState(' '); // set public key's content
 
   // Used to keep check of state whether key was copied and link was opened by the user and show errors accordingly
@@ -43,13 +41,20 @@ const AddKey = observer(({ onNext }) => {
   const [linkOpened, setLinkOpened] = React.useState(false);
   const [error, setError] = React.useState(null);
 
-  //Used to keep check of state of user prefs about whether to remind again or not.
+  // Used to keep check of state of user prefs about whether to remind again or not.
+  // Global one is for referring to local storage value
+  // and local state is used to show state of checkbox
+  // in confirmation dialog UI
   const [localDontRemindMe, setLocalDontRemindMe] = React.useState(false);
   const [globalDontRemindMe, setGlobalDontRemindMe] = React.useState(false);
 
+  const [showConfirmationDialog, setShowConfirmationDialog] = React.useState(
+    false
+  );
+
   // Used to get value of user pref from local storage for reminder related to all steps followed or not confirmation dialog
   React.useEffect(() => {
-    if (window.localStorage.getItem('no-reminder-for-add-key')) {
+    if (window.localStorage.getItem('no-reminder-for-add-key') === 'true') {
       setLocalDontRemindMe(true);
       setGlobalDontRemindMe(true);
     }
@@ -76,6 +81,9 @@ const AddKey = observer(({ onNext }) => {
       sessionStore.username
     );
   }, [sessionStore.provider, sessionStore.mode, sessionStore.username]);
+
+  const openConfirmationDialog = () => setShowConfirmationDialog(true);
+  const closeConfirmationDialog = () => setShowConfirmationDialog(false);
 
   //Open ssh-keys settings page of selected provider
   function openSettingsPage() {
@@ -118,6 +126,11 @@ const AddKey = observer(({ onNext }) => {
 
     if (keyCopied && linkOpened) {
       setError(null);
+      if (!globalDontRemindMe) {
+        openConfirmationDialog();
+        return;
+      }
+
       openNextPage();
       trackEvent('setup-flow', 'key-added');
     }
@@ -152,7 +165,7 @@ const AddKey = observer(({ onNext }) => {
       if (keyCopyAnimation !== null) {
         keyCopyAnimation.play();
       }
-    }, 1500);
+    }, 500);
 
     trackEvent('setup-flow', 'key-copied');
   }
@@ -178,27 +191,6 @@ const AddKey = observer(({ onNext }) => {
     //Don't allow changing public key content
   }
 
-  function renderConfirmationDialogContent() {
-    return (
-      <div className="flex flex-col justify-center">
-        <h1 className="text-2xl font-semibold">Confirm</h1>
-        <h2 className="mt-4 text-gray-700 text-lg">
-          Did you followed all steps listed down to add ssh key to your account?
-        </h2>
-        <div className="flex flex-row justify-start my-6">
-          <Switch
-            isOn={localDontRemindMe}
-            handleToggle={() => {
-              setLocalDontRemindMe(!localDontRemindMe);
-              window.localStorage.setItem('no-reminder-for-add-key', true);
-            }}
-          />
-          <span className="ml-2 text-gray-600">Don't ask me again</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <textarea
@@ -214,6 +206,7 @@ const AddKey = observer(({ onNext }) => {
           <h2 className="mx-16 mt-6 text-xl font-semibold text-center text-gray-700">
             Follow below steps to add SSH key to your account
           </h2>
+
           <div className="relative bg-gray-200 rounded border-gray-300 border-2 p-2 m-2 mx-4 mt-8 text-base">
             <span className="font-semibold text-xl text-gray-800 pl-2">
               1.{' '}
@@ -229,6 +222,7 @@ const AddKey = observer(({ onNext }) => {
               ref={keyLottieRef}
             />
           </div>
+
           <div className="relative bg-gray-200 rounded border-gray-300 border-2 p-2 m-2 mx-4 text-base">
             <span className="font-semibold text-xl text-gray-800 pl-2">
               2.{' '}
@@ -244,6 +238,7 @@ const AddKey = observer(({ onNext }) => {
               ref={linkLottieRef}
             />
           </div>
+
           <div className="bg-gray-200 rounded border-gray-300 border-2 p-2 m-2 mx-4 text-base">
             <span className="font-semibold text-xl text-gray-800 pl-2">
               3.{' '}
@@ -256,6 +251,7 @@ const AddKey = observer(({ onNext }) => {
               the copied key and add to your account
             </span>
           </div>
+
           <span
             className={
               error
@@ -264,32 +260,71 @@ const AddKey = observer(({ onNext }) => {
             }>
             {error ? error : ''}
           </span>
-          {!globalDontRemindMe ? (
-            <ConfirmationModal
-              {...nextPageConfirmationModalProps}
-              buttonRef={nextPageButtonRef}
-              onModalClose={() => {}}
-              content={renderConfirmationDialogContent()}
-              yesBtn={
-                <button
-                  className="px-6 py-2 text-base text-gray-100 bg-green-600 hover:bg-green-700 rounded font-bold focus:outline-none"
-                  onClick={openNextPage}>
-                  Yes, I did
-                </button>
-              }
-              noBtn={
-                <button className="px-6 py-2 text-base text-red-600 hover:text-white hover:bg-red-600 border-0 rounded border-transparent focus:outline-none">
-                  Cancel
-                </button>
-              }
-            />
-          ) : (
-            <button
-              className="primary-btn mt-6 mx-auto"
-              onClick={onDoneClicked}>
-              Done
-            </button>
-          )}
+
+          <button className="primary-btn mt-6 mx-auto" onClick={onDoneClicked}>
+            Done
+          </button>
+
+          {!globalDontRemindMe && showConfirmationDialog ? (
+            <DialogOverlay
+              onDismiss={closeConfirmationDialog}
+              className="c-modal-cover">
+              <DialogContent aria-labelledby="confirmation">
+                <div className="c-modal">
+                  <button
+                    className="c-modal__close focus:outline-none"
+                    aria-labelledby="close-modal"
+                    onClick={closeConfirmationDialog}>
+                    <span className="u-hide-visually" id="close-modal">
+                      Close
+                    </span>
+                    <svg className="c-modal__close-icon" viewBox="0 0 40 40">
+                      <path d="M 10,10 L 30,30 M 30,10 L 10,30"></path>
+                    </svg>
+                  </button>
+                  <div className="flex flex-col justify-center">
+                    <h1
+                      className="mt-4 text-2xl font-semibold"
+                      id="confirmation">
+                      Confirm
+                    </h1>
+                    <h2 className="mt-4 text-gray-700 text-lg">
+                      Did you followed all steps listed down to add ssh key to
+                      your account?
+                    </h2>
+                    <div className="flex flex-row justify-start my-6">
+                      <Switch
+                        isOn={localDontRemindMe}
+                        handleToggle={() => {
+                          setLocalDontRemindMe(!localDontRemindMe);
+                          window.localStorage.setItem(
+                            'no-reminder-for-add-key',
+                            !localDontRemindMe
+                          );
+                        }}
+                      />
+                      <span className="ml-2 text-gray-600">
+                        Don't ask me again
+                      </span>
+                    </div>
+                    <div className="flex flex-row justify-end">
+                      <button
+                        className="px-6 py-2 text-base text-gray-100 bg-green-600 hover:bg-green-700 rounded font-bold focus:outline-none"
+                        onClick={openNextPage}>
+                        Yes, I did
+                      </button>
+
+                      <div onClick={closeConfirmationDialog} className="ml-4">
+                        <button className="px-6 py-2 text-base text-red-600 hover:text-white hover:bg-red-600 border-0 rounded border-transparent focus:outline-none">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </DialogOverlay>
+          ) : null}
 
           <div
             className="mt-8 mb-4 text-center underline text-gray-600 hover:text-gray-700 text-sm cursor-pointer"
@@ -305,12 +340,5 @@ const AddKey = observer(({ onNext }) => {
     </div>
   );
 });
-
-const nextPageConfirmationModalProps = {
-  triggerText: 'Done',
-  buttonClassName: 'primary-btn mt-6 mx-auto',
-  role: 'dialog',
-  ariaLabel: 'Confirmation dialog before moving to next step',
-};
 
 export default AddKey;
