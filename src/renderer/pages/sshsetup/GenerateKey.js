@@ -88,16 +88,25 @@ const GenerateKey = observer(({ onNext }) => {
       setKeyAlreadyExistsInFileSystem(keyAlreadyExistsInFileSystem);
     }
 
-    if (sessionStore.provider && username) {
+    if (sessionStore.provider && sessionStore.username) {
       // Check if we have already have a key in our "keystore"
       // with same provider and username combination.
       const keyAlreadyExistsInStore = keyStore.checkIfKeyAlreadyExists(
         sessionStore.provider,
-        username
+        sessionStore.username
       );
-      setKeyAlreadyExistsInStore(keyAlreadyExistsInStore);
+
       if (keyAlreadyExistsInStore) {
-        showKeyAlreadyExistsNotification(sessionStore.provider, username);
+        const mode = keyStore.getModeOfExistingKeyInStore(
+          sessionStore.provider,
+          sessionStore.username
+        );
+        sessionStore.addMode(mode);
+        setKeyAlreadyExistsInStore(keyAlreadyExistsInStore);
+        showKeyAlreadyExistsNotification(
+          sessionStore.provider,
+          sessionStore.username
+        );
       }
 
       // If we don't find anything matching in "keyStore" we go ahead
@@ -105,10 +114,10 @@ const GenerateKey = observer(({ onNext }) => {
       checkIfKeyAlreadyExists(
         sessionStore.provider,
         sessionStore.mode,
-        username
+        sessionStore.username
       );
     }
-  }, [sessionStore.provider, username]);
+  }, [sessionStore.provider, sessionStore.username]);
 
   // Get platform value from main process on mount(runs once)
   React.useEffect(() => {
@@ -224,7 +233,7 @@ const GenerateKey = observer(({ onNext }) => {
       overrideKeys = await window.ipc.callMain('ask-to-override-keys', {
         selectedProvider: sessionStore.provider,
         mode: sessionStore.mode,
-        username,
+        username: sessionStore.username,
       });
       if (!overrideKeys) {
         trackEvent('setup-flow', 'override-key-false');
@@ -237,7 +246,7 @@ const GenerateKey = observer(({ onNext }) => {
     // All good, please generate key now.
     const config = {
       selectedProvider: sessionStore.provider,
-      username,
+      username: sessionStore.username,
       email: email ? email : userProvidedEmail,
       passphrase,
       overrideKeys,
