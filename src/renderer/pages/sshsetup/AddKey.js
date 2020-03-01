@@ -299,7 +299,7 @@ const AddKey = observer(({ onNext }) => {
                           setLocalDontRemindMe(!localDontRemindMe);
                           window.localStorage.setItem(
                             'no-reminder-for-add-key',
-                            true
+                            !localDontRemindMe
                           );
                         }}
                       />
