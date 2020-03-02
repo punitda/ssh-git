@@ -88,7 +88,7 @@ const KeyStore = types
       const keyIndex = self.sshKeys.findIndex(
         sshKey => sshKey.provider === provider && sshKey.username === username
       );
-      self.sshKeys.splice(keyIndex, 1);
+      if (keyIndex !== -1) self.sshKeys.splice(keyIndex, 1);
     },
     addKeys(keys) {
       keys.forEach(key => {
@@ -114,6 +114,26 @@ const KeyStore = types
           label,
         });
       });
+    },
+    addUsername(key, username) {
+      const keyIndex = self.sshKeys.findIndex(
+        sshKey => sshKey.provider === key.provider && sshKey.path === key.path
+      );
+
+      if (keyIndex !== -1) {
+        const updatedKey = { ...key, username };
+        self.sshKeys.splice(keyIndex, 1, updatedKey);
+      }
+    },
+    addLabel(key, label) {
+      const keyIndex = self.sshKeys.findIndex(
+        sshKey => sshKey.provider === key.provider && sshKey.path === key.path
+      );
+
+      if (keyIndex !== -1) {
+        const updatedKey = { ...key, label };
+        self.sshKeys.splice(keyIndex, 1, updatedKey);
+      }
     },
   }))
   .views(self => ({
