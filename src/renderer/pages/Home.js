@@ -163,7 +163,7 @@ const Home = observer(() => {
       {showInputNameDialog ? (
         <InputDialog
           title="Add Username"
-          placeholder="Enter username"
+          placeholder={`Enter ${currentKey.provider}'s username`}
           onDismiss={closeInputNameDialog}
           onInputAdded={onUserNameAdded}
         />
