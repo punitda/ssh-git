@@ -5,25 +5,28 @@ import { useNavigate } from '@reach/router';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../StoreProvider';
 
-import ProviderAccordion from '../components/ProviderAccordion';
-
 import logo from '../../assets/logo/icon.png';
 import PlusIcon from '../../assets/icons/plus_icon.svg';
-import ActionToolbar from '../components/ActionToolbar';
 
+import ProviderAccordion from '../components/ProviderAccordion';
+import ActionToolbar from '../components/ActionToolbar';
 import CloneRepoDialog from '../components/CloneRepoDialog';
 import UpdateRemoteDialog from '../components/UpdateRemoteDialog';
+import InputDialog from '../components/InputDialog';
 
 const Home = observer(() => {
   const { keyStore } = useStore();
   const navigate = useNavigate();
 
   const [currentKey, setCurrentKey] = React.useState(null);
+  const [desktopFolder, setDesktopFolder] = React.useState('');
+
   const [showCloneDialog, setShowCloneRepoDialog] = React.useState(false);
   const [showUpdateRemoteDialog, setShowUpdateRemoteDialog] = React.useState(
     false
   );
-  const [desktopFolder, setDesktopFolder] = React.useState('');
+  const [showInputNameDialog, setShowInputNameDialog] = React.useState(false);
+  const [showInputLabelDialog, setShowInputLabelDialog] = React.useState(false);
 
   React.useEffect(() => {
     // Making sure that we ask for desktop folder path only
@@ -45,6 +48,22 @@ const Home = observer(() => {
 
   const openUpdateRemoteDialog = () => setShowUpdateRemoteDialog(true);
   const closeUpdateRemoteDialog = () => setShowUpdateRemoteDialog(false);
+
+  const openInputNameDialog = () => setShowInputNameDialog(true);
+  const closeInputNameDialog = () => setShowInputNameDialog(false);
+
+  const openInputLabelDialog = () => setShowInputLabelDialog(true);
+  const closeInputLabelDialog = () => setShowInputLabelDialog(false);
+
+  function onUserNameAdded(username) {
+    closeInputNameDialog();
+    keyStore.addUsername(currentKey, username);
+  }
+
+  function onLabelAdded(label) {
+    closeInputLabelDialog();
+    keyStore.addLabel(currentKey, label);
+  }
 
   function onActionClicked(actionType, key) {
     switch (actionType) {
@@ -74,6 +93,14 @@ const Home = observer(() => {
         console.log('username: ', key.username);
         console.log('provider: ', key.provider);
         console.groupEnd('--- Opening   ---');
+        break;
+      case 'ADD_LABEL':
+        setCurrentKey(key);
+        openInputLabelDialog();
+        break;
+      case 'ADD_USERNAME':
+        setCurrentKey(key);
+        openInputNameDialog();
         break;
       default:
         break;
@@ -116,6 +143,7 @@ const Home = observer(() => {
           </div>
         )}
       </div>
+
       {showCloneDialog ? (
         <CloneRepoDialog
           onDismiss={closeCloneRepoDialog}
@@ -129,6 +157,26 @@ const Home = observer(() => {
           onDismiss={closeUpdateRemoteDialog}
           defaultSelectedFolder={desktopFolder}
           SshKey={currentKey}
+        />
+      ) : null}
+
+      {showInputNameDialog ? (
+        <InputDialog
+          title="Add Username"
+          placeholder={`Enter ${currentKey.provider}'s username`}
+          onDismiss={closeInputNameDialog}
+          onInputAdded={onUserNameAdded}
+        />
+      ) : null}
+
+      {showInputLabelDialog ? (
+        <InputDialog
+          title="Add Label"
+          placeholder="Add Label to identify key"
+          initialValue={currentKey.label}
+          inputExample="E.x. Work or Personal"
+          onDismiss={closeInputLabelDialog}
+          onInputAdded={onLabelAdded}
         />
       ) : null}
     </div>

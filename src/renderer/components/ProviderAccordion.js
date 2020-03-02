@@ -56,7 +56,7 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
               keys.map(key => (
                 <div
                   className="w-48 h-48 relative rounded-lg shadow-lg bg-gray-200 text-center mt-4"
-                  key={`${key.provider}-${key.path}`}>
+                  key={`${key.path}`}>
                   <img
                     src={key.avatar_url ? key.avatar_url : image.icon}
                     alt={`${image.name} avatar`}
@@ -104,15 +104,15 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
                     </h1>
                   ) : (
                     <button
-                      className="bg-blue-200 hover:bg-blue-300 text-blue-800 hover:text-blue-900 text-xs w-32 rounded-lg p-2 mt-4"
-                      onClick={() => key.addUserName('punitda')}>
+                      className="bg-blue-200 hover:bg-blue-300 text-blue-800 hover:text-blue-900 text-xs w-32 rounded-md p-2 mt-4 focus:outline-none"
+                      onClick={() => onActionClicked('ADD_USERNAME', key)}>
                       Add username
                     </button>
                   )}
 
                   <button
-                    className="bg-red-200 hover:bg-red-300 text-red-800 hover:text-red-900 text-xs w-20 rounded-lg p-1 mt-4"
-                    onClick={() => key.addLabel('Home')}>
+                    className="bg-red-200 hover:bg-red-300 text-red-800 hover:text-red-900 text-xs rounded-md px-2 py-1 mt-4 focus:outline-none"
+                    onClick={() => onActionClicked('ADD_LABEL', key)}>
                     {key.label ? key.label : 'Add label'}
                   </button>
 
