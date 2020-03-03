@@ -32,9 +32,12 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
           <div className="flex items-center justify-start">
             <img
               src={image.icon}
-              className="inline w-8 h-8 object-cover rounded-full"
+              width={image.width}
+              height={image.height}
+              className={`${image.padding} inline object-cover rounded-full`}
             />
-            <h1 className="inline text-gray-900 text-xl font-semibold capitalize ml-2">
+            <h1
+              className={`${image.textPadding} inline text-gray-800 text-xl font-semibold capitalize`}>
               {provider}
             </h1>
           </div>
@@ -146,7 +149,6 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
       </div>
     );
   });
-  g;
 };
 
 export default ProviderAccordion;
@@ -155,14 +157,26 @@ const images = {
   github: {
     displayName: 'GitHub',
     icon: githublogo,
+    width: '23',
+    height: '23',
+    padding: 'ml-1',
+    textPadding: 'ml-2',
   },
   bitbucket: {
     displayName: 'Bitbucket',
     icon: bitbucketlogo,
+    width: '30',
+    height: '30',
+    padding: 'ml-px',
+    textPadding: 'ml-1',
   },
   gitlab: {
     displayName: 'GitLab',
     icon: gitlablogo,
+    width: '34',
+    height: '34',
+    padding: '-ml-px',
+    textPadding: 'ml-px',
   },
 };
 
