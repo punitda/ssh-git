@@ -14,6 +14,7 @@ const {
   parseSSHConfigFile,
   doKeyAlreadyExists,
   getRsaFilePath,
+  deleteKey,
 } = require('./core');
 
 // dialog wrapper
@@ -28,6 +29,7 @@ const { KeyStore } = require('./ElectronStore');
 function register() {
   registerIpcForStore();
   registerGeneralIpcs();
+  registerIpcForHomeScreen();
   registerIpcForConnectAccountScreen();
   registerIpcForGenerateKeyScreen();
   registerIpcForAddKeyScreen();
@@ -63,6 +65,22 @@ function registerGeneralIpcs() {
   ipc.answerRenderer('open-folder', async folderPath => {
     shell.openItem(folderPath);
     return;
+  });
+}
+
+function registerIpcForHomeScreen() {
+  ipc.answerRenderer('delete-key', async SshKey => {
+    try {
+      await deleteKey(SshKey);
+      return true;
+    } catch (error) {
+      setTimeout(() =>
+        dialog.showErrorDialog(
+          error.message ? error.message : 'Something went wrong.'
+        )
+      );
+      return false;
+    }
   });
 }
 

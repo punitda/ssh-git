@@ -284,7 +284,7 @@ const GenerateKey = observer(({ onNext }) => {
     if (success) {
       sessionStore.addKeyPath(rsaFilePath);
       if (keyAlreadyExistsInKeyStore) {
-        keyStore.removeKey(sessionStore.provider, sessionStore.username);
+        keyStore.removeKey(sessionStore);
       }
       dispatch({ type: 'FETCH_SUCCESS', payload: { keyGenerated: true } });
       setTimeout(() => onNext('oauth/add'), 1500);
