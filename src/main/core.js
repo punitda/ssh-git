@@ -563,6 +563,49 @@ function getRsaFilePath(config) {
   return rsaFilePath;
 }
 
+async function deleteKey(key) {
+  // 1. Delete keys from file system
+  const privateKeyPath = key.path;
+  const publicKeyPath = `${key.path}.pub`;
+  if (fs.existsSync(privateKeyPath)) {
+    await fsAsync.unlink(privateKeyPath);
+  }
+  if (fs.existsSync(publicKeyPath)) {
+    await fsAsync.unlink(publicKeyPath);
+  }
+
+  // 2. Remove from .config file
+  const sshConfigFileContents = await fsAsync.readFile(sshConfigFileLocation, {
+    encoding: 'utf8',
+  });
+  const config = SSHConfig.parse(sshConfigFileContents);
+
+  // Adding proper suffixes like '.com' or '.org' to provider before using it.
+  let provider;
+  if (key.provider === providers.BITBUCKET) {
+    provider = `${key.provider}.org`;
+  } else {
+    provider = `${key.provider}.com`;
+  }
+
+  // Finding by 'Host' value and removing particular SSH key using SSHConfig lib.
+  if (key.mode === 'MULTI') {
+    config.remove({
+      Host: `${provider}-${key.username}`,
+    });
+  } else {
+    config.remove({
+      Host: `${provider}`,
+    });
+  }
+
+  // Dumping back modified config file with above key removed from config
+  // and then overriding ".ssh/config" file with new config
+  fsAsync.writeFile(sshConfigFileLocation, SSHConfig.stringify(config));
+
+  return 1;
+}
+
 module.exports = {
   generateKey,
   getPublicKey,
@@ -572,4 +615,5 @@ module.exports = {
   getSshConfig,
   doKeyAlreadyExists,
   getRsaFilePath,
+  deleteKey,
 };

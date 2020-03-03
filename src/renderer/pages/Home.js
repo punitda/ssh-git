@@ -14,6 +14,9 @@ import CloneRepoDialog from '../components/CloneRepoDialog';
 import UpdateRemoteDialog from '../components/UpdateRemoteDialog';
 import InputDialog from '../components/InputDialog';
 
+import DeleteKeyDialog from '../components/DeleteKeyDialog';
+import toaster, { Position } from 'toasted-notes';
+
 const Home = observer(() => {
   const { keyStore } = useStore();
   const navigate = useNavigate();
@@ -27,6 +30,7 @@ const Home = observer(() => {
   );
   const [showInputNameDialog, setShowInputNameDialog] = React.useState(false);
   const [showInputLabelDialog, setShowInputLabelDialog] = React.useState(false);
+  const [showDeleteKeyDialog, setShowDeleteKeyDialog] = React.useState(false);
 
   React.useEffect(() => {
     // Making sure that we ask for desktop folder path only
@@ -43,6 +47,14 @@ const Home = observer(() => {
     }
   }, [desktopFolder]);
 
+  // Close all notifications on unmount.
+  // Using unmount method of useEffect() to remove all notifications displayed.
+  React.useEffect(() => {
+    return () => {
+      toaster.closeAll();
+    };
+  }, []);
+
   const openCloneRepoDialog = () => setShowCloneRepoDialog(true);
   const closeCloneRepoDialog = () => setShowCloneRepoDialog(false);
 
@@ -55,6 +67,9 @@ const Home = observer(() => {
   const openInputLabelDialog = () => setShowInputLabelDialog(true);
   const closeInputLabelDialog = () => setShowInputLabelDialog(false);
 
+  const openDeleteKeyDialog = () => setShowDeleteKeyDialog(true);
+  const closeDeleteKeyDialog = () => setShowDeleteKeyDialog(false);
+
   function onUserNameAdded(username) {
     closeInputNameDialog();
     keyStore.addUsername(currentKey, username);
@@ -65,6 +80,47 @@ const Home = observer(() => {
     keyStore.addLabel(currentKey, label);
   }
 
+  async function onKeyDeleted() {
+    // 1. Close Dialog immediately
+    closeDeleteKeyDialog();
+
+    // 2. Notify user about deleting key giving indication that we've started with delete key action
+    toaster.notify(
+      () => {
+        return (
+          <div className="py-2 px-4 rounded shadow-md bg-blue-500 text-white font-semibold text-center text-lg mt-20 mr-4">
+            Deleting Key...
+          </div>
+        );
+      },
+      { duration: 1000, position: Position['top'] }
+    );
+
+    // 3. Send ipc event to delete the key
+    const keyDeleted = await window.ipc.callMain('delete-key', currentKey);
+
+    // 4. Once the key is deleted do following:
+    // a. Remove the key from keyStore so UI is updated with that particular key removed
+    // b. Notify user that key was deleted successfully with some 1.5s delay to avoid overlap with initial notification
+    if (keyDeleted) {
+      keyStore.removeKey(currentKey);
+      setTimeout(
+        () =>
+          toaster.notify(
+            () => {
+              return (
+                <div className="py-2 px-4 rounded shadow-md bg-green-500 text-white font-semibold text-center text-lg mt-20 mr-4">
+                  Key Deleted Successfully!
+                </div>
+              );
+            },
+            { duration: 2000, position: Position['top'] }
+          ),
+        1500
+      );
+    }
+  }
+
   function onActionClicked(actionType, key) {
     switch (actionType) {
       case 'CLONE_REPO':
@@ -72,11 +128,6 @@ const Home = observer(() => {
         openCloneRepoDialog();
         break;
       case 'UPDATE_REMOTE':
-        console.group('--- Updating Remote Url ---');
-        console.log('mode: ', key.mode);
-        console.log('username: ', key.username);
-        console.log('provider: ', key.provider);
-        console.groupEnd('--- Updating Remote Url ---');
         setCurrentKey(key);
         openUpdateRemoteDialog();
         break;
@@ -86,6 +137,8 @@ const Home = observer(() => {
         console.log('username: ', key.username);
         console.log('provider: ', key.provider);
         console.groupEnd('--- Deleting Key ---');
+        setCurrentKey(key);
+        openDeleteKeyDialog();
         break;
       case 'OPEN_PROFILE':
         console.group('--- Opening Profile ---');
@@ -177,6 +230,14 @@ const Home = observer(() => {
           inputExample="E.x. Work or Personal"
           onDismiss={closeInputLabelDialog}
           onInputAdded={onLabelAdded}
+        />
+      ) : null}
+
+      {showDeleteKeyDialog ? (
+        <DeleteKeyDialog
+          onDismiss={closeDeleteKeyDialog}
+          onKeyDeleted={onKeyDeleted}
+          SshKey={currentKey}
         />
       ) : null}
     </div>
