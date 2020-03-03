@@ -82,6 +82,14 @@ const AddKey = observer(({ onNext }) => {
     );
   }, [sessionStore.provider, sessionStore.mode, sessionStore.username]);
 
+  // Close all notifications on unmount.
+  // Using unmount method of useEffect() to remove all notifications displayed.
+  React.useEffect(() => {
+    return () => {
+      toaster.closeAll();
+    };
+  }, []);
+
   const openConfirmationDialog = () => setShowConfirmationDialog(true);
   const closeConfirmationDialog = () => setShowConfirmationDialog(false);
 
