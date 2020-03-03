@@ -2,15 +2,12 @@
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { promises: fsAsync } = fs;
+
 const { spawn } = require('child_process');
 const pty = require('node-pty');
 
 const SSHConfig = require('ssh-config');
-
-// Using promisify utility from node to convert readFile function to return Promise.
-const { promisify } = require('util');
-const readFileAsync = promisify(fs.readFile);
-const unlinkFileAsync = promisify(fs.unlink);
 
 // npm lib(used to simplify dealing with child_process i/o)
 const {
@@ -76,7 +73,7 @@ async function generateKey(config) {
    */
   if (!sshConfig.overrideKeys) {
     const configFileContents = getConfigFileContents(sshConfig);
-    fs.appendFileSync(sshConfigFileLocation, configFileContents);
+    await fsAsync.appendFile(sshConfigFileLocation, configFileContents);
   }
   return 0; //If everything goes well send status code of '0' indicating success.
 }
@@ -86,8 +83,8 @@ async function overrideExistingKeys(fileName) {
   const publicKeyFilePath = path.join(sshDir, `${fileName}.pub`);
 
   const [privateKeyDeleted, publickKeyDeleted] = await Promise.all([
-    unlinkFileAsync(privateKeyFilePath),
-    unlinkFileAsync(publicKeyFilePath),
+    fsAsync.unlinkFile(privateKeyFilePath),
+    fsAsync.unlinkFile(publicKeyFilePath),
   ]);
 
   return [privateKeyDeleted, publickKeyDeleted];
@@ -188,7 +185,7 @@ async function getPublicKey(selectedProvider, mode, username) {
   const publicKeyFilePath = path.join(os.homedir(), '.ssh', publicKeyFileName);
 
   try {
-    const publicKeyContent = await readFileAsync(publicKeyFilePath);
+    const publicKeyContent = await fsAsync.readFile(publicKeyFilePath);
     return publicKeyContent;
   } catch (error) {
     return null;
@@ -432,9 +429,12 @@ async function parseSSHConfigFile() {
       return initialValue;
     }
 
-    const sshConfigFileContents = await readFileAsync(sshConfigFileLocation, {
-      encoding: 'utf8',
-    });
+    const sshConfigFileContents = await fsAsync.readFile(
+      sshConfigFileLocation,
+      {
+        encoding: 'utf8',
+      }
+    );
 
     // Using ssh-config lib from npm to parse the contents of ssh config file
     // and converting it into meaningful object which we could use for
@@ -473,7 +473,7 @@ async function getSshConfig() {
     return [];
   }
 
-  const sshConfigFileContents = await readFileAsync(sshConfigFileLocation, {
+  const sshConfigFileContents = await fsAsync.readFile(sshConfigFileLocation, {
     encoding: 'utf8',
   });
   const configs = SSHConfig.parse(sshConfigFileContents);
