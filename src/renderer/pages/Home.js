@@ -132,20 +132,10 @@ const Home = observer(() => {
         openUpdateRemoteDialog();
         break;
       case 'DELETE_KEY':
-        console.group('--- Deleting Key ---');
-        console.log('mode: ', key.mode);
-        console.log('username: ', key.username);
-        console.log('provider: ', key.provider);
-        console.groupEnd('--- Deleting Key ---');
         setCurrentKey(key);
         openDeleteKeyDialog();
         break;
       case 'OPEN_PROFILE':
-        console.group('--- Opening Profile ---');
-        console.log('mode: ', key.mode);
-        console.log('username: ', key.username);
-        console.log('provider: ', key.provider);
-        console.groupEnd('--- Opening   ---');
         break;
       case 'ADD_LABEL':
         setCurrentKey(key);
