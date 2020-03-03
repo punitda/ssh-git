@@ -41,14 +41,14 @@ const DeleteKeyDialog = ({ onDismiss, onKeyDeleted, SshKey }) => {
             </h2>
             <div className="flex flex-row justify-end mt-4">
               <button
-                className="px-6 py-2 text-base text-gray-600 hover:text-gray-700 bg-gray-200 hover:bg-gray-300 rounded font-bold focus:outline-none"
+                className="px-6 py-2 text-base text-gray-600 hover:text-gray-700 font-medium bg-gray-200 hover:bg-gray-300 rounded focus:outline-none"
                 onClick={onDismiss}>
                 Cancel
               </button>
 
               <button
                 onClick={onKeyDeleted}
-                className="ml-4 px-6 py-2 text-base text-white bg-red-600 hover:bg-red-500 border-0 rounded border-transparent focus:outline-none">
+                className="ml-4 px-6 py-2 text-base text-white font-medium bg-red-600 hover:bg-red-500 border-0 rounded border-transparent focus:outline-none">
                 Delete Key
               </button>
             </div>
