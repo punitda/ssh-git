@@ -175,10 +175,6 @@ const singleModeActions = [
     name: 'Delete Key',
     type: 'DELETE_KEY',
   },
-  {
-    name: 'Open Profile',
-    type: 'OPEN_PROFILE',
-  },
 ];
 
 const multiModeActions = [
@@ -193,9 +189,5 @@ const multiModeActions = [
   {
     name: 'Delete Key',
     type: 'DELETE_KEY',
-  },
-  {
-    name: 'Open Profile',
-    type: 'OPEN_PROFILE',
   },
 ];
