@@ -12,12 +12,15 @@ import useWindowSize from '../../hooks/useWindowSize';
 // Reveal animation
 import { Reveal, RevealGlobalStyles } from 'react-genie';
 import toaster, { Position } from 'toasted-notes';
+import lottie from 'lottie-web';
 
 import { useStore } from '../../StoreProvider';
 import { observer } from 'mobx-react-lite';
 
 import CloneRepoDialog from '../../components/CloneRepoDialog';
 import UpdateRemoteDialog from '../../components/UpdateRemoteDialog';
+
+import useTimeout from '../../hooks/useTimeout';
 
 const CloneRepo = observer(() => {
   const { sessionStore } = useStore();
@@ -26,6 +29,8 @@ const CloneRepo = observer(() => {
   const [showUpdateRemoteDialog, setShowUpdateRemoteDialog] = React.useState(
     false
   );
+
+  const addTimeout = useTimeout(); // Custom hook to auto clear all setTimeout()'s whenever page is unmounted.
 
   // Animation stuff
 
@@ -62,11 +67,10 @@ const CloneRepo = observer(() => {
     }
   }, [desktopFolder]);
 
-  // Close all notifications on unmount.
-  // Using unmount method of useEffect() to remove all notifications displayed.
   React.useEffect(() => {
     return () => {
       toaster.closeAll();
+      lottie.destroy();
     };
   }, []);
 
@@ -81,6 +85,7 @@ const CloneRepo = observer(() => {
       bigAnimation.play();
       bigAnimation.addEventListener('complete', () => {
         setBigAnimShown(true);
+        lottie.destroy();
       });
     }
   }
@@ -88,7 +93,7 @@ const CloneRepo = observer(() => {
   function playSetupSuccessAnimation() {
     if (setupSuccessAnimation !== null) {
       setupSuccessAnimation.play();
-      setTimeout(() => {
+      addTimeout(() => {
         setRecycleConfetti(false);
         if (sessionStore.mode === 'MULTI') {
           showNotification();
@@ -98,7 +103,7 @@ const CloneRepo = observer(() => {
   }
 
   function showNotification() {
-    setTimeout(() => {
+    addTimeout(() => {
       toaster.notify(
         ({ onClose }) => {
           return (
