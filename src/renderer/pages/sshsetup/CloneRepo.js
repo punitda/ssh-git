@@ -12,7 +12,6 @@ import useWindowSize from '../../hooks/useWindowSize';
 // Reveal animation
 import { Reveal, RevealGlobalStyles } from 'react-genie';
 import toaster, { Position } from 'toasted-notes';
-import lottie from 'lottie-web';
 
 import { useStore } from '../../StoreProvider';
 import { observer } from 'mobx-react-lite';
@@ -37,13 +36,16 @@ const CloneRepo = observer(() => {
   // For big loader shown on page load
   const [bigAnimShown, setBigAnimShown] = React.useState(false);
   const bigAnimRef = React.useRef(null);
-  const bigAnimation = useLottieAnimation(bigLoaderAnimData, bigAnimRef);
+  const [bigAnimation, stopBigAnimation] = useLottieAnimation(
+    bigLoaderAnimData,
+    bigAnimRef
+  );
 
   // For success animtation shown next to All Setup text.
-  const setupSuccessAnimRef = React.useRef(null);
-  const setupSuccessAnimation = useLottieAnimation(
+  const successAnimRef = React.useRef(null);
+  const [successAnimation, stopSuccessAnimation] = useLottieAnimation(
     setupSuccessAnimData,
-    setupSuccessAnimRef
+    successAnimRef
   );
 
   // Used by React Confetti
@@ -70,7 +72,8 @@ const CloneRepo = observer(() => {
   React.useEffect(() => {
     return () => {
       toaster.closeAll();
-      lottie.destroy();
+      stopBigAnimation();
+      stopSuccessAnimation();
     };
   }, []);
 
@@ -90,8 +93,8 @@ const CloneRepo = observer(() => {
   }
 
   function playSetupSuccessAnimation() {
-    if (setupSuccessAnimation !== null) {
-      setupSuccessAnimation.play();
+    if (successAnimation !== null) {
+      successAnimation.play();
       addTimeout(() => {
         setRecycleConfetti(false);
         if (sessionStore.mode === 'MULTI') {
@@ -173,7 +176,7 @@ const CloneRepo = observer(() => {
           <Reveal onShowDone={() => playSetupSuccessAnimation()}>
             <h2 className="text-3xl text-gray-900">All Setup</h2>
           </Reveal>
-          <div className="w-24 h-24 -ml-6" ref={setupSuccessAnimRef} />
+          <div className="w-24 h-24 -ml-6" ref={successAnimRef} />
         </div>
 
         {sessionStore.mode === 'MULTI' ? (
