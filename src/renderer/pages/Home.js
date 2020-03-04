@@ -135,8 +135,6 @@ const Home = observer(() => {
         setCurrentKey(key);
         openDeleteKeyDialog();
         break;
-      case 'OPEN_PROFILE':
-        break;
       case 'ADD_LABEL':
         setCurrentKey(key);
         openInputLabelDialog();

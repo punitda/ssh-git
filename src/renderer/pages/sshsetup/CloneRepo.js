@@ -19,6 +19,8 @@ import { observer } from 'mobx-react-lite';
 import CloneRepoDialog from '../../components/CloneRepoDialog';
 import UpdateRemoteDialog from '../../components/UpdateRemoteDialog';
 
+import useTimeout from '../../hooks/useTimeout';
+
 const CloneRepo = observer(() => {
   const { sessionStore } = useStore();
 
@@ -27,18 +29,23 @@ const CloneRepo = observer(() => {
     false
   );
 
+  const addTimeout = useTimeout(); // Custom hook to auto clear all setTimeout()'s whenever page is unmounted.
+
   // Animation stuff
 
   // For big loader shown on page load
   const [bigAnimShown, setBigAnimShown] = React.useState(false);
   const bigAnimRef = React.useRef(null);
-  const bigAnimation = useLottieAnimation(bigLoaderAnimData, bigAnimRef);
+  const [bigAnimation, stopBigAnimation] = useLottieAnimation(
+    bigLoaderAnimData,
+    bigAnimRef
+  );
 
   // For success animtation shown next to All Setup text.
-  const setupSuccessAnimRef = React.useRef(null);
-  const setupSuccessAnimation = useLottieAnimation(
+  const successAnimRef = React.useRef(null);
+  const [successAnimation, stopSuccessAnimation] = useLottieAnimation(
     setupSuccessAnimData,
-    setupSuccessAnimRef
+    successAnimRef
   );
 
   // Used by React Confetti
@@ -62,11 +69,11 @@ const CloneRepo = observer(() => {
     }
   }, [desktopFolder]);
 
-  // Close all notifications on unmount.
-  // Using unmount method of useEffect() to remove all notifications displayed.
   React.useEffect(() => {
     return () => {
       toaster.closeAll();
+      stopBigAnimation();
+      stopSuccessAnimation();
     };
   }, []);
 
@@ -86,9 +93,9 @@ const CloneRepo = observer(() => {
   }
 
   function playSetupSuccessAnimation() {
-    if (setupSuccessAnimation !== null) {
-      setupSuccessAnimation.play();
-      setTimeout(() => {
+    if (successAnimation !== null) {
+      successAnimation.play();
+      addTimeout(() => {
         setRecycleConfetti(false);
         if (sessionStore.mode === 'MULTI') {
           showNotification();
@@ -98,7 +105,7 @@ const CloneRepo = observer(() => {
   }
 
   function showNotification() {
-    setTimeout(() => {
+    addTimeout(() => {
       toaster.notify(
         ({ onClose }) => {
           return (
@@ -169,7 +176,7 @@ const CloneRepo = observer(() => {
           <Reveal onShowDone={() => playSetupSuccessAnimation()}>
             <h2 className="text-3xl text-gray-900">All Setup</h2>
           </Reveal>
-          <div className="w-24 h-24 -ml-6" ref={setupSuccessAnimRef} />
+          <div className="w-24 h-24 -ml-6" ref={successAnimRef} />
         </div>
 
         {sessionStore.mode === 'MULTI' ? (
