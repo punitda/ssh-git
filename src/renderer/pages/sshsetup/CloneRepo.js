@@ -85,7 +85,6 @@ const CloneRepo = observer(() => {
       bigAnimation.play();
       bigAnimation.addEventListener('complete', () => {
         setBigAnimShown(true);
-        lottie.destroy();
       });
     }
   }
