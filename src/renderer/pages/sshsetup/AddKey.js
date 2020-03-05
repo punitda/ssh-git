@@ -21,14 +21,14 @@ const AddKey = observer(({ onNext }) => {
 
   // Used for check mark animation when key is copied
   const keyLottieRef = React.useRef(null);
-  const keyCopyAnimation = useLottieAnimation(
+  const [keyCopyAnimation] = useLottieAnimation(
     checkMarkAnimationData,
     keyLottieRef
   );
 
   // Used for check mark animation when link is opened
   const linkLottieRef = React.useRef(null);
-  const linkOpenAnimation = useLottieAnimation(
+  const [linkOpenAnimation] = useLottieAnimation(
     checkMarkAnimationData,
     linkLottieRef
   );
