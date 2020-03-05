@@ -94,29 +94,31 @@ const KeyStore = types
       if (keyIndex !== -1) self.sshKeys.splice(keyIndex, 1);
     },
     addKeys(keys) {
-      keys.forEach(key => {
-        const {
-          provider,
-          path,
-          mode,
-          username = '',
-          email = '',
-          avatar_url = '',
-          bitbucket_uuid = '',
-          label = '',
-        } = key;
+      if (keys && keys.length > 0) {
+        keys.forEach(key => {
+          const {
+            provider,
+            path,
+            mode,
+            username = '',
+            email = '',
+            avatar_url = '',
+            bitbucket_uuid = '',
+            label = '',
+          } = key;
 
-        self.sshKeys.push({
-          provider,
-          path,
-          mode,
-          username,
-          email,
-          avatar_url,
-          bitbucket_uuid,
-          label,
+          self.sshKeys.push({
+            provider,
+            path,
+            mode,
+            username,
+            email,
+            avatar_url,
+            bitbucket_uuid,
+            label,
+          });
         });
-      });
+      }
     },
     addUsername(key, username) {
       const keyIndex = self.sshKeys.findIndex(
@@ -137,6 +139,9 @@ const KeyStore = types
         const updatedKey = { ...key, label };
         self.sshKeys.splice(keyIndex, 1, updatedKey);
       }
+    },
+    clear() {
+      self.sshKeys = [];
     },
   }))
   .views(self => ({

@@ -18,7 +18,7 @@ import { trackEvent } from '../../analytics';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../StoreProvider';
 
-const ConnectAccount = observer(({ onNext }) => {
+const ConnectAccount = observer(({ onNext, location }) => {
   // Using context to access Auth store
   const { sessionStore, keyStore } = useStore();
 
@@ -34,6 +34,9 @@ const ConnectAccount = observer(({ onNext }) => {
 
   React.useEffect(() => {
     sessionStore.resetKey();
+    if (location.state.provider) {
+      sessionStore.addProvider(location.state.provider);
+    }
   }, []);
 
   React.useEffect(() => {

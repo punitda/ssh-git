@@ -4,8 +4,8 @@ const { KeyStore: store } = require('./ElectronStore');
 const importStore = async () => {
   const keyStore = store.get('keyStore');
   try {
-    if (keyStore.length === 0) {
-      const sshConfig = await getSshConfig();
+    const sshConfig = await getSshConfig();
+    if (keyStore.length === 0 || keyStore.length !== sshConfig.length) {
       store.set('keyStore', sshConfig);
       return store.get('keyStore');
     }
