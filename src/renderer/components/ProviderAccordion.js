@@ -72,9 +72,11 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
                         {key.mode === 'SINGLE'
                           ? singleModeActions.map((action, index) => (
                               <li
-                                className={`${index === 0 ? `rounded-t` : ``} ${
-                                  index === 2
-                                    ? `rounded-b`
+                                className={`${
+                                  index === 0 ? `rounded-t-md` : ``
+                                } ${
+                                  index === 1
+                                    ? `rounded-b-md`
                                     : `border-b-2 border-gray-200`
                                 } bg-gray-100 hover:bg-gray-300 py-2 px-4 block whitespace-no-wrap`}
                                 key={action.name}
@@ -86,9 +88,11 @@ const ProviderAccordion = ({ keys, onNewSshKeyClicked, onActionClicked }) => {
                             ))
                           : multiModeActions.map((action, index) => (
                               <li
-                                className={`${index === 0 ? `rounded-t` : ``} ${
-                                  index === 3
-                                    ? `rounded-b`
+                                className={`${
+                                  index === 0 ? `rounded-t-md` : ``
+                                } ${
+                                  index === 2
+                                    ? `rounded-b-md`
                                     : `border-b-2 border-gray-200`
                                 } bg-gray-100 hover:bg-gray-300 py-2 px-4 block whitespace-no-wrap`}
                                 key={action.name}
