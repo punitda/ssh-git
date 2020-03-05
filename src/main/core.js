@@ -83,8 +83,8 @@ async function overrideExistingKeys(fileName) {
   const publicKeyFilePath = path.join(sshDir, `${fileName}.pub`);
 
   const [privateKeyDeleted, publickKeyDeleted] = await Promise.all([
-    fsAsync.unlinkFile(privateKeyFilePath),
-    fsAsync.unlinkFile(publicKeyFilePath),
+    fsAsync.unlink(privateKeyFilePath),
+    fsAsync.unlink(publicKeyFilePath),
   ]);
 
   return [privateKeyDeleted, publickKeyDeleted];
