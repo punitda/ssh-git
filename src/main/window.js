@@ -31,7 +31,7 @@ function createWindow() {
 
 function setAppMenu() {
   const isMac = process.platform === 'darwin';
-  const CHANGELOG_BASE_URL = `${web_base_url}/changelog`;
+  const CHANGELOG_BASE_URL = `https://headwayapp.co/ssh-git-changelog`;
 
   const template = [
     // App menu
