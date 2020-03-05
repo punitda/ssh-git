@@ -194,8 +194,8 @@ const Home = observer(() => {
             </div>
             <ProviderAccordion
               keys={keyStore.keysGroupByProvider}
-              onNewSshKeyClicked={_provider => {
-                navigate('/oauth/connect');
+              onNewSshKeyClicked={provider => {
+                navigate('/oauth/connect', { state: { provider } });
               }}
               onActionClicked={onActionClicked}
             />
