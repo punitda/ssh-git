@@ -121,6 +121,22 @@ const Home = observer(() => {
     }
   }
 
+  async function refreshStore() {
+    const storeSnapshot = await window.ipc.callMain('import-store');
+    keyStore.clear();
+    keyStore.addKeys(storeSnapshot);
+    toaster.notify(
+      () => {
+        return (
+          <div className="py-2 px-4 rounded shadow-md bg-blue-500 text-white font-semibold text-center text-lg mt-20 mr-4">
+            Updated Successfully
+          </div>
+        );
+      },
+      { duration: 1000, position: Position['top'] }
+    );
+  }
+
   function onActionClicked(actionType, key) {
     switch (actionType) {
       case 'CLONE_REPO':
@@ -158,10 +174,24 @@ const Home = observer(() => {
       <div className="my-12 flex flex-col justify-start flex-wrap max-w-2xl xl:max-w-4xl mx-auto">
         {keyStore.totalNoOfKeys > 0 ? (
           <div>
-            <h1 className="text-lg text-gray-700 text-right mb-8">
-              Total 🔑 :{' '}
-              <span className="font-extrabold">{keyStore.totalNoOfKeys}</span>
-            </h1>
+            <div className="flex flex-row justify-between items-center mb-12">
+              <h1 className="inline text-lg text-gray-700 text-right">
+                Total 🔑 :{' '}
+                <span className="font-extrabold">{keyStore.totalNoOfKeys}</span>
+              </h1>
+              <svg
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                class="w-4 h-4 mr-2 text-gray-700 inline cursor-pointer"
+                onClick={refreshStore}>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+            </div>
             <ProviderAccordion
               keys={keyStore.keysGroupByProvider}
               onNewSshKeyClicked={_provider => {
