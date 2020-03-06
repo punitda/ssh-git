@@ -33,7 +33,6 @@ const AddKey = observer(({ onNext }) => {
     linkLottieRef
   );
 
-  const textareaRef = React.useRef(null); // need ref to get textarea's node to use `copy` command on it for copying to clipboard.
   const [publicKey, setPublicKey] = React.useState(' '); // set public key's content
 
   // Used to keep check of state whether key was copied and link was opened by the user and show errors accordingly
@@ -148,12 +147,7 @@ const AddKey = observer(({ onNext }) => {
   // Copies the content of `textarea` to the clipboard
   function onCopyToClipboardClicked(event) {
     event.preventDefault();
-
-    let textarea = textareaRef.current;
-    textarea.select();
-    textarea.setSelectionRange(0, 99999); //Not sure if this is the correct way.
-    document.execCommand('copy');
-
+    window.clipboard.writeText(publicKey);
     setKeyCopied(true); //Set "keyCopied" state to true indicating that copy key task is done by user
 
     // Show toast
@@ -192,23 +186,8 @@ const AddKey = observer(({ onNext }) => {
     trackEvent('setup-flow', 'link-opened');
   }
 
-  // Add listener for textarea change event which we don't allow to change to keep
-  // React happy. Not sure if this is the correct way.
-  function onPublicKeyChange(event) {
-    event.preventDefault();
-    //Don't allow changing public key content
-  }
-
   return (
     <div>
-      <textarea
-        ref={textareaRef}
-        rows="1"
-        cols="1"
-        value={publicKey}
-        onChange={onPublicKeyChange}
-        className="-ml-24"
-      />
       <div className="flex flex-col items-center justify-center">
         <div className="mt-4 w-96 h-128 bg-gray-100 rounded-lg shadow-md flex flex-col justify-center">
           <h2 className="mx-16 mt-6 text-xl font-semibold text-center text-gray-700">
