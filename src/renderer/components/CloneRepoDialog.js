@@ -6,6 +6,8 @@ import Switch from './Switch';
 import { openFolder, openExternal } from '../../lib/app-shell';
 import { web_base_url } from '../../lib/config';
 
+import { trackEvent } from '../analytics';
+
 function cloneRepoReducer(state, action) {
   switch (action.type) {
     case 'CLONE_INIT':
@@ -58,8 +60,10 @@ const CloneRepoDialog = ({ onDismiss, defaultSelectedFolder, SshKey }) => {
     if (success) {
       dispatch({ type: 'CLONE_SUCCESS', payload: true });
       setTimeout(() => openFolder(repoFolder), 1000);
+      trackEvent('clone-repo', `${SshKey.provider}-success`);
     } else {
       dispatch({ type: 'CLONE_ERROR' });
+      trackEvent('clone-repo', `${SshKey.provider}-error`);
     }
   }
 
