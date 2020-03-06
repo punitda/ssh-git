@@ -1,5 +1,6 @@
 // external libs
 import React from 'react';
+import toaster, { Position } from 'toasted-notes';
 
 import { getOauthUrlsForBasicInfo } from '../../service/api';
 import fetchReducer from '../../reducers/fetchReducer';
@@ -37,6 +38,10 @@ const ConnectAccount = observer(({ onNext, location }) => {
     if (location.state.provider) {
       sessionStore.addProvider(location.state.provider);
     }
+  }, []);
+
+  React.useEffect(() => {
+    return () => toaster.closeAll();
   }, []);
 
   React.useEffect(() => {
@@ -85,6 +90,31 @@ const ConnectAccount = observer(({ onNext, location }) => {
     trackEvent('setup-flow', `${sessionStore.provider}-connect`);
   }
 
+  function onCopyToClipboardClicked() {
+    const { url, state } = getOauthUrlsForBasicInfo(sessionStore.provider);
+
+    sessionStore.addState(state);
+    window.clipboard.writeText(url);
+    // Show toast
+    toaster.notify(
+      () => {
+        return (
+          <div className="py-2 px-4 rounded shadow-md bg-green-500 text-white font-medium text-center text-base mt-20 mr-4">
+            <h1 className="font-semibold text-left">Key copied to clipboard</h1>
+            <span className="mt-2">
+              Paste it in your browser to connect account
+            </span>
+          </div>
+        );
+      },
+      {
+        duration: 2500,
+        position: Position['top-right'],
+      }
+    );
+    trackEvent('setup-flow', `${sessionStore.provider}-connect`);
+  }
+
   return (
     <>
       <h1 className="text-2xl text-gray-900 text-center mt-8">
@@ -130,6 +160,16 @@ const ConnectAccount = observer(({ onNext, location }) => {
             : data
             ? 'Success!'
             : 'Connect'}
+        </button>
+      </div>
+      <div className="absolute right-0 bottom-0 mr-16 mb-8">
+        <span className="text-gray-800 text-base">
+          Want to connect account logged in a specific browser?
+        </span>
+        <button
+          className="ml-2 font-medium border-b-2 border-blue-500 hover:border-blue-700 text-blue-500 hover:text-blue-700 text-base focus:outline-none"
+          onClick={onCopyToClipboardClicked}>
+          Copy link
         </button>
       </div>
     </>
