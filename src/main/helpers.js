@@ -21,6 +21,7 @@ function showWindow(window) {
 
 async function handleAppURL(callbackUrl, mainWindow) {
   showWindow(mainWindow);
+  ipc.callFocusedRenderer('connecting-account');
 
   const authState = parseAppURL(callbackUrl);
   if (!authState) {
