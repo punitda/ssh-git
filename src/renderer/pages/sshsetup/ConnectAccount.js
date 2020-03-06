@@ -124,7 +124,7 @@ const ConnectAccount = observer(({ onNext, location }) => {
         position: Position['top-right'],
       }
     );
-    trackEvent('setup-flow', `${sessionStore.provider}-connect`);
+    trackEvent('setup-flow', `${sessionStore.provider}-connect-copy-link`);
   }
 
   return (
