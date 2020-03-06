@@ -107,6 +107,8 @@ const GenerateKey = observer(({ onNext }) => {
           sessionStore.provider,
           sessionStore.username
         );
+
+        trackEvent('setup-flow', 'key-already-exists-in-store');
       }
 
       // If we don't find anything matching in "keyStore" we go ahead
@@ -288,8 +290,10 @@ const GenerateKey = observer(({ onNext }) => {
       }
       dispatch({ type: 'FETCH_SUCCESS', payload: { keyGenerated: true } });
       setTimeout(() => onNext('oauth/add'), 1500);
+      trackEvent('setup-flow', 'generate-key-success');
     } else if (error) {
       dispatch({ type: 'FETCH_ERROR' });
+      trackEvent('setup-flow', 'generate-key-error');
     }
   }
 
