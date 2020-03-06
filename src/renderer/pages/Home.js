@@ -1,5 +1,6 @@
 import React from 'react';
 
+import toaster, { Position } from 'toasted-notes';
 import { useNavigate } from '@reach/router';
 
 import { observer } from 'mobx-react-lite';
@@ -13,9 +14,9 @@ import ActionToolbar from '../components/ActionToolbar';
 import CloneRepoDialog from '../components/CloneRepoDialog';
 import UpdateRemoteDialog from '../components/UpdateRemoteDialog';
 import InputDialog from '../components/InputDialog';
-
 import DeleteKeyDialog from '../components/DeleteKeyDialog';
-import toaster, { Position } from 'toasted-notes';
+
+import { trackEvent } from '../analytics';
 
 const Home = observer(() => {
   const { keyStore } = useStore();
@@ -73,11 +74,13 @@ const Home = observer(() => {
   function onUserNameAdded(username) {
     closeInputNameDialog();
     keyStore.addUsername(currentKey, username);
+    trackEvent('add-username', `${currentKey.provider}-username-added`);
   }
 
   function onLabelAdded(label) {
     closeInputLabelDialog();
     keyStore.addLabel(currentKey, label);
+    trackEvent('add-label', `${currentKey.provider}-label-added`);
   }
 
   async function onKeyDeleted() {
@@ -103,6 +106,7 @@ const Home = observer(() => {
     // a. Remove the key from keyStore so UI is updated with that particular key removed
     // b. Notify user that key was deleted successfully with some 1.5s delay to avoid overlap with initial notification
     if (keyDeleted) {
+      trackEvent('delete-key', `${currentKey.provider}-delete-success`);
       keyStore.removeKey(currentKey);
       setTimeout(
         () =>
@@ -118,6 +122,8 @@ const Home = observer(() => {
           ),
         1500
       );
+    } else {
+      trackEvent('delete-key', `${currentKey.provider}-delete-error`);
     }
   }
 
@@ -135,6 +141,7 @@ const Home = observer(() => {
       },
       { duration: 1000, position: Position['top'] }
     );
+    trackEvent('refresh-store', 'true');
   }
 
   function onActionClicked(actionType, key) {
@@ -142,22 +149,27 @@ const Home = observer(() => {
       case 'CLONE_REPO':
         setCurrentKey(key);
         openCloneRepoDialog();
+        trackEvent('menu-action', 'clone-repo');
         break;
       case 'UPDATE_REMOTE':
         setCurrentKey(key);
         openUpdateRemoteDialog();
+        trackEvent('menu-action', 'update-remote');
         break;
       case 'DELETE_KEY':
         setCurrentKey(key);
         openDeleteKeyDialog();
+        trackEvent('menu-action', 'delete-key');
         break;
       case 'ADD_LABEL':
         setCurrentKey(key);
         openInputLabelDialog();
+        trackEvent('menu-action', 'add-label');
         break;
       case 'ADD_USERNAME':
         setCurrentKey(key);
         openInputNameDialog();
+        trackEvent('menu-action', 'add-username');
         break;
       default:
         break;
@@ -169,7 +181,10 @@ const Home = observer(() => {
       <ActionToolbar
         title="ssh-git"
         logo={logo}
-        onPrimaryAction={() => navigate('/oauth/connect')}
+        onPrimaryAction={() => {
+          trackEvent('setup-flow', 'new-ssh-key-from-toolbar');
+          navigate('/oauth/connect');
+        }}
       />
       <div className="my-12 flex flex-col justify-start flex-wrap max-w-2xl xl:max-w-4xl mx-auto">
         {keyStore.totalNoOfKeys > 0 ? (
@@ -195,6 +210,7 @@ const Home = observer(() => {
             <ProviderAccordion
               keys={keyStore.keysGroupByProvider}
               onNewSshKeyClicked={provider => {
+                trackEvent('setup-flow', 'new-ssh-key-from-provider');
                 navigate('/oauth/connect', { state: { provider } });
               }}
               onActionClicked={onActionClicked}
@@ -207,7 +223,10 @@ const Home = observer(() => {
             </h1>
             <div
               className="mt-12 w-56 h-56 mx-4 flex flex-row justify-center items-center rounded-lg border-gray-500 border-2 border-dashed hover:border-blue-500 hover:bg-gray-200 cursor-pointer"
-              onClick={() => navigate('/oauth/connect')}>
+              onClick={() => {
+                trackEvent('setup-flow', 'new-ssh-key-from-zero-keys');
+                navigate('/oauth/connect');
+              }}>
               <PlusIcon className="text-gray-700 w-8 h-8 font-semibold" />
               <h1 className="ml-2 text-xl text-gray-700">Setup SSH key</h1>
             </div>

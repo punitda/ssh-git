@@ -11,7 +11,7 @@ export default function ActionToolbar({ logo, title, onPrimaryAction }) {
       </div>
 
       <button
-        className="primary-btn-success hover:bg-green-700 text-base px-4 py-2"
+        className="primary-btn-success hover:bg-green-700 text-base px-4 py-2 focus:outline-none"
         onClick={onPrimaryAction}>
         New SSH key
       </button>
