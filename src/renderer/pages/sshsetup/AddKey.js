@@ -144,7 +144,7 @@ const AddKey = observer(({ onNext }) => {
   }
 
   // Triggered When "Copy" link is clicked.
-  // Copies the content of `textarea` to the clipboard
+  // Copies the content to the clipboard using Electron's clipboard api
   function onCopyToClipboardClicked(event) {
     event.preventDefault();
     window.clipboard.writeText(publicKey);
