@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { DialogContent, DialogOverlay } from '@reach/dialog';
+import { trackEvent } from '../analytics';
 
 function updateRemoteReducer(state, action) {
   switch (action.type) {
@@ -56,8 +57,10 @@ const UpdateRemoteDialog = ({ onDismiss, defaultSelectedFolder, SshKey }) => {
 
     if (success) {
       dispatch({ type: 'UPDATE_REMOTE_SUCCESS', payload: true });
+      trackEvent('update-remote', `${SshKey.provider}-success`);
     } else {
       dispatch({ type: 'UPDATE_REMOTE_ERROR' });
+      trackEvent('update-remote', `${SshKey.provider}-error`);
     }
   }
 
