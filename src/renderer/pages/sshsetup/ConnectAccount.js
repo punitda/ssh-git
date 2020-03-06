@@ -79,6 +79,18 @@ const ConnectAccount = observer(({ onNext, location }) => {
     };
   }, [sessionStore.state]);
 
+  React.useEffect(() => {
+    let dispose;
+
+    dispose = window.ipc.answerMain('connecting-account', () => {
+      dispatch({ type: 'FETCH_INIT' });
+    });
+
+    return () => {
+      if (dispose) dispose();
+    };
+  }, []);
+
   // Click listener for button `Connect`.
   function connectToProvider() {
     dispatch({ type: 'FETCH_INIT' });
