@@ -5,7 +5,7 @@ import { useNavigate } from '@reach/router';
 import { Reveal, RevealGlobalStyles, Animation } from 'react-genie';
 import Typical from 'react-typical';
 
-import AlphaBadge from '../../assets/img/alpha_badge.svg';
+import BetaBadge from '../../assets/img/beta_badge.svg';
 import logo from '../../assets/logo/icon.png';
 
 import { trackEvent } from '../analytics';
@@ -16,7 +16,7 @@ export default function Landing() {
     <div className="bg-gray-800 h-screen">
       <RevealGlobalStyles />
       <div className="flex justify-between">
-        <AlphaBadge className="z-10" />
+        <BetaBadge className="z-10" />
       </div>
       <div className="flex flex-col items-center pb-8">
         <Reveal delay={100}>
