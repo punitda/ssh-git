@@ -22,5 +22,5 @@ module.exports = {
     borderWidth: ['responsive', 'hover', 'focus'],
     display: ['responsive', 'hover', 'focus', 'group-hover'],
   },
-  plugins: [require('./plugins/gradients')],
+  plugins: [],
 };
