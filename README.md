@@ -27,6 +27,7 @@ App is available for Mac and Linux and can be downloaded from website.
 
 - [Electron](https://electronjs.org/)
 - [ReactJS](https://reactjs.org/)
+- [MST](https://mobx-state-tree.js.org/)
 - [TailwindCss](https://tailwindcss.com/)
 - [node-pty](https://github.com/microsoft/node-pty)
 
