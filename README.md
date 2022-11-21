@@ -1,4 +1,6 @@
-# ssh-git
+# ssh-git 
+
+## WARNING : This is no longer maintained
 
 [![Github Actions](https://github.com/punitda/ssh-git/workflows/Release%20App/badge.svg)](https://github.com/punitda/ssh-git/actions)
 [![License](https://img.shields.io/badge/MIT-LICENSE-blue)](LICENSE)
@@ -75,12 +77,6 @@ GITHUB_CLIENT_ID=<YOUR_GITHUB_CLIENT_ID>
 GITLAB_CLIENT_ID=<YOUR_GITLAB_CLIENT_ID>
 BITBUCKET_CLIENT_ID=<YOUR_BITBUCKET_CLIENT_ID>
 ```
-
-## Donation:
-
-This project is free to download and use but it has fix upfront cost to keep it running. So, if you use this app frequently to setup SSH keys for your accounts please consider donating 🙏
-
-<a href="https://www.buymeacoffee.com/X3fCyWh" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
 ## License:
 
